@@ -1,0 +1,5 @@
+services:
+  db_manager_core.engines.mysql:
+    public: true
+    class: DbManager\MysqlBundle\Service\EngineProcessor
+    arguments: []

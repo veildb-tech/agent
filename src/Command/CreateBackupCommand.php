@@ -2,43 +2,44 @@
 
 namespace App\Command;
 
+use App\Service\DatabaseProcessor;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use App\Service\Actions\GetDump;
 
 #[AsCommand(
-    name: 'app:dump',
-    description: 'Check if need to create dump. It returns project_id if need and null if no',
+    name: 'app:db:process',
+    description: 'Start processing database by database id and temporary database name',
 )]
 class CreateBackupCommand extends Command
 {
-
-    private GetDump $dump;
+    private DatabaseProcessor $databaseProcessor;
 
     public function __construct(
-        GetDump $dump,
+        DatabaseProcessor $databaseProcessor,
         string $name = null
     ) {
         parent::__construct($name);
-        $this->dump = $dump;
+        $this->databaseProcessor = $databaseProcessor;
     }
 
     protected function configure(): void
     {
         $this
-            ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
+            ->addArgument('database_uid', InputArgument::REQUIRED, 'Database UUID from the service')
+            ->addArgument('db_name', InputArgument::REQUIRED, 'Temporary database name')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->dump->getScheduledDumps();
+        $this->databaseProcessor->process(
+            $input->getArgument('database_uid'),
+            $input->getArgument('db_name')
+        );
+
         $output->write('project1');
 
         return Command::SUCCESS;

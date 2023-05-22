@@ -1,4 +1,13 @@
 {
+    "db-manager/core": {
+        "version": "dev-main"
+    },
+    "db-manager/core-bundle": {
+        "version": "dev-main"
+    },
+    "db-manager/mysql-bundle": {
+        "version": "dev-main"
+    },
     "symfony/console": {
         "version": "6.2",
         "recipe": {

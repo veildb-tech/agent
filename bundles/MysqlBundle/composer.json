@@ -1,0 +1,15 @@
+{
+    "name": "db-manager/mysql-bundle",
+    "description": "Mysql engine bundle",
+    "type": "symfony-bundle",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "DbManager\\MysqlBundle\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+    ]
+}

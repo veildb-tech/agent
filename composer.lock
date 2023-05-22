@@ -4,8 +4,52 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c3539996fd00764a3c450d7e1bc92294",
+    "content-hash": "11d49b323504539a605cea4e17f1e64e",
     "packages": [
+        {
+            "name": "db-manager/core-bundle",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "bundles/CoreBundle",
+                "reference": "e8b6eba60500cf3b1fca0792db6fdba20226db67"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "DbManager\\CoreBundle\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Core bundle for all engines",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
+            "name": "db-manager/mysql-bundle",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "bundles/MysqlBundle",
+                "reference": "cf87e64d4e00702d0f858442f89fde5328c273ae"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "DbManager\\MysqlBundle\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Mysql engine bundle",
+            "transport-options": {
+                "relative": true
+            }
+        },
         {
             "name": "psr/cache",
             "version": "3.0.0",
@@ -558,16 +602,16 @@
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v6.2.8",
+            "version": "v6.2.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "b6195feacceb88fc58a02b69522b569e4c6188ac"
+                "reference": "d732a66a2672669232c0b4536c8c96724a679780"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/b6195feacceb88fc58a02b69522b569e4c6188ac",
-                "reference": "b6195feacceb88fc58a02b69522b569e4c6188ac",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/d732a66a2672669232c0b4536c8c96724a679780",
+                "reference": "d732a66a2672669232c0b4536c8c96724a679780",
                 "shasum": ""
             },
             "require": {
@@ -625,7 +669,7 @@
             "description": "Allows you to standardize and centralize the way objects are constructed in your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/dependency-injection/tree/v6.2.8"
+                "source": "https://github.com/symfony/dependency-injection/tree/v6.2.10"
             },
             "funding": [
                 {
@@ -641,7 +685,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-03-30T13:35:57+00:00"
+            "time": "2023-04-21T15:42:15+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2785,7 +2829,10 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "db-manager/core-bundle": 20,
+        "db-manager/mysql-bundle": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

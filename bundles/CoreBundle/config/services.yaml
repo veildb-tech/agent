@@ -1,0 +1,6 @@
+services:
+  DbManager\CoreBundle\Processor:
+    arguments:
+      $container: '@service_container'
+  DbManager\CoreBundle\Service\TempDatabase:
+  DbManager\CoreBundle\Service\RuleManager:

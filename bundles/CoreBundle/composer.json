@@ -1,0 +1,15 @@
+{
+    "name": "db-manager/core-bundle",
+    "description": "Core bundle for all engines",
+    "type": "symfony-bundle",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "DbManager\\CoreBundle\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+    ]
+}

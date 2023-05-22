@@ -19,6 +19,6 @@ APP_ENV=dev
 APP_SECRET=9240f159ac991e85598420a53ed3bc39
 ###< symfony/framework-bundle ###
 
-APP_SERVICE_URL=https://service.url/
-APP_SERVICE_WORKSPACE=bridge-digital
-APP_SERVICE_TOKEN=saijq4j3rt1sdfg293u492jkdfshlkwhq
+APP_SERVICE_URL=
+APP_SERVICE_WORKSPACE=
+APP_SERVICE_TOKEN=
