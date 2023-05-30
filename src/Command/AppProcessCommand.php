@@ -1,45 +1,73 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Service\DatabaseProcessor;
+use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: 'app:db:process',
     description: 'Start processing database by database id and temporary database name',
 )]
-class AppProcessCommand extends Command
+final class AppProcessCommand extends Command
 {
-    private DatabaseProcessor $databaseProcessor;
-
+    /**
+     * @param DatabaseProcessor $databaseProcessor
+     * @param LoggerInterface $logger
+     * @param string|null $name
+     */
     public function __construct(
-        DatabaseProcessor $databaseProcessor,
+        protected readonly DatabaseProcessor $databaseProcessor,
+        protected readonly LoggerInterface $logger,
         string $name = null
     ) {
         parent::__construct($name);
-        $this->databaseProcessor = $databaseProcessor;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function configure(): void
     {
-        $this
-            ->addArgument('database_uid', InputArgument::REQUIRED, 'Database UUID from the service')
-            ->addArgument('db_name', InputArgument::REQUIRED, 'Temporary database name')
-        ;
+        $this->addArgument(
+            'database_uid',
+            InputArgument::REQUIRED,
+            'Database UUID from the service'
+        )->addArgument(
+            'db_name',
+            InputArgument::REQUIRED,
+            'Temporary database name'
+        );
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->databaseProcessor->process(
-            $input->getArgument('database_uid'),
-            $input->getArgument('db_name')
-        );
+        try {
+            $this->databaseProcessor->process(
+                $input->getArgument('database_uid'),
+                $input->getArgument('db_name')
+            );
+        } catch (NoSuchEngineException | DecodingExceptionInterface | TransportExceptionInterface $e) {
+            $this->logger->error($e->getMessage());
 
+            return Command::FAILURE;
+        }
         return Command::SUCCESS;
     }
 }

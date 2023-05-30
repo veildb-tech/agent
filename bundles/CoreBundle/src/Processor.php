@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace DbManager\CoreBundle;
 
 use DbManager\CoreBundle\Interfaces\EngineInterface;
-use DbManager\CoreBundle\Interfaces\RuleManagerInteface;
+use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 use DbManager\CoreBundle\Interfaces\TempDatabaseInterface;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use Exception;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class Processor
@@ -15,28 +17,29 @@ class Processor
     /**
      * @param ContainerInterface $container
      */
-    public function __construct(private readonly ContainerInterface $container)
-    {
+    public function __construct(
+        private readonly ContainerInterface $container
+    ) {
     }
 
     /**
      * @throws NoSuchEngineException
      */
     public function execute(
-        string $engine,
-        RuleManagerInteface $ruleManagerInterface,
+        RuleManagerInterface $ruleManagerInterface,
         TempDatabaseInterface $tempDatabase
     ): void {
-        $processor = $this->getEngine($engine);
+        $processor = $this->getEngine($ruleManagerInterface->getEngine());
         $processor->execute($ruleManagerInterface, $tempDatabase);
     }
 
     /**
-     * Retrieve engine service acording to provided engine name
+     * Retrieve engine service according to provided engine name
      *
      * @throws NoSuchEngineException
+     * @throws Exception
      */
-    private function getEngine(string $engine): EngineInterface
+    private function getEngine(string $engine): object
     {
         $serviceName = $this->getServiceName($engine);
 
@@ -44,7 +47,12 @@ class Processor
             throw new NoSuchEngineException(sprintf("No such engine %s", $engine));
         }
 
-        return $this->container->get($serviceName);
+        $engine = $this->container->get($serviceName);
+        if (!($engine instanceof EngineInterface)) {
+            throw new InvalidArgumentException('The engine must be instance of EngineInterface');
+        }
+
+        return $engine;
     }
 
     /**

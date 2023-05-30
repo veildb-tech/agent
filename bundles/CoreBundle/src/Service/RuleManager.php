@@ -4,30 +4,53 @@ declare(strict_types=1);
 
 namespace DbManager\CoreBundle\Service;
 
-use DbManager\CoreBundle\Interfaces\RuleManagerInteface;
+use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 
-class RuleManager implements RuleManagerInteface
+class RuleManager implements RuleManagerInterface
 {
+    /**
+     * @var string
+     */
+    private string $engine = '';
+
     /**
      * @var array
      */
-    private array $rules = [];
+    private array $tables = [];
 
     /**
-     * @param array $rules
-     * @return RuleManagerInteface
+     * @inheritdoc
      */
-    public function set(array $rules): RuleManagerInteface
+    public function setEngine(string $engine): RuleManagerInterface
     {
-        $this->rules = $rules;
+        $this->engine = $engine;
+
         return $this;
     }
 
     /**
-     * @return array
+     * @inheritdoc
      */
-    public function get(): array
+    public function getEngine(): string
     {
-        return $this->rules;
+        return $this->engine;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setTables(array $tables): RuleManagerInterface
+    {
+        $this->tables = $tables;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTables(): array
+    {
+       return $this->tables;
     }
 }

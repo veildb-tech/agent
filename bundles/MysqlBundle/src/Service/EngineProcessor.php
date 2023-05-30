@@ -5,13 +5,34 @@ declare(strict_types=1);
 namespace DbManager\MysqlBundle\Service;
 
 use DbManager\CoreBundle\Interfaces\EngineInterface;
-use DbManager\CoreBundle\Interfaces\RuleManagerInteface;
+use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 use DbManager\CoreBundle\Interfaces\TempDatabaseInterface;
+use DbManager\CoreBundle\Service\AbstractEngineProcessor;
 
-class EngineProcessor implements EngineInterface
+final class EngineProcessor extends AbstractEngineProcessor implements EngineInterface
 {
-    public function execute(RuleManagerInteface $rules, TempDatabaseInterface $tempDatabase)
+    /**
+     * Engine const
+     */
+    public const DRIVER_ENGINE = 'mysql';
+
+    public function execute(RuleManagerInterface $rules, TempDatabaseInterface $tempDatabase): void
     {
-        // TODO: Implement execute() method.
+        $connection = $this->getDbConnection($tempDatabase->getName());
+
+        foreach ($rules->getTables() as $table => $rules) {
+            if ($rules['method']) {
+                switch ($rules['method']) {
+                    case 'truncate':
+                        if ($rules['where']) {
+                            $connection->table($table)->where($rules['where'])->truncate();
+                        }
+                        $connection->table($table)->truncate();
+                        break;
+                    case 'fake':
+                        break;
+                }
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
@@ -19,16 +21,17 @@ class DatabaseProcessor
      * @param Processor $processor
      */
     public function __construct(
-        private TempDatabase $tempDatabase,
-        private RuleManager $ruleManager,
-        private GetDatabaseRules $getDatabaseRules,
-        private Processor $processor
+        private readonly TempDatabase     $tempDatabase,
+        private readonly RuleManager      $ruleManager,
+        private readonly GetDatabaseRules $getDatabaseRules,
+        private readonly Processor        $processor
     ) {
     }
 
     /**
      * @param string $databaseUid
      * @param string $tempDatabase
+     *
      * @return void
      * @throws NoSuchEngineException
      * @throws DecodingExceptionInterface
@@ -37,9 +40,15 @@ class DatabaseProcessor
     public function process(string $databaseUid, string $tempDatabase): void
     {
         $this->tempDatabase->setName($tempDatabase);
-        $rules = $this->getDatabaseRules->get($databaseUid);
-        $this->ruleManager->set($rules);
 
-        $this->processor->execute($rules['engine'], $this->ruleManager, $this->tempDatabase);
+        /**
+         * TODO: Change functionality getDatabaseRules->get, better to return RuleManagerInterface
+         */
+        $rules = $this->getDatabaseRules->get($databaseUid);
+
+        $this->ruleManager->setEngine($rules['engine']);
+        $this->ruleManager->setTables($rules['tables']);
+
+        $this->processor->execute($this->ruleManager, $this->tempDatabase);
     }
 }

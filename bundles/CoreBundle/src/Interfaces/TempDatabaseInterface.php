@@ -6,5 +6,7 @@ namespace DbManager\CoreBundle\Interfaces;
 
 interface TempDatabaseInterface
 {
+    public function getName(string $name): string;
+
     public function setName(string $name): TempDatabaseInterface;
 }
