@@ -8,7 +8,6 @@ use DbManager\CoreBundle\Interfaces\EngineInterface;
 use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 use DbManager\CoreBundle\Interfaces\TempDatabaseInterface;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -17,12 +16,15 @@ class Processor
     /**
      * @param ContainerInterface $container
      */
-    public function __construct(
-        private readonly ContainerInterface $container
-    ) {
+    public function __construct(private readonly ContainerInterface $container)
+    {
     }
 
     /**
+     * @param RuleManagerInterface  $ruleManagerInterface
+     * @param TempDatabaseInterface $tempDatabase
+     *
+     * @return void
      * @throws NoSuchEngineException
      */
     public function execute(
@@ -36,8 +38,10 @@ class Processor
     /**
      * Retrieve engine service according to provided engine name
      *
+     * @param string $engine
+     *
+     * @return object
      * @throws NoSuchEngineException
-     * @throws Exception
      */
     private function getEngine(string $engine): object
     {
@@ -59,6 +63,7 @@ class Processor
      * Due to service name agreement return service name
      *
      * @param string $engine
+     *
      * @return string
      */
     private function getServiceName(string $engine): string

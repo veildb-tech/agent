@@ -61,6 +61,7 @@ final class TableService
      *
      * @param string $condition
      * @param bool $withoutAlias do not use alias for a main table
+     *
      * @return Builder
      */
     public function queryWithCondition(string $condition, bool $withoutAlias = false): Builder

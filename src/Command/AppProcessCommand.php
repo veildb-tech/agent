@@ -9,8 +9,8 @@ use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -39,13 +39,15 @@ final class AppProcessCommand extends Command
      */
     protected function configure(): void
     {
-        $this->addArgument(
-            'database_uid',
-            InputArgument::REQUIRED,
+        $this->addOption(
+            'uid',
+            'u',
+            InputOption::VALUE_REQUIRED,
             'Database UUID from the service'
-        )->addArgument(
-            'db_name',
-            InputArgument::REQUIRED,
+        )->addOption(
+            'db',
+            null,
+            InputOption::VALUE_REQUIRED,
             'Temporary database name'
         );
     }
@@ -60,8 +62,8 @@ final class AppProcessCommand extends Command
     {
         try {
             $this->databaseProcessor->process(
-                $input->getArgument('database_uid'),
-                $input->getArgument('db_name')
+                $input->getOption('uid'),
+                $input->getOption('db')
             );
         } catch (NoSuchEngineException | DecodingExceptionInterface | TransportExceptionInterface $e) {
             $this->logger->error($e->getMessage());

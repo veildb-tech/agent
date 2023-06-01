@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbManager\CoreBundle\Service;
 
+use ArrayIterator;
 use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 
 class RuleManager implements RuleManagerInterface
@@ -16,7 +17,7 @@ class RuleManager implements RuleManagerInterface
     /**
      * @var array
      */
-    private array $tables = [];
+    private array $rules = [];
 
     /**
      * @inheritdoc
@@ -39,9 +40,9 @@ class RuleManager implements RuleManagerInterface
     /**
      * @inheritdoc
      */
-    public function setTables(array $tables): RuleManagerInterface
+    public function setRules(array $rules): RuleManagerInterface
     {
-        $this->tables = $tables;
+        $this->rules = $rules;
 
         return $this;
     }
@@ -49,8 +50,18 @@ class RuleManager implements RuleManagerInterface
     /**
      * @inheritdoc
      */
-    public function getTables(): array
+    public function getRules(): array
     {
-       return $this->tables;
+        return $this->rules;
+    }
+
+    /**
+     * Get iterable rules
+     *
+     * @return ArrayIterator
+     */
+    public function getIterableRules(): ArrayIterator
+    {
+        return new ArrayIterator($this->getRules());
     }
 }

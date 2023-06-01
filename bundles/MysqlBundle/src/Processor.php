@@ -20,14 +20,14 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
     /**
      * @param DataProcessorFactoryInterface $dataProcessorFactory
      */
-    public function __construct(
-        private readonly DataProcessorFactoryInterface $dataProcessorFactory
-    ) {
+    public function __construct(private readonly DataProcessorFactoryInterface $dataProcessorFactory)
+    {
     }
 
     public function execute(RuleManagerInterface $rules, TempDatabaseInterface $tempDatabase): void
     {
-        $connection = $this->getDbConnection($tempDatabase->getName());
+        $this->connection = $this->getDbConnection($tempDatabase->getName());
+        $this->connection->statement('SET FOREIGN_KEY_CHECKS=0');
 
         // Steps:
         // 1. Get all tables from rules
@@ -37,22 +37,35 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
         // 2.1.1.1 Form rules into query
         // 2..2. Execute query
 
-        foreach ($rules->getTables() as $table => $rules) {
-            $dataProcessor = $this->dataProcessorFactory->create($table, $connection);
+        foreach ($rules->getIterableRules() as $table => $rules) {
+            $this->processRule($table, $rules);
+        }
 
-            if ($rules['method']) {
-                switch ($rules['method']) {
-                    case 'truncate':
-                        $this->truncate($rules, $dataProcessor);
-                        break;
-                    case 'fake':
-                        break;
-                }
+        $this->connection->statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    protected function processRule(string $table, array $rule): void
+    {
+        $dataProcessor = $this->dataProcessorFactory->create($table, $this->connection);
+
+        if (isset($rule['method'])) {
+            switch ($rule['method']) {
+                case 'truncate':
+                    $this->truncate($rule, $dataProcessor);
+                    break;
+                case 'fake':
+                    break;
+            }
+        }
+
+        if (isset($rule['columns'])) {
+            foreach ($rule['columns'] as $column => $rule) {
+
             }
         }
     }
 
-    public function truncate(array $rules, $dataProcessor)
+    protected function truncate(array $rules, $dataProcessor)
     {
         if ($rules['where']) {
             $dataProcessor->delete($rules['where']);
@@ -62,7 +75,12 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
         $dataProcessor->truncate();
     }
 
-    public function fake()
+    protected function fake()
+    {
+
+    }
+
+    protected function validateWhere(string $where): void
     {
 
     }

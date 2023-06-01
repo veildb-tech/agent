@@ -19,7 +19,10 @@
         "ext-iconv": "*",
         "db-manager/core-bundle": "dev-main",
         "db-manager/mysql-bundle": "dev-main",
+        "doctrine/dbal": "^3.6",
+        "fakerphp/faker": "^1.22",
         "illuminate/database": "^10.12",
+        "phpoption/phpoption": "^1.9",
         "symfony/console": "6.2.*",
         "symfony/dependency-injection": "6.2.*",
         "symfony/dotenv": "6.2.*",
@@ -27,7 +30,8 @@
         "symfony/framework-bundle": "6.2.*",
         "symfony/http-client": "6.2.*",
         "symfony/runtime": "6.2.*",
-        "symfony/yaml": "6.2.*"
+        "symfony/yaml": "6.2.*",
+        "vlucas/phpdotenv": "^5.5"
     },
     "config": {
         "allow-plugins": {

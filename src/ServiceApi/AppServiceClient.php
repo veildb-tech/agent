@@ -26,8 +26,7 @@ class AppServiceClient
         protected string $workspace,
         protected string $apiToken,
         protected string $serviceUrl = self::SERVICE_URL
-    )
-    {
+    ) {
     }
 
     /**

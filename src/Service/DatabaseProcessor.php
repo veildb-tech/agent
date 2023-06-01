@@ -15,10 +15,10 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 class DatabaseProcessor
 {
     /**
-     * @param TempDatabase $tempDatabase
-     * @param RuleManager $ruleManager
+     * @param TempDatabase     $tempDatabase
+     * @param RuleManager      $ruleManager
      * @param GetDatabaseRules $getDatabaseRules
-     * @param Processor $processor
+     * @param Processor        $processor
      */
     public function __construct(
         private readonly TempDatabase     $tempDatabase,
@@ -33,6 +33,7 @@ class DatabaseProcessor
      * @param string $tempDatabase
      *
      * @return void
+     *
      * @throws NoSuchEngineException
      * @throws DecodingExceptionInterface
      * @throws TransportExceptionInterface
@@ -47,7 +48,7 @@ class DatabaseProcessor
         $rules = $this->getDatabaseRules->get($databaseUid);
 
         $this->ruleManager->setEngine($rules['engine']);
-        $this->ruleManager->setTables($rules['tables']);
+        $this->ruleManager->setRules($rules['tables']);
 
         $this->processor->execute($this->ruleManager, $this->tempDatabase);
     }

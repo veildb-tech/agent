@@ -1,5 +1,6 @@
 services:
   db_manager_core.engines.mysql:
+    autowire: true
     public: true
     class: DbManager\MysqlBundle\Processor
     arguments: []

@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace DbManager\CoreBundle\Service;
 
 use DbManager\CoreBundle\Interfaces\EngineInterface;
-use Illuminate\Database\Capsule\Manager as CapsuleManager;
+use Illuminate\Database\Capsule\Manager;
 use Illuminate\Database\Connection;
 
+/**
+ * AbstractEngineProcessor Class
+ */
 abstract class AbstractEngineProcessor implements EngineInterface
 {
+    /**
+     * @var Connection
+     */
+    protected Connection $connection;
+
     /**
      * Get DB Connection
      *
@@ -19,7 +27,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
      */
     protected function getDbConnection(string $dbName): Connection
     {
-        $capsule = new CapsuleManager;
+        $capsule = new Manager();
         $capsule->addConnection([
             'driver'    => static::DRIVER_ENGINE,
             'host'      => env('DATABASE_HOST'),
@@ -28,9 +36,6 @@ abstract class AbstractEngineProcessor implements EngineInterface
             'password'  => env('DATABASE_PASSWD'),
         ]);
 
-        $db = $capsule->getConnection();
-        $db->statement('SET FOREIGN_KEY_CHECKS=0');
-
-        return $db;
+        return $capsule->getConnection();
     }
 }

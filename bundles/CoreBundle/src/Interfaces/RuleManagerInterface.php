@@ -25,18 +25,18 @@ interface RuleManagerInterface
     public function getEngine(): string;
 
     /**
-     * Set tables
+     * Set rules
      *
-     * @param array $tables
+     * @param array $rules
      *
      * @return RuleManagerInterface
      */
-    public function setTables(array $tables): RuleManagerInterface;
+    public function setRules(array $rules): RuleManagerInterface;
 
     /**
-     * Get tables
+     * Get rules
      *
      * @return array
      */
-    public function getTables(): array;
+    public function getRules(): array;
 }

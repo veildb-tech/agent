@@ -30,8 +30,8 @@ class GetDatabaseRulesTest extends TestCase
         $result = $getDatabaseRules->get($databaseUid);
         $this->assertSame($result, $expected);
 
-        $this->assertContains('engine', $result);
-        $this->assertContains('tables', $result);
+        $this->assertArrayHasKey('engine', $result);
+        $this->assertArrayHasKey('tables', $result);
     }
 
     /**
