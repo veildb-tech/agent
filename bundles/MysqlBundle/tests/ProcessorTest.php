@@ -17,7 +17,9 @@ class ProcessorTest extends TestCase
      * @param string $databaseName
      *
      * @dataProvider formGetDbConnection
+     *
      * @return void
+     *
      * @throws \ReflectionException
      */
     public function testGetDbConnection(string $databaseName)
@@ -39,8 +41,8 @@ class ProcessorTest extends TestCase
     {
         return [
             'case_1' => [
-                'databaseName' => 'db'
-            ]
+                'databaseName' => 'db',
+            ],
         ];
     }
 
@@ -52,6 +54,7 @@ class ProcessorTest extends TestCase
      * @param array $parameters
      *
      * @return mixed
+     *
      * @throws \ReflectionException
      */
     protected function invokeMethod(&$object, $methodName, array $parameters = [])

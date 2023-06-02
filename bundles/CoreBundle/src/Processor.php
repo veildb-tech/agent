@@ -25,12 +25,11 @@ class Processor
      * @param TempDatabaseInterface $tempDatabase
      *
      * @return void
+     *
      * @throws NoSuchEngineException
      */
-    public function execute(
-        RuleManagerInterface $ruleManagerInterface,
-        TempDatabaseInterface $tempDatabase
-    ): void {
+    public function execute(RuleManagerInterface $ruleManagerInterface, TempDatabaseInterface $tempDatabase): void
+    {
         $processor = $this->getEngine($ruleManagerInterface->getEngine());
         $processor->execute($ruleManagerInterface, $tempDatabase);
     }
@@ -41,6 +40,7 @@ class Processor
      * @param string $engine
      *
      * @return object
+     *
      * @throws NoSuchEngineException
      */
     private function getEngine(string $engine): object

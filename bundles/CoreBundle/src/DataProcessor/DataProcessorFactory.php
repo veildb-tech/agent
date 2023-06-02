@@ -8,7 +8,10 @@ use Illuminate\Database\Connection;
 
 class DataProcessorFactory implements DataProcessorFactoryInterface
 {
-    public function create(string $tableName, Connection $connection): TableService
+    /**
+     * @inheritdoc
+     */
+    public function create(string $tableName, Connection $connection): DataProcessorInterface
     {
         return new TableService($tableName, $connection);
     }

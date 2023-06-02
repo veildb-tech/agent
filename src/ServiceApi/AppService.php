@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\ServiceApi;
 
+use Exception;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AppService
 {
@@ -18,20 +21,27 @@ class AppService
     /**
      * @param AppServiceClient $client
      */
-    public function __construct(
-        private AppServiceClient $client
-    ) {
+    public function __construct(private readonly AppServiceClient $client)
+    {
     }
 
     /**
-     * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @param array  $params
+     * @param string $method
+     *
+     * @return array
+     *
      * @throws DecodingExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws Exception
      */
-    public function sendRequest(array $params, $method = 'POST'): array
+    public function sendRequest(array $params, string $method = 'POST'): array
     {
         if (empty($this->action)) {
-            throw new \Exception("Action is required");
+            throw new Exception("Action is required");
         }
 
         $options = $this->getOptions($params);
@@ -51,7 +61,8 @@ class AppService
     /**
      * Prepare options to send
      *
-     * @param array $data
+     * @param array $params
+     *
      * @return array
      */
     protected function getOptions(array $params): array
@@ -59,8 +70,8 @@ class AppService
         return [
             'body' => $params,
             'headers' => [
-                'Accept' => 'application/json'
-            ]
+                'Accept' => 'application/json',
+            ],
         ];
     }
 }

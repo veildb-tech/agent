@@ -12,10 +12,10 @@ interface EngineInterface
     public const DRIVER_ENGINE = '';
 
     /**
-     * @param RuleManagerInterface $rules
+     * @param RuleManagerInterface  $rules
      * @param TempDatabaseInterface $tempDatabase
      *
-     * @return mixed
+     * @return void
      */
-    public function execute(RuleManagerInterface $rules, TempDatabaseInterface $tempDatabase);
+    public function execute(RuleManagerInterface $rules, TempDatabaseInterface $tempDatabase): void;
 }

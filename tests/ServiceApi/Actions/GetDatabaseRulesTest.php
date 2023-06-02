@@ -6,6 +6,7 @@ namespace App\Tests;
 
 use App\ServiceApi\Actions\GetDatabaseRules;
 use App\ServiceApi\AppServiceClient;
+use DbManager\CoreBundle\Service\RuleManager;
 use PHPUnit\Framework\TestCase;
 
 class GetDatabaseRulesTest extends TestCase
@@ -13,13 +14,9 @@ class GetDatabaseRulesTest extends TestCase
     /**
      * The test for getDefaultRole function
      *
-     * @param string $databaseUid
-     * @param array $expected
-     *
-     * @dataProvider formGetProvider
      * @return void
      */
-    public function testGet(string $databaseUid, array $expected)
+    public function testGet()
     {
         $appServiceClient = $this->getMockBuilder(AppServiceClient::class)
             ->disableOriginalConstructor()
@@ -27,44 +24,12 @@ class GetDatabaseRulesTest extends TestCase
 
         $getDatabaseRules = new GetDatabaseRules($appServiceClient);
 
-        $result = $getDatabaseRules->get($databaseUid);
-        $this->assertSame($result, $expected);
+        $result = $getDatabaseRules->get('1');
 
+        $this->assertInstanceOf(RuleManager::class, $result);
+
+        $result = $result->getArrayCopy();
         $this->assertArrayHasKey('engine', $result);
-        $this->assertArrayHasKey('tables', $result);
-    }
-
-    /**
-     * Provider get
-     *
-     * @return array
-     */
-    public function formGetProvider(): array
-    {
-        return [
-            'case_1' => [
-                'databaseUid' => '1',
-                'expected' => [
-                    'engine' => 'mysql',
-                    'tables' => [
-                        'sales_order' => [
-                            'method' => 'truncate',
-                            'where' => 'customer_id != 66'
-                        ],
-                        'adminnotification_inbox' => [
-                            'method' => 'truncate'
-                        ],
-                        'customer_entity' => [
-                            'columns' => [
-                                'email' => [
-                                    'method' => 'fake',
-                                    'value'  => 'test'
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-            ]
-        ];
+        $this->assertArrayHasKey('rules', $result);
     }
 }

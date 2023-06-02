@@ -14,5 +14,5 @@ Usage
 
 Available commands:
 `
-php bin/console app:db:process --database_uid=<Database UID> --db_name=<Database Name>
+php bin/console app:db:process --uid=<Database UID> --db=<Database Name>
 `

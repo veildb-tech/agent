@@ -8,5 +8,13 @@ use Illuminate\Database\Connection;
 
 interface DataProcessorFactoryInterface
 {
-    public function create(string $tableName, Connection $connection): TableService;
+    /**
+     * Create Data Processor instance
+     *
+     * @param string     $tableName
+     * @param Connection $connection
+     *
+     * @return DataProcessorInterface
+     */
+    public function create(string $tableName, Connection $connection): DataProcessorInterface;
 }

@@ -6,8 +6,9 @@ namespace DbManager\CoreBundle\DataProcessor;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
 
-final class TableService
+final class TableService implements DataProcessorInterface
 {
     /**
      * @var string
@@ -19,27 +20,51 @@ final class TableService
      */
     private Connection $connection;
 
-    public function __construct(
-        string $tableName,
-        Connection $connection
-    ) {
+    /**
+     * @param string     $tableName
+     * @param Connection $connection
+     */
+    public function __construct(string $tableName, Connection $connection)
+    {
         $this->tableName = $tableName;
         $this->connection = $connection;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function truncate(): void
     {
         $this->query(true)->truncate();
     }
 
     /**
-     * Deletes table data with provided condition
-     *
-     * @param string $condition
+     * @inheritdoc
      */
     public function delete(string $condition): void
     {
         $this->queryWithCondition($condition, true)->delete();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function update(string $field, string $value, ?string $condition = null): void
+    {
+        if ($condition) {
+            $this->queryWithCondition($condition, true)->update(
+                [
+                    $field => $this->connection->raw($value),
+                ]
+            );
+
+            return;
+        }
+        $this->query(true)->update(
+            [
+                $field => $this->connection->raw($value),
+            ]
+        );
     }
 
     /**
@@ -60,7 +85,7 @@ final class TableService
      * Returns base select query with attached condition
      *
      * @param string $condition
-     * @param bool $withoutAlias do not use alias for a main table
+     * @param bool   $withoutAlias do not use alias for a main table
      *
      * @return Builder
      */

@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use DbManager\CoreBundle\Service\RuleManager;
 
 class GetDatabaseRules extends AppService
 {
@@ -16,7 +17,7 @@ class GetDatabaseRules extends AppService
     /**
      * @param string $databaseUid
      *
-     * @return array [
+     * @return RuleManager ([
      *      'engine' => 'mysql',
      *      'tables' => array[
      *          '<table>' => [
@@ -25,39 +26,49 @@ class GetDatabaseRules extends AppService
      *              ]
      *          ]
      *      ];
-     * ]
-     * @throws DecodingExceptionInterface
-     * @throws TransportExceptionInterface
+     * ])
      */
-    public function get(string $databaseUid): array
+    public function get(string $databaseUid): RuleManager
     {
-        // TODO: temporary returns fake data
-        return [
+        return new RuleManager([
             'engine' => 'mysql',
-            'tables' => [
+            'rules'  => [
                 'sales_order' => [
                     'method' => 'truncate',
-                    'where' => 'customer_id != 66'
+                    'where' => 'entity_id != 67',
                 ],
                 'adminnotification_inbox' => [
-                    'method' => 'truncate'
+                    'method' => 'truncate',
                 ],
                 'customer_entity' => [
                     'columns' => [
                         'email' => [
-                            'method' => 'fake',
-                            'value'  => 'test'
-                        ]
-                    ]
-                ]
-            ]
-        ];
+                            'method' => 'update',
+                            'value'  => "CONCAT ('test_', email)",
+                            'where'  => "email NOT LIKE ('%@overdose.digital')",
+                        ],
+                        'firstname' => [
+                            'method' => 'update',
+                            'value'  => 'null',
+                            'where'  => "created_in LIKE '%NZ Store%' OR lastname = 'Miles'",
+                        ],
+                    ],
+                ],
+                'customer_entity_varchar' => [
+                    'columns' => [
+                        'value' => [
+                            'method' => 'update',
+                            'value'  => "md5('Admin123')",
+                            'where'  => "attribute_id IN (SELECT attribute_id FROM eav_attribute WHERE attribute_code = 'password_hash' AND entity_type_id = 1)"
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
-    protected function getRules(string $databaseUid): string
+    protected function getRules(string $databaseUid): array
     {
-        return $this->sendRequest([
-            'database' => $databaseUid
-        ], 'GET');
+        return $this->sendRequest(['database' => $databaseUid], 'GET');
     }
 }

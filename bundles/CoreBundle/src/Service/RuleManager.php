@@ -5,26 +5,17 @@ declare(strict_types=1);
 namespace DbManager\CoreBundle\Service;
 
 use ArrayIterator;
+use ArrayObject;
 use DbManager\CoreBundle\Interfaces\RuleManagerInterface;
 
-class RuleManager implements RuleManagerInterface
+class RuleManager extends ArrayObject implements RuleManagerInterface
 {
-    /**
-     * @var string
-     */
-    private string $engine = '';
-
-    /**
-     * @var array
-     */
-    private array $rules = [];
-
     /**
      * @inheritdoc
      */
     public function setEngine(string $engine): RuleManagerInterface
     {
-        $this->engine = $engine;
+        $this->offsetSet('engine', $engine);
 
         return $this;
     }
@@ -34,7 +25,7 @@ class RuleManager implements RuleManagerInterface
      */
     public function getEngine(): string
     {
-        return $this->engine;
+        return $this->offsetGet('engine');
     }
 
     /**
@@ -42,7 +33,7 @@ class RuleManager implements RuleManagerInterface
      */
     public function setRules(array $rules): RuleManagerInterface
     {
-        $this->rules = $rules;
+        $this->offsetSet('rules', $rules);
 
         return $this;
     }
@@ -52,7 +43,7 @@ class RuleManager implements RuleManagerInterface
      */
     public function getRules(): array
     {
-        return $this->rules;
+        return $this->offsetGet('rules');
     }
 
     /**
