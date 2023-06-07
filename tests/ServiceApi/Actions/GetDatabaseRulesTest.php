@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\ServiceApi\Actions\GetDatabaseRules;
-use App\ServiceApi\AppServiceClient;
 use DbManager\CoreBundle\Service\RuleManager;
+use DG\BypassFinals;
 use PHPUnit\Framework\TestCase;
 
 class GetDatabaseRulesTest extends TestCase
@@ -18,11 +18,30 @@ class GetDatabaseRulesTest extends TestCase
      */
     public function testGet()
     {
-        $appServiceClient = $this->getMockBuilder(AppServiceClient::class)
+        BypassFinals::enable();
+
+        $getDatabaseRules = $this->getMockBuilder(GetDatabaseRules::class)
             ->disableOriginalConstructor()
+            ->setMethods(['getRules'])
             ->getMock();
 
-        $getDatabaseRules = new GetDatabaseRules($appServiceClient);
+        $getDatabaseRules->method(
+            'getRules'
+        )->with(
+            '1'
+        )->willReturn(
+            [
+                'id' => 1,
+                'engine' => 1,
+                'databaseRules' => [
+                    'rule' => [
+                        'sales_order' => [
+                            'method' => 'truncate'
+                        ]
+                    ]
+                ]
+            ]
+        );
 
         $result = $getDatabaseRules->get('1');
 

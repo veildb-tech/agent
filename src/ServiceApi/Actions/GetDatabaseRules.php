@@ -6,14 +6,14 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use DbManager\CoreBundle\Service\RuleManager;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-class GetDatabaseRules extends AppService
+final class GetDatabaseRules extends AppService
 {
-    /**
-     * @var string
-     */
-    protected string $action = 'rules';
-
     /**
      * @param string $databaseUid
      *
@@ -30,6 +30,13 @@ class GetDatabaseRules extends AppService
      */
     public function get(string $databaseUid): RuleManager
     {
+        $result = $this->getRules($databaseUid);
+
+        return new RuleManager([
+            'engine' => $result['engine'],
+            'rules'  => $result['databaseRules']['rule']
+        ]);
+
         return new RuleManager([
             'engine' => 'mysql',
             'rules'  => [
@@ -58,7 +65,7 @@ class GetDatabaseRules extends AppService
                         'email' => [
                             'method' => 'fake',
                             'where'  => "email NOT LIKE ('%@overdose.digital')",
-                        ],g
+                        ],
                         'firstname' => [
                             'method' => 'update',
                             'value'  => 'null',
@@ -79,8 +86,21 @@ class GetDatabaseRules extends AppService
         ]);
     }
 
+    /**
+     * @param string $databaseUid
+     *
+     * @return array
+     *
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
     protected function getRules(string $databaseUid): array
     {
-        return $this->sendRequest(['database' => $databaseUid], 'GET');
+        $this->action = 'databases/' . $databaseUid;
+
+        return $this->sendRequest([], 'GET');
     }
 }

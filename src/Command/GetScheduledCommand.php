@@ -15,7 +15,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class GetScheduledCommand extends Command
 {
-
     private AppService $appService;
 
     public function __construct(

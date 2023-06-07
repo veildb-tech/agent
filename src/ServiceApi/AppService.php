@@ -16,7 +16,7 @@ class AppService
     /**
      * @var string
      */
-    protected string $action = '';
+    protected string $action;
 
     /**
      * @param AppServiceClient $client
@@ -40,11 +40,11 @@ class AppService
      */
     public function sendRequest(array $params, string $method = 'POST'): array
     {
-        if (empty($this->action)) {
+        if (!$this->action) {
             throw new Exception("Action is required");
         }
 
-        $options = $this->getOptions($params);
+        $options  = $this->getOptions($params);
         $response = $this->getClient()->request($method, $this->action, $options);
 
         return $response->toArray();
@@ -67,11 +67,16 @@ class AppService
      */
     protected function getOptions(array $params): array
     {
-        return [
-            'body' => $params,
+        $options = [
             'headers' => [
                 'Accept' => 'application/json',
             ],
         ];
+
+        if (count($params)) {
+            $options['body'] = $params;
+        }
+
+        return $options;
     }
 }

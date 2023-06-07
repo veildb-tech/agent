@@ -23,8 +23,8 @@ final class AppProcessCommand extends Command
 {
     /**
      * @param DatabaseProcessor $databaseProcessor
-     * @param LoggerInterface $logger
-     * @param string|null $name
+     * @param LoggerInterface   $logger
+     * @param string|null       $name
      */
     public function __construct(
         protected readonly DatabaseProcessor $databaseProcessor,
@@ -53,7 +53,7 @@ final class AppProcessCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
      *
      * @return int
@@ -70,6 +70,7 @@ final class AppProcessCommand extends Command
 
             return Command::FAILURE;
         }
+
         return Command::SUCCESS;
     }
 }
