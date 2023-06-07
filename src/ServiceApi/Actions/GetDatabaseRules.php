@@ -58,7 +58,7 @@ class GetDatabaseRules extends AppService
                         'email' => [
                             'method' => 'fake',
                             'where'  => "email NOT LIKE ('%@overdose.digital')",
-                        ],g
+                        ],
                         'firstname' => [
                             'method' => 'update',
                             'value'  => 'null',
