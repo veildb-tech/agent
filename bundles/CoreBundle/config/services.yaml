@@ -2,5 +2,8 @@ services:
   DbManager\CoreBundle\Processor:
     arguments:
       $container: '@service_container'
-  DbManager\CoreBundle\Service\TempDatabase:
-  DbManager\CoreBundle\Service\RuleManager:
+  DbManager\CoreBundle\Service\DbDataManager:
+  DbManager\CoreBundle\Interfaces\DbDataManagerInterface: '@DbManager\CoreBundle\Service\DbDataManager'
+  DbManager\CoreBundle\DumpProcessor\DumpProcessorFactory:
+  DbManager\CoreBundle\DataProcessor\DataProcessorFactory:
+  DbManager\CoreBundle\DataProcessor\DataProcessorFactoryInterface: '@DbManager\CoreBundle\DataProcessor\DataProcessorFactory'

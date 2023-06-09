@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DbManager\CoreBundle;
 
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use DbManager\CoreBundle\Command\TestCommand;
 use DbManager\CoreBundle\DependencyInjection\DbManagerCoreExtension;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 

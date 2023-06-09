@@ -4,33 +4,29 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Service\DatabaseProcessor;
+use App\Service\DumpProcessor;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use DbManager\CoreBundle\Exception\ShellProcessorException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
-    name: 'app:db:process',
-    description: 'Start processing database by database id and temporary database name',
+    name: 'app:db:dump',
+    description: 'Create DB dump',
 )]
-final class AppProcessCommand extends Command
+final class AppDumpCommand extends Command
 {
     /**
-     * @param DatabaseProcessor $databaseProcessor
+     * @param DumpProcessor     $dumpProcessor
      * @param LoggerInterface   $logger
      * @param string|null       $name
      */
     public function __construct(
-        protected readonly DatabaseProcessor $databaseProcessor,
+        protected readonly DumpProcessor $dumpProcessor,
         protected readonly LoggerInterface $logger,
         string $name = null
     ) {
@@ -43,15 +39,15 @@ final class AppProcessCommand extends Command
     protected function configure(): void
     {
         $this->addOption(
-            'uid',
-            'u',
-            InputOption::VALUE_REQUIRED,
-            'Database UUID from the service'
-        )->addOption(
             'db',
             null,
             InputOption::VALUE_REQUIRED,
-            'Temporary database name'
+            'Database name'
+        )->addOption(
+            'path',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Path for backup file'
         );
     }
 
@@ -60,22 +56,16 @@ final class AppProcessCommand extends Command
      * @param OutputInterface $output
      *
      * @return int
+     * @throws NoSuchEngineException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->databaseProcessor->process(
-                $input->getOption('uid'),
-                $input->getOption('db')
+            $this->dumpProcessor->process(
+                $input->getOption('db'),
+                $input->getOption('path')
             );
-        } catch (
-            ClientExceptionInterface
-            | RedirectionExceptionInterface
-            | ServerExceptionInterface
-            | NoSuchEngineException
-            | DecodingExceptionInterface
-            | TransportExceptionInterface $e
-        ) {
+        } catch (ShellProcessorException $e) {
             $this->logger->error($e->getMessage());
 
             return Command::FAILURE;

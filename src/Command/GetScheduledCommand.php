@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
-use App\ServiceApi\AppService;
+use App\ServiceApi\Actions\GetScheduledUID;
+use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: 'app:db:getScheduled',
@@ -15,32 +23,38 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class GetScheduledCommand extends Command
 {
-
-    private AppService $appService;
-
     public function __construct(
-        AppService $appService,
+        protected readonly GetScheduledUID $getScheduledUID,
+        protected readonly LoggerInterface $logger,
         string $name = null
     ) {
         parent::__construct($name);
-        $this->appService = $appService;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        try {
+            $data = $this->getScheduledUID->get();
 
+            $output->writeln($data);
+        } catch (
+            Exception
+            | ClientExceptionInterface
+            | DecodingExceptionInterface
+            | ServerExceptionInterface
+            | TransportExceptionInterface
+            | RedirectionExceptionInterface $e
+        ) {
+            $this->logger->error($e->getMessage());
 
-        $this->appService->getSheduledDump();
-
-
-        $request = $this->appService->getRequest();
-        if ($request) {
-
+            return Command::FAILURE;
         }
-
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
-
         return Command::SUCCESS;
     }
 }

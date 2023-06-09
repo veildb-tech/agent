@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DbManager\MysqlBundle;
 
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;

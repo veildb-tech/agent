@@ -1,8 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DbManager\CoreBundle\Interfaces;
 
 interface EngineInterface
 {
-    public function execute(RuleManagerInteface $rules, TempDatabaseInterface $tempDatabase);
+    /**
+     * Driver engine
+     */
+    public const DRIVER_ENGINE = '';
+
+    /**
+     * @param DbDataManagerInterface $dbDataManager
+     *
+     * @return void
+     */
+    public function execute(DbDataManagerInterface $dbDataManager): void;
 }

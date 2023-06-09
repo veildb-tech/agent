@@ -1,5 +1,12 @@
 services:
   db_manager_core.engines.mysql:
+    autowire: true
     public: true
-    class: DbManager\MysqlBundle\Service\EngineProcessor
+    class: DbManager\MysqlBundle\Processor
     arguments: []
+
+  db_manager_core.dump.engines.mysql:
+    autowire: true
+    public: true
+    class: DbManager\MysqlBundle\DumpProcessor\Processor
+    arguments: [ ]

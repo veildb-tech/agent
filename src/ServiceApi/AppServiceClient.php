@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ServiceApi;
 
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -8,8 +10,6 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class AppServiceClient
 {
-    const SERVICE_URL = 'https://service.url/';
-
     /**
      * @var HttpClientInterface
      */
@@ -17,20 +17,25 @@ class AppServiceClient
 
     /**
      * @param HttpClientInterface $httpClient
-     * @param string $workspace
-     * @param string $apiToken
-     * @param string $serviceUrl
+     * @param string              $workspace
+     * @param string              $apiToken
+     * @param string              $serviceUrl
      */
     public function __construct(
         protected HttpClientInterface $httpClient,
         protected string $workspace,
         protected string $apiToken,
-        protected string $serviceUrl = self::SERVICE_URL
-    )
-    {
+        protected string $serviceUrl = ''
+    ) {
     }
 
     /**
+     * @param string $method
+     * @param string $action
+     * @param array  $options
+     *
+     * @return ResponseInterface
+     *
      * @throws TransportExceptionInterface
      */
     public function request(string $method, string $action, array $options = []): ResponseInterface
@@ -40,10 +45,11 @@ class AppServiceClient
 
     /**
      * @param string $action
+     *
      * @return string
      */
     protected function getUrl(string $action): string
     {
-        return $this->serviceUrl . $action;
+        return rtrim($this->serviceUrl, '/') . '/api/' . $action;
     }
 }

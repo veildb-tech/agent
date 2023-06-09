@@ -4,37 +4,47 @@ declare(strict_types=1);
 
 namespace App\ServiceApi;
 
+use Exception;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AppService
 {
     /**
      * @var string
      */
-    protected string $action = '';
+    protected string $action;
 
     /**
      * @param AppServiceClient $client
      */
-    public function __construct(
-        private AppServiceClient $client
-    ) {
+    public function __construct(private readonly AppServiceClient $client)
+    {
     }
 
     /**
-     * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @param array  $params
+     * @param string $method
+     *
+     * @return array
+     *
      * @throws DecodingExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws Exception
      */
-    public function sendRequest(array $params, $method = 'POST'): array
+    public function sendRequest(array $params, string $method = 'POST'): array
     {
-        if (empty($this->action)) {
-            throw new \Exception("Action is required");
+        if (!$this->action) {
+            throw new Exception("Action is required");
         }
 
-        $options = $this->getOptions($params);
+        $options  = $this->getOptions($params);
         $response = $this->getClient()->request($method, $this->action, $options);
 
         return $response->toArray();
@@ -51,16 +61,22 @@ class AppService
     /**
      * Prepare options to send
      *
-     * @param array $data
+     * @param array $params
+     *
      * @return array
      */
     protected function getOptions(array $params): array
     {
-        return [
-            'body' => $params,
+        $options = [
             'headers' => [
-                'Accept' => 'application/json'
-            ]
+                'Accept' => 'application/json',
+            ],
         ];
+
+        if (count($params)) {
+            $options['body'] = $params;
+        }
+
+        return $options;
     }
 }
