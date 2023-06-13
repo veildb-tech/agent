@@ -60,7 +60,7 @@ final class GetDatabaseRules extends AppService
         if (!isset($data['engine'])) {
             throw new Exception('An information about DB engine was not found...');
         }
-        return (string)$data['engine']['code'];
+        return (string)$data['engine'];
     }
 
     /**
@@ -72,10 +72,10 @@ final class GetDatabaseRules extends AppService
      */
     protected function formRulesData(array $data): array
     {
-        if (!isset($data['databaseRules'])) {
+        if (!isset($data['rule'])) {
             throw new Exception('An information about DB processing rules was not found...');
         }
-        return $data['databaseRules']['rule'];
+        return $data['rule']['rule'];
     }
 
     /**

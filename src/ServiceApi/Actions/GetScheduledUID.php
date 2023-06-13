@@ -47,10 +47,10 @@ final class GetScheduledUID extends AppService
         }
         $data = current($data);
 
-        if (!isset($data['uid'])) {
+        if (!isset($data['db']['uid'])) {
             throw new Exception('An information about DB was not found...');
         }
-        return (string)$data['uid'];
+        return (string)$data['db']['uid'];
     }
 
     /**
@@ -64,7 +64,7 @@ final class GetScheduledUID extends AppService
      */
     protected function getScheduledDB(): array
     {
-        $this->action = 'databases';
+        $this->action = 'database_dumps?status=scheduled';
 
         return $this->sendRequest([], 'GET');
     }

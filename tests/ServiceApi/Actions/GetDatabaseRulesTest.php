@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\ServiceApi\Actions\GetDatabaseRules;
-use DbManager\CoreBundle\Service\RuleManager;
 use DG\BypassFinals;
 use PHPUnit\Framework\TestCase;
 
@@ -32,10 +31,8 @@ class GetDatabaseRulesTest extends TestCase
         )->willReturn(
             [
                 'id' => 1,
-                'engine_id' => [
-                    'code' => 'mysql'
-                ],
-                'databaseRules' => [
+                'engine' => 'mysql',
+                'rule' => [
                     'rule' => [
                         'sales_order' => [
                             'method' => 'truncate'
@@ -47,9 +44,6 @@ class GetDatabaseRulesTest extends TestCase
 
         $result = $getDatabaseRules->get('1');
 
-        $this->assertInstanceOf(RuleManager::class, $result);
-
-        $result = $result->getArrayCopy();
         $this->assertArrayHasKey('engine', $result);
         $this->assertArrayHasKey('rules', $result);
     }
