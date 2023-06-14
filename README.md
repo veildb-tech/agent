@@ -16,7 +16,7 @@ Available commands:
 `
 php bin/console app:db:process --uid=<Database UID> --db=<Database Name>
 php bin/console app:db:getScheduled
-php bin/console app:logs:send --uuid=<Backup UUID> --status=<Process Status> --message=<Message>
+php bin/console app:db:log --uuid=<Backup UUID> --status=<Process Status> --message=<Message>
 `
 
 Libraries:

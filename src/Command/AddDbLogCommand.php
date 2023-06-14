@@ -19,10 +19,10 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
-    name: 'app:logs:send',
+    name: 'app:db:log',
     description: 'Send logs to service',
 )]
-final class SendLogsCommand extends Command
+final class AddDbLogCommand extends Command
 {
     /**
      * @param SendDumpLogs      $sendDumpLogs
