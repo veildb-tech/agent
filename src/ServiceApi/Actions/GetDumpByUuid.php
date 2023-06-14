@@ -12,13 +12,12 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-final class FinishDump extends AppService
+final class GetDumpByUuid extends AppService
 {
     protected string $action = 'database_dumps';
 
     /**
      * @param string $dumpUuid
-     * @param string $filename
      *
      * @return void
      *
@@ -29,24 +28,9 @@ final class FinishDump extends AppService
      * @throws TransportExceptionInterface
      * @throws Exception
      */
-    public function execute(string $dumpUuid, string $status, ?string $filename = ''): void
+    public function execute(string $dumpUuid): array
     {
-        $this->action  .= '/' . $dumpUuid;
-        $this->sendRequest([
-            'json' => [
-                'filename' => $filename,
-                'status' => $status
-            ]
-        ], 'PATCH');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getHeaders(): array
-    {
-        $headers = parent::getHeaders();
-        $headers['Content-Type'] = 'application/merge-patch+json';
-        return $headers;
+        $this->action .= '/' . $dumpUuid;
+        return $this->sendRequest([], 'GET');
     }
 }
