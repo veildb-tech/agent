@@ -70,11 +70,12 @@ class AppService
         $options = [
             'headers' => [
                 'Accept' => 'application/json',
-            ],
+                'Content-Type' => 'application/json'
+            ]
         ];
 
         if (count($params)) {
-            $options['body'] = $params;
+            $options['json'] = $params;
         }
 
         return $options;

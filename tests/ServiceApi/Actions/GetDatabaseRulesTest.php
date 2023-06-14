@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Tests;
+namespace App\Tests\ServiceApi\Actions;
 
 use App\ServiceApi\Actions\GetDatabaseRules;
 use DG\BypassFinals;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class GetDatabaseRulesTest extends TestCase
 {
@@ -14,6 +19,11 @@ class GetDatabaseRulesTest extends TestCase
      * The test for getDefaultRole function
      *
      * @return void
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function testGet()
     {
