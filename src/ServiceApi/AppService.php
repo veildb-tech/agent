@@ -44,7 +44,7 @@ class AppService
             throw new Exception("Action is required");
         }
 
-        $options  = $this->getOptions($params);
+        $options = $this->getOptions($params);
         $response = $this->getClient()->request($method, $this->action, $options);
 
         return $response->toArray();
@@ -68,16 +68,22 @@ class AppService
     protected function getOptions(array $params): array
     {
         $options = [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json'
-            ]
+            'headers' => $this->getHeaders()
         ];
 
-        if (count($params)) {
-            $options['json'] = $params;
-        }
+        return array_merge($options, $params);
+    }
 
-        return $options;
+    /**
+     * Retrieve headers
+     *
+     * @return string[]
+     */
+    protected function getHeaders(): array
+    {
+        return [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ];
     }
 }

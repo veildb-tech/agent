@@ -14,6 +14,8 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 final class GetScheduledUID extends AppService
 {
+    protected string $action = 'database_dumps';
+
     /**
      * Get UID of scheduled DB
      * Command will return data in format: <backup Uuid>:<db Uid>
@@ -66,8 +68,6 @@ final class GetScheduledUID extends AppService
      */
     protected function getScheduledDB(): array
     {
-        $this->action = 'database_dumps';
-
         return $this->sendRequest(
             [
                 'query' => [

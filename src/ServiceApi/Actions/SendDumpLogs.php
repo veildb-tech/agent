@@ -16,6 +16,8 @@ final class SendDumpLogs extends AppService
 {
     public const DUMP_ID_IRI = '/api/database_dumps/';
 
+    protected string $action = 'database_dump_logs';
+
     /**
      * Get UID of scheduled DB
      * Command will return data in format: <backup Uuid>:<db Uid>
@@ -57,8 +59,6 @@ final class SendDumpLogs extends AppService
      */
     protected function sendLogs(array $log): array
     {
-        $this->action = 'database_dump_logs';
-
-        return $this->sendRequest($log, 'POST');
+        return $this->sendRequest(['json' => $log], 'POST');
     }
 }
