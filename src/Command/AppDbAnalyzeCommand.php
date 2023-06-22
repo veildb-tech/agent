@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\NoSuchMethodException;
-use App\Service\PublicCommand\DatabaseProcessor;
+use App\Service\Database\Analyzer;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
+use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -19,18 +20,18 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
-    name: 'app:db:process',
-    description: 'Start processing database by database id and temporary database name',
+    name: 'app:db:analyze',
+    description: 'Start analyzing db structure',
 )]
-final class ProcessCommand extends Command
+final class AppDbAnalyzeCommand extends Command
 {
     /**
-     * @param DatabaseProcessor $databaseProcessor
-     * @param LoggerInterface $logger
-     * @param string|null $name
+     * @param Analyzer $databaseAnalyzer
+     * @param LoggerInterface   $logger
+     * @param string|null       $name
      */
     public function __construct(
-        protected readonly DatabaseProcessor $databaseProcessor,
+        protected readonly Analyzer $databaseAnalyzer,
         protected readonly LoggerInterface $logger,
         string $name = null
     ) {
@@ -38,22 +39,44 @@ final class ProcessCommand extends Command
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function configure(): void
+    {
+        $this->addOption(
+            'uid',
+            'u',
+            InputOption::VALUE_REQUIRED,
+            'Database UUID from the service'
+        )->addOption(
+            'db',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Temporary database name'
+        );
+    }
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return int
-     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->databaseProcessor->execute($input, $output);
+            $this->databaseAnalyzer->process(
+                $input->getOption('uid'),
+                $input->getOption('db')
+            );
         } catch (
             ClientExceptionInterface
             | RedirectionExceptionInterface
             | ServerExceptionInterface
+            | EngineNotSupportedException
             | DecodingExceptionInterface
-            | NoSuchMethodException
-            | TransportExceptionInterface $e
+            | TransportExceptionInterface
+            | NoSuchEngineException $e
         ) {
             $this->logger->error($e->getMessage());
 

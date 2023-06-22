@@ -7,6 +7,7 @@ namespace DbManager\MysqlBundle;
 use DbManager\CoreBundle\Interfaces\DbDataManagerInterface;
 use DbManager\CoreBundle\Interfaces\EngineInterface;
 use DbManager\CoreBundle\Service\AbstractEngineProcessor;
+use Doctrine\DBAL\Exception;
 
 /**
  * Mysql Processor instance
@@ -21,7 +22,7 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
     /**
      * @inheritdoc
      */
-    public function execute(DbDataManagerInterface $dbDataManager): void
+    public function process(DbDataManagerInterface $dbDataManager): void
     {
         $this->connection = $this->getDbConnection($dbDataManager->getName());
         $this->connection->statement('SET FOREIGN_KEY_CHECKS = 0');
@@ -31,6 +32,22 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
         }
 
         $this->connection->statement('SET FOREIGN_KEY_CHECKS = 1');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDbStructure(DbDataManagerInterface $dbDataManager): array
+    {
+        $structure  = [];
+        $connection = $this->getDbConnection($dbDataManager->getName());
+
+        $tables = new \ArrayIterator($connection->getDoctrineSchemaManager()->listTables());
+        foreach ($tables as $table) {
+            $structure[$table->getName()] = array_map(fn($column) => $column->getName(), $table->getColumns());
+        }
+
+        return $structure;
     }
 
     /**

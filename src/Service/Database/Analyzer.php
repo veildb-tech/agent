@@ -2,36 +2,29 @@
 
 declare(strict_types=1);
 
-namespace App\Service\Engines;
+namespace App\Service\Database;
 
-use App\Service\AppConfig;
-use App\Service\AppLogger;
-use App\Service\ShellProcess;
+use App\ServiceApi\Actions\GetDatabaseRules;
+use App\ServiceApi\Actions\SendDbStructure;
 use DbManager\CoreBundle\DbProcessorFactory;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use DbManager\CoreBundle\Service\DbDataManager;
-use App\ServiceApi\Actions\GetDatabaseRules;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-abstract class AbstractEngine
+class Analyzer
 {
-
     /**
-     * @param ShellProcess $shellProcess
-     * @param AppConfig $appConfig
-     * @param AppLogger $appLogger
+     * @param SendDbStructure $sendDbStructure
      * @param GetDatabaseRules $getDatabaseRules
      * @param DbProcessorFactory $processorFactory
      */
     public function __construct(
-        protected readonly ShellProcess $shellProcess,
-        protected readonly AppConfig $appConfig,
-        protected readonly AppLogger $appLogger,
+        private readonly SendDbStructure $sendDbStructure,
         private readonly GetDatabaseRules $getDatabaseRules,
         private readonly DbProcessorFactory $processorFactory
     ) {
@@ -40,18 +33,19 @@ abstract class AbstractEngine
     /**
      * @param string $databaseUid
      * @param string $tempDatabase
+     *
      * @return void
      * @throws ClientExceptionInterface
-     * @throws DecodingExceptionInterface
+     * @throws EngineNotSupportedException
+     * @throws NoSuchEngineException
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
+     * @throws DecodingExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws NoSuchEngineException
-     * @throws EngineNotSupportedException
      */
-    public function runProcessor(string $databaseUid, string $tempDatabase): void
+    public function process(string $databaseUid, string $tempDatabase): void
     {
-        $dbManager =  new DbDataManager(
+        $dbManager = new DbDataManager(
             array_merge(
                 [
                     'name' => $tempDatabase
@@ -60,6 +54,7 @@ abstract class AbstractEngine
             )
         );
 
-        $this->processorFactory->create($dbManager->getEngine())->process($dbManager);
+        $structure = $this->processorFactory->create($dbManager->getEngine())->getDbStructure($dbManager);
+        $this->sendDbStructure->execute($databaseUid, $structure);
     }
 }

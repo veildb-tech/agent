@@ -6,14 +6,12 @@ namespace DbManager\CoreBundle;
 
 use DbManager\CoreBundle\Enums\DatabaseEngineEnum;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
-use DbManager\CoreBundle\Interfaces\DbDataManagerInterface;
 use DbManager\CoreBundle\Interfaces\EngineInterface;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class Processor
+final class DbProcessorFactory
 {
     /**
      * @param ContainerInterface $container
@@ -23,19 +21,15 @@ class Processor
     }
 
     /**
-     * @param DbDataManagerInterface $dbDataManager
+     * @param string $engine
      *
-     * @return void
-     *
+     * @return EngineInterface
+     * @throws EngineNotSupportedException
      * @throws NoSuchEngineException
-     * @throws Exception
      */
-    public function execute(DbDataManagerInterface $dbDataManager): void
+    public function create(string $engine): EngineInterface
     {
-        $this->validate($dbDataManager);
-
-        $processor = $this->getEngine($dbDataManager->getEngine());
-        $processor->execute($dbDataManager);
+        return $this->getEngine($engine);
     }
 
     /**
@@ -45,10 +39,12 @@ class Processor
      *
      * @return object
      *
-     * @throws NoSuchEngineException
+     * @throws NoSuchEngineException|EngineNotSupportedException
      */
-    private function getEngine(string $engine): object
+    public function getEngine(string $engine): object
     {
+        $this->validate($engine);
+
         $serviceName = $this->getServiceName($engine);
 
         if (!$this->container->has($serviceName)) {
@@ -78,23 +74,14 @@ class Processor
     /**
      * Validate passed data
      *
-     * @param DbDataManagerInterface $dbDataManager
+     * @param string $engine
      *
      * @return void
      * @throws EngineNotSupportedException
      */
-    private function validate(DbDataManagerInterface $dbDataManager): void
+    private function validate(string $engine): void
     {
-        if (
-            !in_array(
-                $dbDataManager->getEngine(),
-                [
-                    DatabaseEngineEnum::MYSQL->value,
-                    DatabaseEngineEnum::POSTGRES->value,
-                    DatabaseEngineEnum::SQL_LITE->value
-                ]
-            )
-        ) {
+        if (!DatabaseEngineEnum::tryFrom($engine)) {
             throw new EngineNotSupportedException('The DB engine is not supported...');
         }
     }

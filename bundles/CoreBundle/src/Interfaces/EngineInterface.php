@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DbManager\CoreBundle\Interfaces;
 
+use Doctrine\DBAL\Exception;
+
 interface EngineInterface
 {
     /**
@@ -16,5 +18,23 @@ interface EngineInterface
      *
      * @return void
      */
-    public function execute(DbDataManagerInterface $dbDataManager): void;
+    public function process(DbDataManagerInterface $dbDataManager): void;
+
+    /**
+     * Get DB structure
+     * return array:
+     * [
+     *  <table name> => [
+     *      '<column>'
+     *      '<column>'
+     *       ...
+     *  ]
+     * ]
+     *
+     * @param DbDataManagerInterface $dbDataManager
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getDbStructure(DbDataManagerInterface $dbDataManager): array;
 }

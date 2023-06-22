@@ -1,5 +1,5 @@
 services:
-  DbManager\CoreBundle\Processor:
+  DbManager\CoreBundle\DbProcessorFactory:
     arguments:
       $container: '@service_container'
   DbManager\CoreBundle\Service\DbDataManager:

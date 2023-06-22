@@ -14,9 +14,10 @@ Usage
 
 Available commands:
 `
-php bin/console app:db:process --uid=<Database UID> --db=<Database Name>
-php bin/console app:db:getScheduled
-php bin/console app:db:log --uuid=<Backup UUID> --status=<Process Status> --message=<Message>
+php bin/console app:db:process --uid=<Database UID> --db=<Database Name> - start db backup processing
+php bin/console app:db:analyze --uid=<Database UID> --db=<Database Name> - analyze db structure and send to service
+php bin/console app:db:getScheduled - get scheduled backups
+php bin/console app:db:log --uuid=<Backup UUID> --status=<Process Status> --message=<Message> - send log information to service
 `
 
 Libraries:
