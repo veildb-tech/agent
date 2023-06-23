@@ -153,7 +153,7 @@ class AddDatabase extends AbstractCommand
 
         $this->config['db_host'] = $inputOutput->ask('Host', 'localhost', $validateRequired);
         $this->config['db_user'] = $inputOutput->ask('User:', 'root', $validateRequired);
-        $this->config['db_password'] = $inputOutput->askHidden('Password', $validateRequired);
+        $this->config['db_password'] = $inputOutput->askHidden('Password');
         $this->config['db_name'] = $inputOutput->ask('Database name:', null, $validateRequired);
         $this->config['db_port'] = $inputOutput->ask('Port: ', '3306', $validateRequired);
     }
