@@ -32,6 +32,9 @@ class Mysql extends AbstractEngine
         $tempDbName = 'temp_' . time();
         $originFile = $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbuuid . '/' . $filename;
         $destinationFile = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbuuid . '/' . $filename;
+        $workDbPassword = $this->appConfig->getConfig('work_db_password')
+            ? sprintf("-p%s", $this->appConfig->getConfig('work_db_password'))
+            : '';
 
         $this->appLogger->logToService(
             $dumpuuid,
@@ -39,9 +42,9 @@ class Mysql extends AbstractEngine
             "Creating temporary database"
         );
         $this->shellProcess->run(sprintf(
-            "mysql -u%s -p%s -h%s -P%s -e 'CREATE DATABASE %s'",
+            "mysql -u%s %s -h%s -P%s -e 'CREATE DATABASE %s'",
             $this->appConfig->getConfig('work_db_user'),
-            $this->appConfig->getConfig('work_db_password'),
+            $workDbPassword,
             $this->appConfig->getConfig('work_db_host'),
             $this->appConfig->getConfig('work_db_port'),
             $tempDbName
@@ -53,9 +56,9 @@ class Mysql extends AbstractEngine
             "Import backup to temp database"
         );
         $this->shellProcess->run(sprintf(
-            "mysql -u%s -p%s -h%s -P%s %s < %s",
+            "mysql -u%s %s -h%s -P%s %s < %s",
             $this->appConfig->getConfig('work_db_user'),
-            $this->appConfig->getConfig('work_db_password'),
+            $workDbPassword,
             $this->appConfig->getConfig('work_db_host'),
             $this->appConfig->getConfig('work_db_port'),
             $tempDbName,
@@ -74,10 +77,11 @@ class Mysql extends AbstractEngine
             LogStatusEnum::PROCESSING->value,
             "Creating dump"
         );
+
         $this->shellProcess->run(sprintf(
-            "mysqldump -u%s -p%s -h%s -P%s %s > %s",
+            "mysqldump -u%s %s -h%s -P%s %s > %s",
             $this->appConfig->getConfig('work_db_user'),
-            $this->appConfig->getConfig('work_db_password'),
+            $workDbPassword,
             $this->appConfig->getConfig('work_db_host'),
             $this->appConfig->getConfig('work_db_port'),
             $tempDbName,
@@ -90,9 +94,9 @@ class Mysql extends AbstractEngine
             "Dropping temporary database"
         );
         $this->shellProcess->run(sprintf(
-            "mysql -u%s -p%s -h%s -P%s -e 'DROP DATABASE %s'",
+            "mysql -u%s %s -h%s -P%s -e 'DROP DATABASE %s'",
             $this->appConfig->getConfig('work_db_user'),
-            $this->appConfig->getConfig('work_db_password'),
+            $workDbPassword,
             $this->appConfig->getConfig('work_db_host'),
             $this->appConfig->getConfig('work_db_port'),
             $tempDbName

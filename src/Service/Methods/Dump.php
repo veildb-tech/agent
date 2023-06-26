@@ -18,11 +18,11 @@ class Dump extends AbstractMethod
     public function execute(array $dbConfig, string $dbUuid, string $filename): void
     {
         $destFile = $this->getOriginFile($dbUuid, $filename);
-
+        $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p%s', $dbConfig['db_password']) : '';
         $this->shellProcess->run(sprintf(
-            "mysqldump -u %s -p%s %s > %s",
+            "mysqldump -u %s %s %s > %s",
             $dbConfig['db_user'],
-            $dbConfig['db_password'],
+            $dbPassword,
             $dbConfig['db_name'],
             $destFile
         ));
