@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Dotenv\Dotenv;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\KernelInterface;
-use \Exception;
+use Exception;
 
 class AppConfig
 {
@@ -15,7 +16,8 @@ class AppConfig
     private ?array $defaultConfig = null;
 
     public function __construct(
-        private readonly  KernelInterface $kernel,
+        private readonly KernelInterface $kernel,
+        private readonly Filesystem $filesystem,
         array $config
     ) {
         $this->defaultConfig = $config;
@@ -23,14 +25,15 @@ class AppConfig
 
     /**
      * @param string $dbUuid
+     *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDatabaseConfig(string $dbUuid): array
     {
         if (empty($this->databaseConfig[$dbUuid])) {
             $this->databaseConfig[$dbUuid] = array_change_key_case(
-                $this->getConfigFile($this->getConfigDirectory() . '/' . $dbUuid, 'config')
+                $this->getConfigFile($this->getConfigDirectory() . '/' . $dbUuid)
             );
         }
 
@@ -59,12 +62,11 @@ class AppConfig
 
         $databaseConfigDirectory = $this->getConfigDirectory() . '/' . $databaseConfig['db_uid'];
         $databaseConfigFile = $this->getConfigDirectory() . '/' . $databaseConfig['db_uid'] . '/config';
-        if (!is_dir($databaseConfigDirectory)) {
-            mkdir($databaseConfigDirectory);
-        }
+
+        $this->filesystem->mkdir($databaseConfigDirectory);
 
         foreach ($databaseConfig as $key => $value) {
-            file_put_contents($databaseConfigFile, sprintf("%s=%s\n", strtoupper($key), $value), FILE_APPEND);
+            $this->filesystem->appendToFile($databaseConfigFile, sprintf("%s=%s\n", strtoupper($key), $value));
         }
     }
 
@@ -92,9 +94,14 @@ class AppConfig
         return $this->getConfigDirectory() . '/keys';
     }
 
+    /**
+     * Get configuration directory
+     *
+     * @return string
+     */
     public function getConfigDirectory(): string
     {
-        return $this->getAppRootDir() . '/config';
+        return rtrim(env('CONFIG_PATH', $this->getAppRootDir()), '/') . '/config';
     }
 
     /**
@@ -110,9 +117,10 @@ class AppConfig
     /**
      * @param string $directory
      * @param string $file
+     *
      * @return array
      */
-    private function getConfigFile(string $directory, string $file): array
+    private function getConfigFile(string $directory, string $file = 'config'): array
     {
         $dotenv = Dotenv::createImmutable($directory, $file);
         return $dotenv->load();

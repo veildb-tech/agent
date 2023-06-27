@@ -11,8 +11,11 @@ class DataProcessorFactory implements DataProcessorFactoryInterface
     /**
      * @inheritdoc
      */
-    public function create(string $tableName, Connection $connection): DataProcessorInterface
+    public function create(string $tableName, array $rule, Connection $connection): DataProcessorInterface
     {
-        return new TableService($tableName, $connection);
+        if (isset($rule['eav']) && $rule['eav'] === true) {
+            return new EavDataProcessorService($tableName, $rule, $connection);
+        }
+        return new TableService($tableName, $rule, $connection);
     }
 }

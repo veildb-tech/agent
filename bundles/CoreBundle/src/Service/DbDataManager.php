@@ -49,6 +49,24 @@ class DbDataManager extends ArrayObject implements DbDataManagerInterface
     /**
      * @inheritdoc
      */
+    public function setPlatform(string $platform): DbDataManagerInterface
+    {
+        $this->offsetSet('platform', $platform);
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getPlatform(): string
+    {
+        return $this->offsetGet('platform');
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function setRules(array $rules): DbDataManagerInterface
     {
         $this->offsetSet('rules', $rules);

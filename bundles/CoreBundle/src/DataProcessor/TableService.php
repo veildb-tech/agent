@@ -15,24 +15,31 @@ final class TableService implements DataProcessorInterface
     private string $tableName;
 
     /**
+     * @var array
+     */
+    private array $rule;
+
+    /**
      * @var Connection
      */
     private Connection $connection;
 
     /**
      * @param string     $tableName
+     * @param array      $rule
      * @param Connection $connection
      */
-    public function __construct(string $tableName, Connection $connection)
+    public function __construct(string $tableName, array $rule, Connection $connection)
     {
         $this->tableName = $tableName;
+        $this->rule = $rule;
         $this->connection = $connection;
     }
 
     /**
      * @inheritdoc
      */
-    public function truncate(): void
+    public function truncate(?string $column = null): void
     {
         $this->query(true)->truncate();
     }
@@ -40,7 +47,7 @@ final class TableService implements DataProcessorInterface
     /**
      * @inheritdoc
      */
-    public function delete(string $condition): void
+    public function delete(string $condition, ?string $column = null): void
     {
         $this->queryWithCondition($condition, true)->delete();
     }

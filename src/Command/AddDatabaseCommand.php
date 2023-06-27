@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\NoSuchMethodException;
 use App\Service\PublicCommand\AddDatabase;
-use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -52,7 +50,6 @@ final class AddDatabaseCommand extends Command
             | RedirectionExceptionInterface
             | ServerExceptionInterface
             | DecodingExceptionInterface
-            | NoSuchMethodException
             | TransportExceptionInterface $e
         ) {
             $this->logger->error($e->getMessage());

@@ -42,6 +42,22 @@ interface DbDataManagerInterface
     public function getEngine(): string;
 
     /**
+     * Set platform
+     *
+     * @param string $platform
+     *
+     * @return DbDataManagerInterface
+     */
+    public function setPlatform(string $platform): DbDataManagerInterface;
+
+    /**
+     * Get platform
+     *
+     * @return string
+     */
+    public function getPlatform(): string;
+
+    /**
      * Set rules
      *
      * @param array $rules

@@ -43,8 +43,9 @@ final class GetDatabaseRules extends AppService
     {
         $result = $this->getRules($databaseUid);
         return [
-            'engine' => $this->formEngineData($result),
-            'rules'  => $this->formRulesData($result),
+            'engine'    => $this->formEngineData($result),
+            'platform'  => $this->formPlatformData($result),
+            'rules'     => $this->formRulesData($result),
         ];
     }
 
@@ -52,7 +53,6 @@ final class GetDatabaseRules extends AppService
      * @param array $data
      *
      * @return string
-     *
      * @throws Exception
      */
     protected function formEngineData(array $data): string
@@ -67,7 +67,6 @@ final class GetDatabaseRules extends AppService
      * @param array $data
      *
      * @return array
-     *
      * @throws Exception
      */
     protected function formRulesData(array $data): array
@@ -76,6 +75,17 @@ final class GetDatabaseRules extends AppService
             throw new Exception('An information about DB processing rules was not found...');
         }
         return $data['rule']['rule'];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return string
+     * @throws Exception
+     */
+    protected function formPlatformData(array $data): string
+    {
+        return $data['platform'] ?? 'custom';
     }
 
     /**

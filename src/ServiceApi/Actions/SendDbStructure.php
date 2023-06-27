@@ -33,11 +33,15 @@ final class SendDbStructure extends AppService
     {
         $this->action .= '/' . $dbUid;
 
-        $this->sendData(JSON::encode($structure));
+        $this->sendData(
+            JSON::encode($structure['db_schema']),
+            JSON::encode($structure['additional_data']),
+        );
     }
 
     /**
-     * @param string $schema
+     * @param string $dbSchema
+     * @param string $additionalData
      *
      * @return array
      *
@@ -47,9 +51,17 @@ final class SendDbStructure extends AppService
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      */
-    protected function sendData(string $schema): array
+    protected function sendData(string $dbSchema, string $additionalData): array
     {
-        return $this->sendRequest(['json' => ['dbSchema' => $schema]], 'PATCH');
+        return $this->sendRequest(
+            [
+                'json' => [
+                    'dbSchema' => $dbSchema,
+                    'additionalData' => $additionalData
+                ]
+            ],
+            'PATCH'
+        );
     }
 
     /**

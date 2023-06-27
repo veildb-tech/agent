@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Service\Database\Analyzer;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use Doctrine\DBAL\Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -61,6 +62,7 @@ final class AppDbAnalyzeCommand extends Command
      * @param OutputInterface $output
      *
      * @return int
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

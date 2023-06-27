@@ -12,8 +12,7 @@ class DumpManagement
     public function __construct(
         private readonly GetDumpByUuid $dumpWebService,
         private readonly string $dumpPath = ''
-    )
-    {
+    ) {
     }
 
     /**

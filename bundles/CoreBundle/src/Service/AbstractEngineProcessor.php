@@ -83,7 +83,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
 
             switch ($rule['method']) {
                 case 'truncate':
-                    $this->truncate($rule);
+                    $this->truncate($rule, $column);
                     break;
                 case 'update':
                     $this->update($rule, $column);

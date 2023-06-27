@@ -44,3 +44,6 @@ WORK_DB_PORT=3361
 DBM_TOKEN=
 APP_KEY_PATH=/app/config/keys
 APP_DUMP_PATH=/app/dumps/processed
+
+# Directory with configurations
+CONFIG_PATH=''
