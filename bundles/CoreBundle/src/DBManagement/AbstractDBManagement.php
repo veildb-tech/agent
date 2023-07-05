@@ -48,7 +48,7 @@ abstract class AbstractDBManagement implements DBManagementInterface
      */
     public function dump(DbDataManagerInterface $database): string
     {
-        $command = $this->getDumpLine($database->getName(), '.');
+        $command = $this->getDumpLine($database->getName(), $database->getBackupPath());
 
         return $this->execute($command);
     }
@@ -73,7 +73,7 @@ abstract class AbstractDBManagement implements DBManagementInterface
      */
     protected function execute(string $command): string
     {
-        $process = new Process([$command]);
+        $process = Process::fromShellCommandline($command);
         $process->setTimeout(null);
 
         $process->run();
@@ -92,7 +92,7 @@ abstract class AbstractDBManagement implements DBManagementInterface
     protected function getPassword(): string
     {
         return $this->appConfig->getConfig('work_db_password')
-            ? sprintf("-p%s", $this->appConfig->getConfig('work_db_password'))
+            ? $this->appConfig->getConfig('work_db_password')
             : '';
     }
 }

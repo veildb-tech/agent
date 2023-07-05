@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Service\PublicCommand\AddDatabase;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -38,8 +39,9 @@ final class AddDatabaseCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

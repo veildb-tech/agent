@@ -10,7 +10,10 @@ use App\Service\AppLogger;
 use App\Service\Database\Analyzer;
 use App\Service\InputOutput;
 use App\ServiceApi\Actions\AddDatabase as ServiceApiAddDatabase;
-use DbManager\CoreBundle\DbCommands\DbCommandsFactory;
+use DbManager\CoreBundle\DBManagement\DBManagementFactory;
+use DbManager\CoreBundle\Exception\EngineNotSupportedException;
+use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use DbManager\CoreBundle\Exception\ShellProcessorException;
 use DbManager\CoreBundle\Service\DbDataManager;
 use Exception;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -33,14 +36,14 @@ class AddDatabase extends AbstractCommand
      * @param AppConfig $appConfig
      * @param ServiceApiAddDatabase $addDatabase
      * @param Analyzer $databaseAnalyzer
-     * @param DbCommandsFactory $dbCommandsFactory
+     * @param DBManagementFactory $dbManagementFactory
      */
     public function __construct(
         private readonly AppLogger $appLogger,
         private readonly AppConfig $appConfig,
         private readonly ServiceApiAddDatabase $addDatabase,
         protected readonly Analyzer $databaseAnalyzer,
-        private readonly DbCommandsFactory $dbCommandsFactory
+        private readonly DBManagementFactory $dbManagementFactory
     ) {
     }
 
@@ -185,15 +188,16 @@ class AddDatabase extends AbstractCommand
 
     /**
      * @param InputOutput $inputOutput
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws \DbManager\CoreBundle\Exception\EngineNotSupportedException
-     * @throws \DbManager\CoreBundle\Exception\NoSuchEngineException
-     * @throws \DbManager\CoreBundle\Exception\ShellProcessorException
+     * @throws EngineNotSupportedException
+     * @throws NoSuchEngineException
+     * @throws ShellProcessorException
      * @throws \Doctrine\DBAL\Exception
      */
     private function analyzeDb(InputOutput $inputOutput): void
@@ -202,7 +206,7 @@ class AddDatabase extends AbstractCommand
             return;
         }
 
-        $dbCommand = $this->dbCommandsFactory->create();
+        $dbManagement = $this->dbManagementFactory->create();
         switch ($this->config['method']) {
             case MethodsEnum::DUMP->value:
             case MethodsEnum::SSH_DUMP->value:
@@ -213,10 +217,12 @@ class AddDatabase extends AbstractCommand
                     'inputFile' => $this->config['dump_name']
                 ]);
 
-                $dbCommand->create($dbDataManager);
-                $dbCommand->import($dbDataManager);
+                $inputOutput->info('Processing...');
+                $dbManagement->create($dbDataManager);
+                $dbManagement->import($dbDataManager);
         }
 
         $this->databaseAnalyzer->process($this->config['db_uid'], $this->config['name']);
+        $inputOutput->info('The DB structure analyzing successfully finished.');
     }
 }

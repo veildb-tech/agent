@@ -33,7 +33,7 @@ class DumpProcessor
         $dbManagement->dump(
             new DbDataManager([
                 'name' => $tempDatabase,
-                'backupPath' => $backupPath
+                'backup_path' => $backupPath
             ])
         );
     }
