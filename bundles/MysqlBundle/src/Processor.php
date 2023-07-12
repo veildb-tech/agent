@@ -52,7 +52,13 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
 
         $tables = new \ArrayIterator($connection->getDoctrineSchemaManager()->listTables());
         foreach ($tables as $table) {
-            $dbSchema[$table->getName()] = array_map(fn($column) => $column->getName(), $table->getColumns());
+            /** @var \Doctrine\DBAL\Schema\Table $table */
+            /** @var \Doctrine\DBAL\Schema\Column $column */
+            foreach ($table->getColumns() as $column) {
+                $columnData = $column->toArray();
+                $columnData['type'] = $columnData['type']->getName();
+                $dbSchema[$table->getName()][$column->getName()] = $columnData;
+            }
         }
 
         return [
