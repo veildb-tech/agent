@@ -6,9 +6,11 @@ namespace App\Service\PublicCommand;
 
 use App\Service\AppConfig;
 use App\Service\AppLogger;
+use App\Service\InputOutput;
 use App\ServiceApi\Actions\AddServer;
 use App\ServiceApi\Actions\GetUserByEmail;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -82,6 +84,7 @@ class InstallApp extends AbstractCommand
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     protected function addServerInfo(): void
     {
@@ -92,24 +95,39 @@ class InstallApp extends AbstractCommand
         $serverName = $inputOutput->ask("Enter server name");
 
         $user   = $this->getUserByEmail->setCredentials($userEmail, $password)->execute($userEmail);
-        $server = $this->addServer->execute(
+        $server = $this->addServer->setCredentials($userEmail, $password)->execute(
             [
-                'name' => $serverName,
-                'status' => 'pending',
-                'ip_address' => $this->getIpAddress(),
-                'workspace_id_id' => $user['workspace']['id'] // What if customer has a few Workspaces ???
+                'name'      => $serverName,
+                'status'    => 'active',
+                'ipAddress' => $this->getIpAddress(),
+                'workspaceId' => $this->getWorkspaceId($user, $inputOutput)
             ]
         );
 
-        $inputOutput->success("Server successfully added, please set next parameters in .env file:");
-        $message = sprintf(
-            "please set next parameters in .env file: APP_SERVER_UUID: %s and APP_SERVER_SECRET_KEY: %s",
-            $server['uuid'],
-            $server['secret_key']
+        $inputOutput->success("Server successfully added");
+        $inputOutput->note(
+            [
+                "please update .env file with next data:",
+                sprintf("APP_SERVER_UUID: %s", $server['uuid']),
+                sprintf("APP_SERVER_SECRET_KEY: %s", $server['secret_key'])
+            ]
         );
-        $inputOutput->note($message);
-        // Generate server info
-        // Send data about server to service
+    }
+
+    private function getWorkspaceId(array $user, InputOutput $inputOutput): string
+    {
+        if (count($user['workspace']) == 1) {
+            return "/api/workspaces/" . $user['workspace'][0]['id'];
+        }
+
+        $workspaceCode = $inputOutput->choice(
+            "Select Workspace",
+            array_column($user['workspace'], 'code')
+        );
+
+        $workspace = array_search($workspaceCode, array_column($user['workspace'], 'code'));
+
+        return "/api/workspaces/" . $workspace['id'];
     }
 
     /**
