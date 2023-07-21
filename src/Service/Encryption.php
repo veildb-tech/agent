@@ -6,11 +6,9 @@ use App\Exception\EncryptionException;
 
 class Encryption
 {
-
     public function __construct(
         private readonly string $keyFile = '',
-    )
-    {
+    ) {
     }
 
 
