@@ -15,12 +15,37 @@ class AppConfig
 
     private ?array $defaultConfig = null;
 
+    /**
+     * @param KernelInterface $kernel
+     * @param Filesystem $filesystem
+     * @param array $config
+     */
     public function __construct(
         private readonly KernelInterface $kernel,
         private readonly Filesystem $filesystem,
         array $config
     ) {
         $this->defaultConfig = $config;
+    }
+
+    /**
+     * Get server UUID param
+     *
+     * @return array|string|false
+     */
+    public function getServerUuid(): array|string|false
+    {
+        return env('APP_SERVER_UUID', '');
+    }
+
+    /**
+     * Get server Secret Key
+     *
+     * @return array|string|false
+     */
+    public function getServerSecretKey(): array|string|false
+    {
+        return env('APP_SERVER_SECRET_KEY', '');
     }
 
     /**
@@ -111,7 +136,27 @@ class AppConfig
      */
     public function getAppRootDir(): string
     {
-        return $this->kernel->getProjectDir() . '/../..';
+        return $this->getProjectDir() . '/../..';
+    }
+
+    /**
+     * Get Project dir
+     *
+     * @return string
+     */
+    public function getProjectDir(): string
+    {
+        return $this->kernel->getProjectDir();
+    }
+
+    /**
+     * Update / reload configs from env file
+     *
+     * @return void
+     */
+    public function updateEnvConfigs(): void
+    {
+        (new \Symfony\Component\Dotenv\Dotenv())->usePutenv()->bootEnv($this->getProjectDir() . '/.env');
     }
 
     /**
@@ -123,6 +168,7 @@ class AppConfig
     private function getConfigFile(string $directory, string $file = 'config'): array
     {
         $dotenv = Dotenv::createImmutable($directory, $file);
-        return $dotenv->load();
+
+        return $dotenv->safeLoad();
     }
 }

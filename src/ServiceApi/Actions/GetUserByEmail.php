@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
-use Illuminate\Database\Eloquent\Casts\Json;
+use Exception;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -13,39 +13,40 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-final class SendDbStructure extends AppService
+final class GetUserByEmail extends AppService
 {
-    protected string $action = 'databases';
+    protected string $action = 'users';
 
     /**
-     * Set DB structure
+     * Get user data
      *
-     * @param string $dbUid
-     * @param array $data
+     * @param string $email
      *
-     * @return void
+     * @return array
+     *
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws InvalidArgumentException
+     * @throws Exception
      */
-    public function execute(string $dbUid, array $data): void
+    public function execute(string $email): array
     {
-        $this->action .= '/' . $dbUid;
+        $result = $this->getUserByEmail($email);
 
-        $this->sendData(
-            JSON::encode($data['db_schema']),
-            JSON::encode($data['additional_data']),
-        );
+        if (!count($result)) {
+            throw new Exception(sprintf('There user with email %s was not found', $email));
+        }
+        return current($result);
     }
 
     /**
-     * @param string $dbSchema
-     * @param string $additionalData
+     * @param string $email
      *
      * @return array
+     *
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
@@ -53,17 +54,15 @@ final class SendDbStructure extends AppService
      * @throws TransportExceptionInterface
      * @throws InvalidArgumentException
      */
-    protected function sendData(string $dbSchema, string $additionalData): array
+    protected function getUserByEmail(string $email): array
     {
         return $this->sendRequest(
             [
-                'json' => [
-                    'status'         => 'enabled',
-                    'dbSchema'       => $dbSchema,
-                    'additionalData' => $additionalData
+                'query' => [
+                    'email' => $email
                 ]
             ],
-            'PATCH'
+            'GET'
         );
     }
 }

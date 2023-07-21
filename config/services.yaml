@@ -6,6 +6,8 @@
 parameters:
     app.service_workspace: '%env(APP_SERVICE_WORKSPACE)%'
     app.service_token: '%env(APP_SERVICE_TOKEN)%'
+    app.service_uuid: '%env(APP_SERVER_UUID)%'
+    app.service_secret_key: '%env(APP_SERVER_SECRET_KEY)%'
     app.service_url: '%env(APP_SERVICE_URL)%'
     app.private_keys_path: '%env(APP_KEY_PATH)%'
     app.dump_path: '%env(APP_DUMP_PATH)%'
@@ -31,8 +33,6 @@ services:
     App\ServiceApi\AppServiceClient:
         arguments:
             $httpClient: "@Symfony\\Contracts\\HttpClient\\HttpClientInterface"
-            $workspace: '%app.service_workspace%'
-            $apiToken: '%app.service_token%'
             $serviceUrl: '%app.service_url%'
 
     App\Service\Encryption:

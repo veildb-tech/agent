@@ -8,8 +8,6 @@ use Symfony\Component\Process\Process;
 
 class ShellProcess
 {
-
-
     public function run(string $command): void
     {
         $process = Process::fromShellCommandline($command);

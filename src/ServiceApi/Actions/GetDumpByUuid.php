@@ -31,6 +31,7 @@ final class GetDumpByUuid extends AppService
     public function execute(string $dumpUuid): array
     {
         $this->action .= '/' . $dumpUuid;
+
         return $this->sendRequest([], 'GET');
     }
 }

@@ -10,6 +10,7 @@ use App\Service\AppLogger;
 use App\Service\InputOutput;
 use App\Service\PublicCommand\Database\Analyzer;
 use App\ServiceApi\Actions\AddDatabase as ServiceApiAddDatabase;
+use App\ServiceApi\Entity\Server;
 use DbManager\CoreBundle\DBManagement\DBManagementFactory;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
@@ -18,6 +19,7 @@ use DbManager\CoreBundle\Service\DbDataManager;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -34,6 +36,7 @@ class AddDatabase extends AbstractCommand
     /**
      * @param AppLogger $appLogger
      * @param AppConfig $appConfig
+     * @param Server $serverApi
      * @param ServiceApiAddDatabase $addDatabase
      * @param Analyzer $databaseAnalyzer
      * @param DBManagementFactory $dbManagementFactory
@@ -41,6 +44,7 @@ class AddDatabase extends AbstractCommand
     public function __construct(
         private readonly AppLogger $appLogger,
         private readonly AppConfig $appConfig,
+        private readonly Server $serverApi,
         private readonly ServiceApiAddDatabase $addDatabase,
         protected readonly Analyzer $databaseAnalyzer,
         private readonly DBManagementFactory $dbManagementFactory
@@ -58,6 +62,7 @@ class AddDatabase extends AbstractCommand
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function execute(InputInterface $input, OutputInterface $output): void
     {
@@ -74,6 +79,7 @@ class AddDatabase extends AbstractCommand
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     protected function addDatabase(): void
     {
@@ -83,7 +89,9 @@ class AddDatabase extends AbstractCommand
             return;
         }
 
-        $this->config['name'] = $inputOutput->ask("Enter database name");
+        $server = $this->serverApi->get($this->appConfig->getServerUuid());
+
+        $this->config['name']   = $inputOutput->ask("Enter database name");
         $this->config['engine'] = $inputOutput->choice("Select engine", [
             'mysql', 'postgresql'
         ]);
@@ -91,7 +99,7 @@ class AddDatabase extends AbstractCommand
             'custom', 'magento', 'wordpress', 'shopware'
         ]);
 
-        $this->sendDatabaseToService();
+        $this->sendDatabaseToService($server);
         $this->getDumpMethods();
 
         if ($this->validateConnection()) {
@@ -111,20 +119,24 @@ class AddDatabase extends AbstractCommand
     }
 
     /**
+     * @param array $server
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
-    private function sendDatabaseToService(): void
+    private function sendDatabaseToService(array $server): void
     {
         $data = $this->addDatabase->execute([
             'name'      => $this->config['name'],
             'engine'    => $this->config['engine'],
             'platform'  => $this->config['platform'],
-            'status'    => 'pending'
+            'status'      => 'pending',
+            "workspaceId" => (int)str_replace('/api/workspaces/', '', $server['workspaceId'])
         ]);
 
         $this->config['db_uid'] = $data['uid'];
