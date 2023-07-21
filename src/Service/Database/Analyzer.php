@@ -12,6 +12,7 @@ use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use DbManager\CoreBundle\Service\DbDataManager;
 use Doctrine\DBAL\Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -47,6 +48,7 @@ class Analyzer
      * @throws DecodingExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function process(string $databaseUid, string $tempDatabase): void
     {
@@ -59,8 +61,8 @@ class Analyzer
             )
         );
 
-        $structure = $this->processorFactory->create($dbManager->getEngine())->getDbStructure($dbManager);
-        $this->sendDbStructure->execute($databaseUid, $structure);
+        $data = $this->processorFactory->create($dbManager->getEngine())->getDbStructure($dbManager);
+        $this->sendDbStructure->execute($databaseUid, $data);
     }
 
     /**

@@ -6,6 +6,7 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use Illuminate\Database\Eloquent\Casts\Json;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -20,7 +21,7 @@ final class SendDbStructure extends AppService
      * Set DB structure
      *
      * @param string $dbUid
-     * @param array $structure
+     * @param array $data
      *
      * @return void
      * @throws ClientExceptionInterface
@@ -28,14 +29,15 @@ final class SendDbStructure extends AppService
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
-    public function execute(string $dbUid, array $structure): void
+    public function execute(string $dbUid, array $data): void
     {
         $this->action .= '/' . $dbUid;
 
         $this->sendData(
-            JSON::encode($structure['db_schema']),
-            JSON::encode($structure['additional_data']),
+            JSON::encode($data['db_schema']),
+            JSON::encode($data['additional_data']),
         );
     }
 
@@ -44,19 +46,20 @@ final class SendDbStructure extends AppService
      * @param string $additionalData
      *
      * @return array
-     *
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     protected function sendData(string $dbSchema, string $additionalData): array
     {
         return $this->sendRequest(
             [
                 'json' => [
-                    'dbSchema' => $dbSchema,
+                    'status'         => 'enabled',
+                    'dbSchema'       => $dbSchema,
                     'additionalData' => $additionalData
                 ]
             ],

@@ -6,6 +6,7 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -24,9 +25,10 @@ final class AddDatabase extends AppService
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     public function execute(array $data): array
     {
-        return $this->sendRequest(['json' => $data], 'POST');
+        return $this->sendRequest(['json' => $data]);
     }
 }
