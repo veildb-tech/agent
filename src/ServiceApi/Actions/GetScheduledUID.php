@@ -6,6 +6,7 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -20,7 +21,7 @@ final class GetScheduledUID extends AppService
      * Get UID of scheduled DB
      * Command will return data in format: <backup Uuid>:<db Uid>
      *
-     * @return string
+     * @return array
      *
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
@@ -65,6 +66,7 @@ final class GetScheduledUID extends AppService
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     protected function getScheduledDB(): array
     {

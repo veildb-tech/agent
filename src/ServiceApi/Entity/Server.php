@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\ServiceApi\Actions;
+namespace App\ServiceApi\Entity;
 
 use App\ServiceApi\AppService;
-use Illuminate\Database\Eloquent\Casts\Json;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -13,37 +12,34 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-final class SendDbStructure extends AppService
+final class Server extends AppService
 {
-    protected string $action = 'databases';
+    protected string $action = 'servers';
 
     /**
-     * Set DB structure
+     * Get Server data
      *
-     * @param string $dbUid
-     * @param array $data
+     * @param string $uuid
      *
-     * @return void
+     * @return array
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws InvalidArgumentException
      */
-    public function execute(string $dbUid, array $data): void
+    public function get(string $uuid): array
     {
-        $this->action .= '/' . $dbUid;
+        $this->action = 'servers/' . $uuid;
 
-        $this->sendData(
-            JSON::encode($data['db_schema']),
-            JSON::encode($data['additional_data']),
-        );
+        return $this->sendRequest([], 'GET');
     }
 
     /**
-     * @param string $dbSchema
-     * @param string $additionalData
+     * Create server data
+     *
+     * @param array $data
      *
      * @return array
      * @throws ClientExceptionInterface
@@ -53,15 +49,36 @@ final class SendDbStructure extends AppService
      * @throws TransportExceptionInterface
      * @throws InvalidArgumentException
      */
-    protected function sendData(string $dbSchema, string $additionalData): array
+    public function create(array $data): array
     {
         return $this->sendRequest(
             [
-                'json' => [
-                    'status'         => 'enabled',
-                    'dbSchema'       => $dbSchema,
-                    'additionalData' => $additionalData
-                ]
+                'json' => $data
+            ]
+        );
+    }
+
+    /**
+     * Update server data
+     *
+     * @param string $uuid
+     * @param array $data
+     *
+     * @return array
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
+    public function update(string $uuid, array $data): array
+    {
+        $this->action = 'servers/' . $uuid;
+
+        return $this->sendRequest(
+            [
+                'json' => $data
             ],
             'PATCH'
         );

@@ -8,7 +8,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class AppServiceClient
+final class AppServiceClient
 {
     /**
      * @var HttpClientInterface
@@ -17,14 +17,10 @@ class AppServiceClient
 
     /**
      * @param HttpClientInterface $httpClient
-     * @param string              $workspace
-     * @param string              $apiToken
      * @param string              $serviceUrl
      */
     public function __construct(
         protected HttpClientInterface $httpClient,
-        protected string $workspace,
-        protected string $apiToken,
         protected string $serviceUrl = ''
     ) {
     }
