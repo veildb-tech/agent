@@ -90,6 +90,19 @@ class DumpManagement
     }
 
     /**
+     * @param string $dbUuid
+     * @param string $engine
+     * @return File
+     */
+    public function getDestinationFilePath(string $dbUuid, string $engine = 'mysql'): File
+    {
+        // Should be depended on engine;
+        $extension = '.sql';
+        $filepath = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbUuid . '/' . time() . $extension;
+        return new File($filepath, false);
+    }
+
+    /**
      * @param string $dbuid
      * @return void
      */

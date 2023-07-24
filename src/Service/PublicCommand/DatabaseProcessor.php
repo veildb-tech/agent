@@ -61,38 +61,70 @@ class DatabaseProcessor extends AbstractCommand
         $this->appLogger->initAppLogger($output);
         $scheduledData = $this->getScheduledUID->execute();
         if (!empty($scheduledData)) {
-            if (empty($scheduledData['uuid']) || empty($scheduledData['db']['uid'])) {
+            $dbuuid = $scheduledData['db']['uid'];
+            $dumpuuid = $scheduledData['uuid'];
+            if (empty($dumpuuid) || empty($dbuuid)) {
                 throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
             }
 
             $this->appLogger->logToService(
-                $scheduledData['uuid'],
+                $dumpuuid,
                 LogStatusEnum::PROCESSING->value,
                 "Preparing backup"
             );
-            $file = $this->dumpManagement->createDump($scheduledData['db']['uid']);
+            $originFile = $this->dumpManagement->createDump($dbuuid);
+            $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
 
             $tempDatabase = 'temp_' . time();
 
             $database = new DbDataManager(
                 array_merge(
-                    $this->getDatabaseRules->get($scheduledData['db']['uid']),
+                    $this->getDatabaseRules->get($dbuuid),
                     [
                         'name' => $tempDatabase,
-                        'inputFile' => $file->getPathname()
+                        'inputFile' => $originFile->getPathname(),
+                        'backup_path' => $destinationFile->getPathname()
                     ]
                 )
             );
             $dbManagement = $this->dbManagementFactory->create();
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Creating temporary table"
+            );
             $dbManagement->create($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Import backup to temporary table"
+            );
             $dbManagement->import($database);
 
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Processing database dump"
+            );
             $this->processorFactory->create($database->getEngine())->process($database);
 
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Creating new dump file"
+            );
             $dbManagement->dump($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Dropping temporary database"
+            );
             $dbManagement->drop($database);
 
-            $this->finishDump->execute($scheduledData['uuid'], 'ready', $file->getFilename());
+            $this->finishDump->execute($dumpuuid, 'ready', $destinationFile->getFilename());
         }
     }
 }

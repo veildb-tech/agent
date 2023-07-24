@@ -74,7 +74,8 @@ final class GetDatabaseRules extends AppService
         if (!isset($data['rule'])) {
             throw new Exception('An information about DB processing rules was not found...');
         }
-        return $data['rule']['rule'];
+
+        return $this->prepareRules($data['rule']['rule']);
     }
 
     /**
@@ -104,5 +105,28 @@ final class GetDatabaseRules extends AppService
         $this->action = 'databases/' . $databaseUid;
 
         return $this->sendRequest([], 'GET');
+    }
+
+    /**
+     * Prepare rules
+     *
+     * @param array $rules
+     * @return array
+     */
+    private function prepareRules(array $rules): array
+    {
+        $transformedRules = [];
+        foreach ($rules as $rule) {
+            $transformedRules[$rule['table']] = [
+                'columns' => [],
+                'method' => $rule['method']
+            ];
+
+            foreach ($rule['columns'] as $column) {
+                $transformedRules[$rule['table']]['columns'][$column['name']] = $column;
+            }
+        }
+
+        return $transformedRules;
     }
 }
