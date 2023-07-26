@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use App\Exception\AccessDenyException;
 use App\Exception\EncryptionException;
+use App\ServiceApi\Actions\ValidateAccessToken;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,30 +15,42 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\DumpManagement;
 use App\Service\Encryption;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class DownloadController extends AbstractController
 {
-
     public function __construct(
+        private readonly ValidateAccessToken $validateAccessToken,
         private readonly DumpManagement $dumpService,
         private readonly Encryption $encryption
     ) {
     }
 
-    #[Route('/download', name: 'app_download')]
-    public function index(Request $request): JsonResponse | BinaryFileResponse
+    #[Route('/download/{token}/', name: 'app_download', methods: ["POST"])]
+    public function downloadAction(string $token, Request $request): JsonResponse | BinaryFileResponse
     {
         $encryptedData = $request->getContent();
 
         try {
+            $this->validateAccessToken->execute($token);
+
             $decryptedData = $this->encryption->decrypt($encryptedData);
-        } catch (EncryptionException $exception) {
+        } catch (EncryptionException | AccessDenyException $exception) {
             return $this->json([
                 'message' => 'Access denied'
             ], 503);
         } catch (\Exception $exception) {
             return $this->json([
                 'message' => 'Not found'
+            ], 404);
+        } catch (
+            InvalidArgumentException
+            | DecodingExceptionInterface
+            | TransportExceptionInterface $exception
+        ) {
+            return $this->json([
+                'message' => 'Error happened'
             ], 404);
         }
 

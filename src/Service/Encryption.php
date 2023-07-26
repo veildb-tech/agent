@@ -7,10 +7,10 @@ use App\Exception\EncryptionException;
 class Encryption
 {
     public function __construct(
-        private readonly string $keyFile = '',
+        private readonly string $keyPath = '',
+        private readonly string $keyFile = ''
     ) {
     }
-
 
     /**
      * Try to decrypt data
@@ -21,14 +21,12 @@ class Encryption
      */
     public function decrypt(string $encryptedData): string
     {
-        $keys = $this->getKeys();
         $decrypted = false;
         $decryptedData = '';
 
-        foreach ($keys as $key) {
-            if (empty($key)) continue;
-            $key = "-----BEGIN PRIVATE KEY-----\n" . $key . "\n-----END PRIVATE KEY-----";
-            if (openssl_private_decrypt($encryptedData, $decryptedData, trim($key))) {
+        if ($privateKey = $this->getPrivateKey()) {
+            $res = openssl_get_privatekey($privateKey, '');
+            if (openssl_private_decrypt($encryptedData, $decryptedData, $res)) {
                 $decrypted = true;
             }
         }
@@ -40,13 +38,12 @@ class Encryption
         return $decryptedData;
     }
 
-    /**
-     * Retrieve private keys
-     *
-     * @return array
-     */
-    private function getKeys(): array
+    private function getPrivateKey(): ?string
     {
-        return explode("\n", file_get_contents($this->keyFile));
+        $fp = fopen(rtrim($this->keyPath, '/') . '/' . $this->keyFile, "r");
+        $privateKey = fread($fp, 8192);
+        fclose($fp);
+
+        return $privateKey;
     }
 }

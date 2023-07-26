@@ -67,10 +67,12 @@ final class Add extends AbstractServerCommand
     private function createServer(InputOutput $inputOutput, array $user, string $userEmail, string $password): array
     {
         $serverName = $inputOutput->ask("Enter server name");
+        $serverUrl  = $inputOutput->ask("Enter server public Url", '');
 
         $server = $this->serverApi->setCredentials($userEmail, $password)->create(
             [
                 'name'        => $serverName,
+                'url'         => $serverUrl,
                 'status'      => ServerStatusEnum::ENABLED->value,
                 'ipAddress'   => $this->getIpAddress(),
                 'workspaceId' => $this->getWorkspaceId($user, $inputOutput)

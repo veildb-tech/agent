@@ -75,9 +75,14 @@ final class Update extends AbstractServerCommand
             throw new Exception('You do not have access to this server!!!');
         }
 
+        if (!$server['url']) {
+            $serverUrl = $inputOutput->ask("Enter server public Url", '');
+        }
+
         $server = $this->serverApi->setCredentials($userEmail, $password)->update(
             $uuid,
             [
+                'url'         => $serverUrl ?? $server['url'],
                 'status'      => ServerStatusEnum::ENABLED->value,
                 'ipAddress'   => $this->getIpAddress()
             ]

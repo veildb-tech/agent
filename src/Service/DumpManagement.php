@@ -31,7 +31,7 @@ class DumpManagement
         if (empty($dump['db'])) {
             throw new \Exception("Couldn't allocate database for dump");
         }
-        return new File($this->dumpPath . '/' . $dump['db']['uid']. '/' . $dump['filename']);
+        return new File($this->dumpPath . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
     }
 
     public function getDumpByUuid(string $uuid): array
