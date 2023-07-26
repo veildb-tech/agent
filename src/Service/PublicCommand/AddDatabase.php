@@ -135,7 +135,8 @@ class AddDatabase extends AbstractCommand
             'name'      => $this->config['name'],
             'engine'    => $this->config['engine'],
             'platform'  => $this->config['platform'],
-            'status'      => 'pending',
+            'status'    => 'pending',
+            'server'    => $server['id'],
             "workspaceId" => (int)str_replace('/api/workspaces/', '', $server['workspaceId'])
         ]);
 

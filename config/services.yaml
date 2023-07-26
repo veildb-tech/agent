@@ -7,9 +7,10 @@ parameters:
     app.service_workspace: '%env(APP_SERVICE_WORKSPACE)%'
     app.service_token: '%env(APP_SERVICE_TOKEN)%'
     app.service_uuid: '%env(APP_SERVER_UUID)%'
-    app.service_secret_key: '%env(APP_SERVER_SECRET_KEY)%'
     app.service_url: '%env(APP_SERVICE_URL)%'
-    app.private_keys_path: '%env(APP_KEY_PATH)%'
+    app.keys_path: '%env(APP_KEY_PATH)%'
+    app.key_file: '%env(APP_KEY_FILE)%'
+    app.service_secret_key: '%env(APP_SERVER_SECRET_KEY)%'
     app.dump_path: '%env(APP_DUMP_PATH)%'
     app.work_db_user: '%env(WORK_DB_USER)%'
     app.work_db_password: '%env(WORK_DB_PASSWORD)%'
@@ -37,7 +38,8 @@ services:
 
     App\Service\Encryption:
         arguments:
-            $keyFile: '%app.private_keys_path%'
+            $keyPath: '%app.keys_path%'
+            $keyFile: '%app.key_file%'
 
     App\Service\DumpManagement:
         arguments:

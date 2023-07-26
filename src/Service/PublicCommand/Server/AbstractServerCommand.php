@@ -101,16 +101,28 @@ abstract class AbstractServerCommand extends AbstractCommand
 
         $uuid = $this->appConfig->getServerUuid();
         $command = 'sed -e "s/^APP_SERVER_UUID=' . $uuid . '/APP_SERVER_UUID=' . $newUuid . '/g"';
-        $this->shellProcess->run($command . ' ' . $envFile . ' > ' . $envFile . '.tmp');
-        $this->shellProcess->run(' cat ' . $envFile . '.tmp > ' . $envFile);
-        $this->shellProcess->run(' rm ' . $envFile . '.tmp');
+        $this->updateFile($command, $envFile);
 
         $secretKey = $this->appConfig->getServerSecretKey();
         $command = 'sed -e "s/^APP_SERVER_SECRET_KEY=' . $secretKey . '/APP_SERVER_SECRET_KEY=' . $newSKey . '/g"';
+        $this->updateFile($command, $envFile);
+
+        $this->appConfig->updateEnvConfigs();
+    }
+
+    /**
+     * Update file
+     *
+     * @param string $command
+     * @param string $envFile
+     *
+     * @return void
+     * @throws Exception
+     */
+    private function updateFile(string $command, string $envFile): void
+    {
         $this->shellProcess->run($command . ' ' . $envFile . ' > ' . $envFile . '.tmp');
         $this->shellProcess->run(' cat ' . $envFile . '.tmp > ' . $envFile);
         $this->shellProcess->run(' rm ' . $envFile . '.tmp');
-
-        $this->appConfig->updateEnvConfigs();
     }
 }
