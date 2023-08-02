@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\DumpManagement;
-use App\Service\Encryption;
+use App\Service\Security\Encryption;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
@@ -35,7 +35,7 @@ class DownloadController extends AbstractController
         try {
             $this->validateAccessToken->execute($token);
 
-            $decryptedData = $this->encryption->decrypt($encryptedData);
+            $decryptedData = $this->encryption->execute($encryptedData);
         } catch (EncryptionException | AccessDenyException $exception) {
             return $this->json([
                 'message' => 'Access denied'

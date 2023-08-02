@@ -43,10 +43,12 @@ WORK_DB_PASSWORD=12345
 WORK_DB_HOST=localhost
 WORK_DB_PORT=3361
 
-
 DBM_TOKEN=
-APP_KEY_PATH=/app/config/keys
 APP_DUMP_PATH=/app/dumps/processed
 
 # Directory with configurations
 CONFIG_PATH=''
+
+# Path to files with public and private keys
+SECRET_KEY_PRIVATE=
+SECRET_KEY_PUBLIC=

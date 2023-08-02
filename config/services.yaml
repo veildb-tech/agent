@@ -8,14 +8,13 @@ parameters:
     app.service_token: '%env(APP_SERVICE_TOKEN)%'
     app.service_uuid: '%env(APP_SERVER_UUID)%'
     app.service_url: '%env(APP_SERVICE_URL)%'
-    app.keys_path: '%env(APP_KEY_PATH)%'
-    app.key_file: '%env(APP_KEY_FILE)%'
-    app.service_secret_key: '%env(APP_SERVER_SECRET_KEY)%'
     app.dump_path: '%env(APP_DUMP_PATH)%'
     app.work_db_user: '%env(WORK_DB_USER)%'
     app.work_db_password: '%env(WORK_DB_PASSWORD)%'
     app.work_db_host: '%env(WORK_DB_HOST)%'
     app.work_db_port: '%env(WORK_DB_PORT)%'
+    app.secret_key_private: '%env(SECRET_KEY_PRIVATE)%'
+    app.secret_key_public: '%env(SECRET_KEY_PUBLIC)%'
 
 services:
     # default configuration for services in *this* file
@@ -31,15 +30,22 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
     App\ServiceApi\AppServiceClient:
         arguments:
             $httpClient: "@Symfony\\Contracts\\HttpClient\\HttpClientInterface"
             $serviceUrl: '%app.service_url%'
 
-    App\Service\Encryption:
+    App\Service\Security\Encryption:
         arguments:
-            $keyPath: '%app.keys_path%'
-            $keyFile: '%app.key_file%'
+            $secretKey: '%app.secret_key_private%'
+
+    App\Service\Security\GenerateKeyPair:
+        arguments:
+            $secretKey: '%app.secret_key_private%'
+            $publicKey: '%app.secret_key_public%'
+            $passphrase: ''
+            $algorithm: 'RS256'
 
     App\Service\DumpManagement:
         arguments:
