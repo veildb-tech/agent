@@ -12,6 +12,7 @@ use App\Service\Engines\Mysql;
 use App\Service\Methods\Method;
 use App\ServiceApi\Actions\GetScheduledUID;
 use App\ServiceApi\Actions\FinishDump;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -29,6 +30,7 @@ class DatabaseProcessor extends AbstractCommand
      * @param FinishDump $finishDump
      * @param Method $method
      * @param Mysql $mysql
+     * @param Filesystem $filesystem
      */
     public function __construct(
         private readonly AppLogger $appLogger,
@@ -36,7 +38,8 @@ class DatabaseProcessor extends AbstractCommand
         private readonly GetScheduledUID $getScheduledUID,
         private readonly FinishDump $finishDump,
         private readonly Method $method,
-        private readonly Mysql $mysql
+        private readonly Mysql $mysql,
+        private readonly Filesystem $filesystem
     ) {
     }
 
@@ -88,12 +91,8 @@ class DatabaseProcessor extends AbstractCommand
     {
         $untouchedDir = $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbuid;
         $processedDir = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbuid;
-        if (!is_dir($untouchedDir)) {
-            mkdir($untouchedDir);
-        }
 
-        if (!is_dir($processedDir)) {
-            mkdir($processedDir);
-        }
+        $this->filesystem->mkdir($untouchedDir);
+        $this->filesystem->mkdir($processedDir);
     }
 }
