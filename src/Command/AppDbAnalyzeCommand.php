@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Service\Database\Analyzer;
+use App\Service\PublicCommand\Database\Analyzer;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use Doctrine\DBAL\Exception;
@@ -52,7 +52,7 @@ final class AppDbAnalyzeCommand extends Command
         )->addOption(
             'db',
             null,
-            InputOption::VALUE_REQUIRED,
+            InputOption::VALUE_OPTIONAL,
             'Temporary database name'
         );
     }
@@ -67,9 +67,9 @@ final class AppDbAnalyzeCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->databaseAnalyzer->process(
-                $input->getOption('uid'),
-                $input->getOption('db')
+            $this->databaseAnalyzer->execute(
+                $input,
+                $output
             );
         } catch (
             ClientExceptionInterface

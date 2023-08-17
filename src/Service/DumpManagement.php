@@ -4,21 +4,62 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Exception\NoSuchMethodException;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\File\File;
 use App\ServiceApi\Actions\GetDumpByUuid;
+use App\Service\Methods\MethodFactory;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+
 
 class DumpManagement
 {
+    /**
+     * @param GetDumpByUuid $dumpWebService
+     * @param AppConfig $appConfig
+     * @param MethodFactory $methodFactory
+     * @param string $dumpPath
+     */
     public function __construct(
         private readonly GetDumpByUuid $dumpWebService,
+        private readonly AppConfig $appConfig,
+        private readonly MethodFactory $methodFactory,
         private readonly string $dumpPath = ''
     ) {
     }
 
     /**
+     * @param string $dbUuid
+     * @param string|null $filename
+     * @return string
+     * @throws NoSuchMethodException
+     */
+    public function createDump(string $dbUuid, ?string $filename = null): File
+    {
+        $this->initDumpDirectories($dbUuid);
+        $dbConfig = $this->appConfig->getDatabaseConfig($dbUuid);;
+        $method = $this->methodFactory->create($dbConfig['method']);
+        $dumpFile = $method->execute($dbConfig, $dbUuid, $filename);
+
+        if (!is_file($dumpFile)) {
+            throw new FileNotFoundException("Something went wrong during backup creation. File not found");
+        }
+
+        return new File($dumpFile);
+    }
+
+    /**
      * @param string $uuid
-     * @return null | File
-     * @throws \Exception
+     * @return File|null
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function getDumpFileByUuid(string $uuid): ?File
     {
@@ -34,8 +75,47 @@ class DumpManagement
         return new File($this->dumpPath . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
     }
 
+    /**
+     * @param string $uuid
+     * @return array
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
     public function getDumpByUuid(string $uuid): array
     {
         return $this->dumpWebService->execute($uuid);
+    }
+
+    /**
+     * @param string $dbUuid
+     * @param string $engine
+     * @return File
+     */
+    public function getDestinationFilePath(string $dbUuid, string $engine = 'mysql'): File
+    {
+        // Should be depended on engine;
+        $extension = '.sql';
+        $filepath = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbUuid . '/' . time() . $extension;
+        return new File($filepath, false);
+    }
+
+    /**
+     * @param string $dbuid
+     * @return void
+     */
+    public function initDumpDirectories(string $dbuid): void
+    {
+        $untouchedDir = $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbuid;
+        $processedDir = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbuid;
+        if (!is_dir($untouchedDir)) {
+            mkdir($untouchedDir);
+        }
+
+        if (!is_dir($processedDir)) {
+            mkdir($processedDir);
+        }
     }
 }

@@ -12,13 +12,17 @@ class Manual extends AbstractMethod
     /**
      * @param array $dbConfig
      * @param string $dbUuid
-     * @param string $filename
-     * @return void
+     * @param string|null $filename
+     * @return string
      * @throws DumpNotFoundException
      */
-    public function execute(array $dbConfig, string $dbUuid, string $filename): void
+    public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
         $originFile = $this->getOriginFile($dbUuid, $dbConfig['dump_name']);
+
+        if (!$filename) {
+            $filename = time() . '.sql';
+        }
         $destFile = $this->getOriginFile($dbUuid, $filename);
 
         if (!is_file($originFile)) {
@@ -26,6 +30,7 @@ class Manual extends AbstractMethod
         }
 
         rename($originFile, $destFile);
+        return $destFile;
 
     }
 }

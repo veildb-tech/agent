@@ -11,12 +11,17 @@ class Dump extends AbstractMethod
 
     /**
      * @param array $dbConfig
-     * @param string $filename
-     * @return void
+     * @param string $dbUuid
+     * @param string|null $filename
+     * @return string
      * @throws Exception
      */
-    public function execute(array $dbConfig, string $dbUuid, string $filename): void
+    public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
+        if (!$filename) {
+            $filename = time() . '.sql';
+        }
+
         $destFile = $this->getOriginFile($dbUuid, $filename);
         $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p%s', $dbConfig['db_password']) : '';
         $this->shellProcess->run(sprintf(
@@ -26,5 +31,7 @@ class Dump extends AbstractMethod
             $dbConfig['db_name'],
             $destFile
         ));
+
+        return $destFile;
     }
 }

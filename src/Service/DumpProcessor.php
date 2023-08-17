@@ -9,6 +9,9 @@ use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use DbManager\CoreBundle\Exception\ShellProcessorException;
 use DbManager\CoreBundle\Service\DbDataManager;
 
+/**
+ * @deprecated
+ */
 class DumpProcessor
 {
     /**

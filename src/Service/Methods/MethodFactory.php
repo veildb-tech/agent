@@ -7,9 +7,11 @@ namespace App\Service\Methods;
 use App\Enum\MethodsEnum;
 use App\Exception\NoSuchMethodException;
 
-class Method
+class MethodFactory
 {
     /**
+     * TODO: replace by service
+     *
      * @param Manual $manual
      * @param Dump $dump
      */
@@ -26,7 +28,7 @@ class Method
      * @return MethodInterface
      * @throws NoSuchMethodException
      */
-    public function getMethodClass(string $method): MethodInterface
+    public function create(string $method): MethodInterface
     {
         return match ($method) {
             MethodsEnum::MANUAL->value => $this->manual,
