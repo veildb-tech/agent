@@ -83,4 +83,24 @@ final class Server extends AppService
             'PATCH'
         );
     }
+
+    /**
+     * Get list of DB dumps for deleting
+     *
+     * @param string $uuid
+     *
+     * @return array
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
+    public function getDbDumpsForDelete(string $uuid): array
+    {
+        $this->action = 'servers/' . $uuid . '/get_dump_delete_list';
+
+        return $this->sendRequest([], 'GET');
+    }
 }
