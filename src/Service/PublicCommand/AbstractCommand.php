@@ -16,6 +16,16 @@ abstract class AbstractCommand
     abstract public function execute(InputInterface $input, OutputInterface $output);
 
     /**
+     * @param InputOutput $inputOutput
+     * @return $this
+     */
+    public function setInputOutput(InputOutput $inputOutput): static
+    {
+        $this->inputOutput = $inputOutput;
+        return $this;
+    }
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return $this

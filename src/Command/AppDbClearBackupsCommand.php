@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Action\ClearBackupsAction;
-use App\Service\Database\Analyzer;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,13 +23,11 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 final class AppDbClearBackupsCommand extends Command
 {
     /**
-     * @param Analyzer $databaseAnalyzer
      * @param ClearBackupsAction $clearBackupsAction
      * @param LoggerInterface $logger
      * @param string|null $name
      */
     public function __construct(
-        protected readonly Analyzer $databaseAnalyzer,
         protected readonly ClearBackupsAction $clearBackupsAction,
         protected readonly LoggerInterface $logger,
         string $name = null

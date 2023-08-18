@@ -81,12 +81,12 @@ class AppConfig
      */
     public function saveDatabaseConfig(array $databaseConfig): void
     {
-        if (empty($databaseConfig['db_uid'])) {
+        if (empty($databaseConfig['db_uuid'])) {
             throw new Exception("Can't allocate database. Please ensure token is valid");
         }
 
-        $databaseConfigDirectory = $this->getConfigDirectory() . '/' . $databaseConfig['db_uid'];
-        $databaseConfigFile = $this->getConfigDirectory() . '/' . $databaseConfig['db_uid'] . '/config';
+        $databaseConfigDirectory = $this->getConfigDirectory() . '/' . $databaseConfig['db_uuid'];
+        $databaseConfigFile = $this->getConfigDirectory() . '/' . $databaseConfig['db_uuid'] . '/config';
 
         $this->filesystem->mkdir($databaseConfigDirectory);
 

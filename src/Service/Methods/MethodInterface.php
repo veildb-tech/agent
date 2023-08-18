@@ -7,6 +7,6 @@ namespace App\Service\Methods;
 interface MethodInterface
 {
 
-    public function execute(array $dbConfig, string $dbUuid, string $filename): void;
+    public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string;
 
 }

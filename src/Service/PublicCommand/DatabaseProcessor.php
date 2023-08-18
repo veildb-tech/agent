@@ -6,13 +6,13 @@ namespace App\Service\PublicCommand;
 
 use App\Enum\LogStatusEnum;
 use App\Exception\NoSuchMethodException;
-use App\Service\AppConfig;
 use App\Service\AppLogger;
-use App\Service\Engines\Mysql;
-use App\Service\Methods\Method;
 use App\ServiceApi\Entity\DatabaseDump;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Filesystem\Filesystem;
+use App\Service\DumpManagement;
+use App\ServiceApi\Actions\GetDatabaseRules;
+use DbManager\CoreBundle\DbProcessorFactory;
+use DbManager\CoreBundle\Service\DbDataManager;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -20,24 +20,25 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use DbManager\CoreBundle\DBManagement\DBManagementFactory;
 
 class DatabaseProcessor extends AbstractCommand
 {
     /**
      * @param AppLogger $appLogger
-     * @param AppConfig $appConfig
      * @param DatabaseDump $databaseDump
-     * @param Method $method
-     * @param Mysql $mysql
-     * @param Filesystem $filesystem
+     * @param DumpManagement $dumpManagement
+     * @param DBManagementFactory $dbManagementFactory
+     * @param DbProcessorFactory $processorFactory
+     * @param GetDatabaseRules $getDatabaseRules
      */
     public function __construct(
         private readonly AppLogger $appLogger,
-        private readonly AppConfig $appConfig,
         private readonly DatabaseDump $databaseDump,
-        private readonly Method $method,
-        private readonly Mysql $mysql,
-        private readonly Filesystem $filesystem
+        private readonly DumpManagement $dumpManagement,
+        private readonly DBManagementFactory $dbManagementFactory,
+        private readonly DbProcessorFactory $processorFactory,
+        private readonly GetDatabaseRules $getDatabaseRules
     ) {
     }
 
@@ -59,42 +60,70 @@ class DatabaseProcessor extends AbstractCommand
         $this->appLogger->initAppLogger($output);
         $scheduledData = $this->databaseDump->getScheduled();
         if (!empty($scheduledData)) {
-            if (empty($scheduledData['uuid']) || empty($scheduledData['db']['uid'])) {
+            $dbuuid = $scheduledData['db']['uid'];
+            $dumpuuid = $scheduledData['uuid'];
+            if (empty($dumpuuid) || empty($dbuuid)) {
                 throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
             }
 
-            $this->init($scheduledData['db']['uid']);
-
-            $databaseConfig = $this->appConfig->getDatabaseConfig($scheduledData['db']['uid']);
-            if (!count($databaseConfig)) {
-                throw new \Exception("Database configurations not found, please configure DB.");
-            }
-            $filename = time() . '.sql';
-
-            $method = $this->method->getMethodClass($databaseConfig['method']);
             $this->appLogger->logToService(
-                $scheduledData['uuid'],
+                $dumpuuid,
                 LogStatusEnum::PROCESSING->value,
                 "Preparing backup"
             );
-            $method->execute($databaseConfig, $scheduledData['db']['uid'], $filename);
+            $originFile = $this->dumpManagement->createDump($dbuuid);
+            $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
 
-            $this->mysql->execute($scheduledData['uuid'], $scheduledData['db']['uid'], $filename);
+            $tempDatabase = 'temp_' . time();
 
-            $this->databaseDump->updateByUuid($scheduledData['uuid'], 'ready', $filename);
+            $database = new DbDataManager(
+                array_merge(
+                    $this->getDatabaseRules->get($dbuuid),
+                    [
+                        'name' => $tempDatabase,
+                        'inputFile' => $originFile->getPathname(),
+                        'backup_path' => $destinationFile->getPathname()
+                    ]
+                )
+            );
+            $dbManagement = $this->dbManagementFactory->create();
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Creating temporary table"
+            );
+            $dbManagement->create($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Import backup to temporary table"
+            );
+            $dbManagement->import($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Processing database dump"
+            );
+            $this->processorFactory->create($database->getEngine())->process($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Creating new dump file"
+            );
+            $dbManagement->dump($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Dropping temporary database"
+            );
+            $dbManagement->drop($database);
+
+            $this->databaseDump->updateByUuid($dumpuuid, 'ready', $destinationFile->getFilename());
         }
-    }
-
-    /**
-     * @param string $dbuid
-     * @return void
-     */
-    private function init(string $dbuid): void
-    {
-        $untouchedDir = $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbuid;
-        $processedDir = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbuid;
-
-        $this->filesystem->mkdir($untouchedDir);
-        $this->filesystem->mkdir($processedDir);
     }
 }

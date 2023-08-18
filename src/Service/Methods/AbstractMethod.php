@@ -25,16 +25,6 @@ abstract class AbstractMethod implements MethodInterface
      * @param string $filename
      * @return string
      */
-    protected function getDestinationFile(string $dbUuid, string $filename): string
-    {
-        return $this->appConfig->getDumpProcessedDirectory() . '/' . $dbUuid . '/' . $filename;
-    }
-
-    /**
-     * @param string $dbUuid
-     * @param string $filename
-     * @return string
-     */
     protected function getOriginFile(string $dbUuid, string $filename): string
     {
         return $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbUuid . '/' . $filename;
