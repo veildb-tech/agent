@@ -10,8 +10,8 @@ use App\Service\AppConfig;
 use App\Service\AppLogger;
 use App\Service\Engines\Mysql;
 use App\Service\Methods\Method;
-use App\ServiceApi\Actions\GetScheduledUID;
-use App\ServiceApi\Actions\FinishDump;
+use App\ServiceApi\Entity\DatabaseDump;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -26,8 +26,7 @@ class DatabaseProcessor extends AbstractCommand
     /**
      * @param AppLogger $appLogger
      * @param AppConfig $appConfig
-     * @param GetScheduledUID $getScheduledUID
-     * @param FinishDump $finishDump
+     * @param DatabaseDump $databaseDump
      * @param Method $method
      * @param Mysql $mysql
      * @param Filesystem $filesystem
@@ -35,8 +34,7 @@ class DatabaseProcessor extends AbstractCommand
     public function __construct(
         private readonly AppLogger $appLogger,
         private readonly AppConfig $appConfig,
-        private readonly GetScheduledUID $getScheduledUID,
-        private readonly FinishDump $finishDump,
+        private readonly DatabaseDump $databaseDump,
         private readonly Method $method,
         private readonly Mysql $mysql,
         private readonly Filesystem $filesystem
@@ -54,11 +52,12 @@ class DatabaseProcessor extends AbstractCommand
      * @throws TransportExceptionInterface
      * @throws NoSuchMethodException
      * @throws \Exception
+     * @throws InvalidArgumentException
      */
     public function execute(InputInterface $input, OutputInterface $output): void
     {
         $this->appLogger->initAppLogger($output);
-        $scheduledData = $this->getScheduledUID->execute();
+        $scheduledData = $this->databaseDump->getScheduled();
         if (!empty($scheduledData)) {
             if (empty($scheduledData['uuid']) || empty($scheduledData['db']['uid'])) {
                 throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
@@ -67,6 +66,9 @@ class DatabaseProcessor extends AbstractCommand
             $this->init($scheduledData['db']['uid']);
 
             $databaseConfig = $this->appConfig->getDatabaseConfig($scheduledData['db']['uid']);
+            if (!count($databaseConfig)) {
+                throw new \Exception("Database configurations not found, please configure DB.");
+            }
             $filename = time() . '.sql';
 
             $method = $this->method->getMethodClass($databaseConfig['method']);
@@ -79,7 +81,7 @@ class DatabaseProcessor extends AbstractCommand
 
             $this->mysql->execute($scheduledData['uuid'], $scheduledData['db']['uid'], $filename);
 
-            $this->finishDump->execute($scheduledData['uuid'], 'ready', $filename);
+            $this->databaseDump->updateByUuid($scheduledData['uuid'], 'ready', $filename);
         }
     }
 

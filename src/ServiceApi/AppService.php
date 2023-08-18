@@ -95,6 +95,32 @@ class AppService
     }
 
     /**
+     * Send DELETE request
+     *
+     * @param array $params
+     *
+     * @return boolean
+     * @throws InvalidArgumentException
+     * @throws TransportExceptionInterface
+     * @throws Exception
+     */
+    public function sendDeleteRequest(array $params): bool
+    {
+        if (!$this->action) {
+            throw new Exception("Action is required");
+        }
+        $this->method = 'DELETE';
+
+        $options  = $this->getOptions($params);
+        $response = $this->getClient()->request('DELETE', $this->action, $options);
+
+        if ($response->getStatusCode() === 204) {
+            return true;
+        }
+        throw new Exception($response->getInfo('error'));
+    }
+
+    /**
      * @return AppServiceClient
      */
     public function getClient(): AppServiceClient

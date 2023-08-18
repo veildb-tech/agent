@@ -100,7 +100,7 @@ class AppConfig
      */
     public function getDumpUntouchedDirectory(): string
     {
-        return $this->getAppRootDir() . '/dumps/untouched';
+        return $this->getAppDumpDir() . '/untouched';
     }
 
     /**
@@ -108,7 +108,7 @@ class AppConfig
      */
     public function getDumpProcessedDirectory(): string
     {
-        return $this->getAppRootDir() . '/dumps/processed';
+        return $this->getAppDumpDir() . '/processed';
     }
 
     /**
@@ -126,7 +126,21 @@ class AppConfig
      */
     public function getConfigDirectory(): string
     {
-        return rtrim(env('CONFIG_PATH', $this->getAppRootDir()), '/') . '/config';
+        $path = trim(env('APP_CONFIG_PATH')) ? trim(env('APP_CONFIG_PATH')) : $this->getProjectDir();
+
+        return rtrim($path, '/') . '/config';
+    }
+
+    /**
+     * Get Dump Dir
+     *
+     * @return string
+     */
+    public function getAppDumpDir(): string
+    {
+        $path = !empty(trim(env('APP_DUMP_PATH'))) ? trim(env('APP_DUMP_PATH')) : $this->getProjectDir();
+
+        return rtrim($path, '/') . '/dumps';
     }
 
     /**

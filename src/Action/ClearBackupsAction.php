@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Action;
 
 use App\Service\AppConfig;
+use App\ServiceApi\Entity\DatabaseDump;
 use App\ServiceApi\Entity\Server;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -20,12 +21,14 @@ final class ClearBackupsAction
     /**
      * @param AppConfig $appConfig
      * @param Server $server
+     * @param DatabaseDump $databaseDump
      * @param Filesystem $filesystem
      * @param LoggerInterface $logger
      */
     public function __construct(
         private readonly AppConfig $appConfig,
         private readonly Server $server,
+        private readonly DatabaseDump $databaseDump,
         private readonly Filesystem $filesystem,
         private readonly LoggerInterface $logger,
     ) {
@@ -33,7 +36,11 @@ final class ClearBackupsAction
 
     /**
      * @return void
+     * @throws ClientExceptionInterface
      * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function execute(): void
     {
@@ -47,6 +54,8 @@ final class ClearBackupsAction
 
             if ($this->filesystem->exists($file)) {
                 $this->filesystem->remove($file);
+
+                $this->databaseDump->delete($backup['uuid']);
             }
         }
     }

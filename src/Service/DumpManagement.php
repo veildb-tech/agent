@@ -4,21 +4,34 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\ServiceApi\Entity\DatabaseDump;
+use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\File\File;
-use App\ServiceApi\Actions\GetDumpByUuid;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class DumpManagement
 {
     public function __construct(
-        private readonly GetDumpByUuid $dumpWebService,
+        private readonly DatabaseDump $databaseDump,
         private readonly string $dumpPath = ''
     ) {
     }
 
     /**
      * @param string $uuid
-     * @return null | File
-     * @throws \Exception
+     * @return File|null
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws Exception
      */
     public function getDumpFileByUuid(string $uuid): ?File
     {
@@ -29,13 +42,24 @@ class DumpManagement
         }
 
         if (empty($dump['db'])) {
-            throw new \Exception("Couldn't allocate database for dump");
+            throw new Exception("Couldn't allocate database for dump");
         }
         return new File($this->dumpPath . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
     }
 
+    /**
+     * @param string $uuid
+     *
+     * @return array
+     * @throws InvalidArgumentException
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
     public function getDumpByUuid(string $uuid): array
     {
-        return $this->dumpWebService->execute($uuid);
+        return $this->databaseDump->getByUuid($uuid);
     }
 }

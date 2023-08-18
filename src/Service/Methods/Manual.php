@@ -8,7 +8,6 @@ use App\Exception\DumpNotFoundException;
 
 class Manual extends AbstractMethod
 {
-
     /**
      * @param array $dbConfig
      * @param string $dbUuid
@@ -26,6 +25,5 @@ class Manual extends AbstractMethod
         }
 
         rename($originFile, $destFile);
-
     }
 }
