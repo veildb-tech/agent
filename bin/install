@@ -4,55 +4,69 @@ export PROJECT_ROOT="$(dirname "$(realpath $0)")"
 
 # Validate is docker installed and run
 function _validateDocker() {
-  if [ ! -x "$(command -v docker)" ]; then
-    echo "You must install docker before start."
-    exit;
-  fi
+    if ! docker --version; then
+        read -r -p "ERROR: Did Docker get installed! Do you want to proceed? (yes/no) " yn
+
+        case $yn in
+            yes )
+                "${PROJECT_ROOT}"/bin/docker/install.sh ;;
+            no )
+                echo "Installation process stopped...";
+                exit;;
+        esac
+    fi
+
+    if [ ! -f /.dockerenv  ]; then
+        if ! docker run --rm hello-world; then
+            echo "ERROR: Could not get docker to run the hello world container"
+            exit 2
+        fi
+    fi
 }
 
 # Replace Function
 function _replace_pattern () {
-  local FROM=$1
-  local TO=$2
-  local FILE=$3
+    local FROM=$1
+    local TO=$2
+    local FILE=$3
 
-  if [ "$(uname)" != "Darwin" ]; then
-    sed -i "s|${FROM}|${TO}|g" ${FILE}
-  else
-    LC_ALL=C sed -i '' "s|${FROM}|${TO}|g" ${FILE}
-  fi
+    if [ "$(uname)" != "Darwin" ]; then
+        sed -i "s|${FROM}|${TO}|g" ${FILE}
+    else
+        LC_ALL=C sed -i '' "s|${FROM}|${TO}|g" ${FILE}
+    fi
 }
 
 echo "Init configurations"
 
 # 1. Validate environment.
-# 1.1. Check is docker installed
+# 1.1. Check is docker installed / install it
 _validateDocker
 
-# 1.2. Check is composer installed
-
-# 2. Install all requirement env.
-
 # 3. Init configurations:
+cp ${PROJECT_ROOT}/env-sample ${PROJECT_ROOT}/.env
+
 # 3.1. Get path to dumps folder
+PROJECT_BACKUPS_FOLDERS=''
+while [[ ${PROJECT_BACKUPS_FOLDERS} == '' || "${PROJECT_BACKUPS_FOLDERS}" =~ "~" ]]; do
+    read -p "Enter the full the path to folder with dumps:" PROJECT_BACKUPS_FOLDERS
+    if [ "${PROJECT_BACKUPS_FOLDERS::1}" != "/" ]; then
+        PROJECT_BACKUPS_FOLDERS="/${PROJECT_BACKUPS_FOLDERS}"
+    fi
+done
+
+_replace_pattern "PROJECTS_FOLDER=" "PROJECTS_FOLDER=${PROJECT_BACKUPS_FOLDERS}" ${PROJECT_ROOT}/.env
+
 # 3.2. Validate and create all folders and sub-folders
+mkdir -p "${PROJECT_BACKUPS_FOLDERS}"/dumps "${PROJECT_BACKUPS_FOLDERS}"/dumps/processed "${PROJECT_BACKUPS_FOLDERS}"/dumps/untoched \
+  && chown -R "$(id -u)":"$(id -g)" "${PROJECT_BACKUPS_FOLDERS}"/*
 
 # 4. Start docker with DB's
+
+
 
 # 5. Add required commands to cron
 "${PROJECT_ROOT}"/bin/console app:cron:install
 
 # 6. Start initializing / adding server and backups
 "${PROJECT_ROOT}"/bin/console app:server:add
-
-
-# Get path to dumps and configs folders
-folder=''
-while [[ ${folder} == '' || "${folder}" =~ "~" ]]; do
-  read -p "Enter the full the path to folder with dumps:" folder
-  if [ "${folder::1}" != "/" ]; then
-    folder="/${folder}"
-  fi
-done
-
-_replace_pattern "PROJECTS_FOLDER=" "PROJECTS_FOLDER=${folder}" ${ODOCKER_DIR_DATA}/.env
