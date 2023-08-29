@@ -47,10 +47,6 @@ services:
             $passphrase: ''
             $algorithm: 'RS256'
 
-    App\Service\DumpManagement:
-        arguments:
-            $dumpPath: '%app.dump_path%'
-
     App\Service\AppConfig:
         arguments:
             $config: {

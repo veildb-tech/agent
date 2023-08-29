@@ -23,13 +23,11 @@ class DumpManagement
      * @param DatabaseDump $databaseDump
      * @param AppConfig $appConfig
      * @param MethodFactory $methodFactory
-     * @param string $dumpPath
      */
     public function __construct(
         private readonly DatabaseDump $databaseDump,
         private readonly AppConfig $appConfig,
-        private readonly MethodFactory $methodFactory,
-        private readonly string $dumpPath = ''
+        private readonly MethodFactory $methodFactory
     ) {
     }
 
@@ -77,7 +75,7 @@ class DumpManagement
         if (empty($dump['db'])) {
             throw new Exception("Couldn't allocate database for dump");
         }
-        return new File($this->dumpPath . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
+        return new File($this->appConfig->getDumpProcessedDirectory() . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
     }
 
     /**
