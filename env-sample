@@ -16,7 +16,7 @@
 
 ###> symfony/framework-bundle ###
 APP_ENV=dev
-APP_SECRET=9240f159ac991e85598420a53ed3bc39
+APP_SECRET=
 ###< symfony/framework-bundle ###
 
 APP_SERVICE_URL=
@@ -52,3 +52,6 @@ CONFIG_PATH=''
 # Path to files with public and private keys
 SECRET_KEY_PRIVATE=
 SECRET_KEY_PUBLIC=
+
+# Symfony JWT Secret Keys
+CADDY_MERCURE_JWT_SECRET=

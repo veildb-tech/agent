@@ -37,6 +37,14 @@ function _replace_pattern () {
     fi
 }
 
+# Generate JWT secret key
+function _generateJwtKey() {
+    local jwt_secret
+    jwt_secret=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 43)
+
+    echo "$jwt_secret"
+}
+
 echo "Init configurations"
 
 # 1. Validate environment.
@@ -56,6 +64,7 @@ while [[ ${PROJECT_BACKUPS_FOLDERS} == '' || "${PROJECT_BACKUPS_FOLDERS}" =~ "~"
 done
 
 _replace_pattern "PROJECTS_FOLDER=" "PROJECTS_FOLDER=${PROJECT_BACKUPS_FOLDERS}" ${PROJECT_ROOT}/.env
+_replace_pattern "CADDY_MERCURE_JWT_SECRET=" "CADDY_MERCURE_JWT_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
 
 # 3.2. Validate and create all folders and sub-folders
 mkdir -p "${PROJECT_BACKUPS_FOLDERS}"/dumps "${PROJECT_BACKUPS_FOLDERS}"/dumps/processed "${PROJECT_BACKUPS_FOLDERS}"/dumps/untoched \
