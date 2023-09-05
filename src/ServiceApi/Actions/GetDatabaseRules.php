@@ -73,7 +73,7 @@ final class GetDatabaseRules extends AppService
      */
     protected function formRulesData(array $data): array
     {
-        if (!isset($data['rule'])) {
+        if (!isset($data['databaseRule'])) {
             throw new Exception('An information about DB processing rules was not found...');
         }
 
