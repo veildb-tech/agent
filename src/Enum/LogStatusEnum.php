@@ -7,7 +7,7 @@ namespace App\Enum;
 enum LogStatusEnum: string
 {
 
-    case READY = 'ready';
+    case SUCCESS = 'success';
     case ERROR = 'error';
     case PROCESSING = 'processing';
 

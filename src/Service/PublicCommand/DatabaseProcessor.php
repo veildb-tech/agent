@@ -123,6 +123,11 @@ class DatabaseProcessor extends AbstractCommand
             );
             $dbManagement->drop($database);
 
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::SUCCESS->value,
+                "Completed!"
+            );
             $this->databaseDump->updateByUuid($dumpuuid, 'ready', $destinationFile->getFilename());
         }
     }

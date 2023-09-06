@@ -122,7 +122,7 @@ class DumpManagement
         }
 
         if (!is_dir($processedDir)) {
-            mkdir($untouchedDir, self::DEFAULT_FILE_PERMISSION, true);
+            mkdir($processedDir, self::DEFAULT_FILE_PERMISSION, true);
         }
     }
 }

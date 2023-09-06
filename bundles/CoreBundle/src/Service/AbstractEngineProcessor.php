@@ -93,6 +93,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
                     break;
             }
         } catch (Exception $e) {
+            var_dump($e->getMessage());
             return;
         }
     }
@@ -154,9 +155,9 @@ abstract class AbstractEngineProcessor implements EngineInterface
                 throw new Exception('For method Update column is required');
             }
 
-            if (!isset($rule['where'])) {
+            /*if (!isset($rule['where'])) {
                 throw new Exception('For method Update condition is required');
-            }
+            }*/
 
             if (!key_exists('value', $rule)) {
                 throw new Exception('For method Update value is required');

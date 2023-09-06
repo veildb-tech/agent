@@ -127,6 +127,8 @@ final class GetDatabaseRules extends AppService
 
             foreach ($rule['columns'] as $column) {
                 $transformedRules[$rule['table']]['columns'][$column['name']] = $column;
+                // TODO REMOVE THIS SHIT
+                $transformedRules[$rule['table']]['columns'][$column['name']]['method'] = $rule['method'];
             }
         }
 
