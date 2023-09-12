@@ -58,7 +58,13 @@ class DatabaseProcessor extends AbstractCommand
     public function execute(InputInterface $input, OutputInterface $output): void
     {
         $this->appLogger->initAppLogger($output);
-        $scheduledData = $this->databaseDump->getScheduled();
+        try {
+            $scheduledData = $this->databaseDump->getScheduled();
+        } catch (\Exception $exception) {
+            if ($output->isVerbose()) {
+                $output->writeln($exception->getMessage());
+            }
+        }
         if (!empty($scheduledData)) {
             $dbuuid = $scheduledData['db']['uid'];
             $dumpuuid = $scheduledData['uuid'];
