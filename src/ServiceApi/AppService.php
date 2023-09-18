@@ -88,7 +88,7 @@ class AppService
         }
         $this->method = $method;
 
-        $options  = $this->getOptions($params);
+        $options = $this->getOptions($params);
         $response = $this->getClient()->request($method, $this->action, $options);
 
         return $response->toArray();

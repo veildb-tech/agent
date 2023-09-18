@@ -31,7 +31,8 @@ class Manual extends AbstractMethod
             throw new DumpNotFoundException("Dump file not found");
         }
 
-        rename($originFile, $destFile);
+        copy($originFile, $destFile);
+//        rename($originFile, $destFile);
 
         return $destFile;
     }

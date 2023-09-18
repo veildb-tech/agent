@@ -104,7 +104,7 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
      */
     protected function processTable(string $table, array $rule): void
     {
-        if (!isset($rule['columns'])) {
+        if (empty($rule['columns'])) {
             $this->processMethod($table, $rule);
 
             return;
@@ -126,7 +126,7 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
      */
     protected function truncate(array $rule, ?string $column = null): void
     {
-        if (isset($rule['where'])) {
+        if (!empty($rule['where'])) {
             $this->dataProcessor->delete($rule['where'], $column);
 
             return;
@@ -153,7 +153,7 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
      */
     protected function fake(string $table, array $rule, string $column): void
     {
-        if (isset($rule['where'])) {
+        if (!empty($rule['where'])) {
             $rows = $this->connection->select(
                 sprintf('SELECT * FROM `%s` WHERE %s', $table, $rule['where'])
             );
@@ -162,10 +162,12 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
         }
 
         $primaryKey = $this->getPrimaryKey($table);
+
         foreach ($rows as $row) {
+            $method = $rule['value'] ?? $column;
             $this->dataProcessor->update(
                 $column,
-                sprintf("'%s'", $this->generateFake($column, [])),
+                sprintf("'%s'", $this->generateFake($method, [])),
                 sprintf("`%s` = '%s'", $primaryKey, $row->{$primaryKey})
             );
         }
