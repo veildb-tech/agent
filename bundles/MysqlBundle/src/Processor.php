@@ -167,7 +167,7 @@ final class Processor extends AbstractEngineProcessor implements EngineInterface
             $method = $rule['value'] ?? $column;
             $this->dataProcessor->update(
                 $column,
-                sprintf("'%s'", $this->generateFake($method, [])),
+                sprintf("%s", $this->generateFake($method, [])),
                 sprintf("`%s` = '%s'", $primaryKey, $row->{$primaryKey})
             );
         }
