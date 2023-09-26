@@ -10,6 +10,7 @@ use App\Service\AppLogger;
 use App\ServiceApi\Entity\DatabaseDump;
 use Psr\Cache\InvalidArgumentException;
 use App\Service\DumpManagement;
+use App\Service\PublicCommand\Database\Analyzer;
 use App\ServiceApi\Actions\GetDatabaseRules;
 use DbManager\CoreBundle\DbProcessorFactory;
 use DbManager\CoreBundle\Service\DbDataManager;
@@ -38,7 +39,8 @@ class DatabaseProcessor extends AbstractCommand
         private readonly DumpManagement $dumpManagement,
         private readonly DBManagementFactory $dbManagementFactory,
         private readonly DbProcessorFactory $processorFactory,
-        private readonly GetDatabaseRules $getDatabaseRules
+        private readonly GetDatabaseRules $getDatabaseRules,
+        private readonly Analyzer $analyzer
     ) {
     }
 
@@ -121,6 +123,13 @@ class DatabaseProcessor extends AbstractCommand
                 "Creating new dump file"
             );
             $dbManagement->dump($database);
+
+            $this->appLogger->logToService(
+                $dumpuuid,
+                LogStatusEnum::PROCESSING->value,
+                "Analyze new database schema"
+            );
+            $this->analyzer->process($dbuuid, $tempDatabase);
 
             $this->appLogger->logToService(
                 $dumpuuid,
