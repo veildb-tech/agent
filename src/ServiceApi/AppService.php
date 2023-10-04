@@ -88,10 +88,36 @@ class AppService
         }
         $this->method = $method;
 
-        $options  = $this->getOptions($params);
+        $options = $this->getOptions($params);
         $response = $this->getClient()->request($method, $this->action, $options);
 
         return $response->toArray();
+    }
+
+    /**
+     * Send DELETE request
+     *
+     * @param array $params
+     *
+     * @return boolean
+     * @throws InvalidArgumentException
+     * @throws TransportExceptionInterface
+     * @throws Exception
+     */
+    public function sendDeleteRequest(array $params): bool
+    {
+        if (!$this->action) {
+            throw new Exception("Action is required");
+        }
+        $this->method = 'DELETE';
+
+        $options  = $this->getOptions($params);
+        $response = $this->getClient()->request('DELETE', $this->action, $options);
+
+        if ($response->getStatusCode() === 204) {
+            return true;
+        }
+        throw new Exception($response->getInfo('error'));
     }
 
     /**
@@ -128,22 +154,20 @@ class AppService
     protected function getSecurityToken(): string
     {
         $authType = $this->getAuthorizationType();
-        $key = 'apg-token-' . $authType;
+        $key = 'dbm-token-' . $authType;
 
         $token = $this->cacheAdapter->get($key, function (ItemInterface $item) use ($authType) {
-            if (!$item->isHit()) {
-                switch ($authType) {
-                    case self::AUTH_TYPE_TOKEN:
-                        $response = $this->getServerToken();
-                        break;
-                    case self::AUTH_TYPE_USER:
-                        $response = $this->getUserAccessToken();
-                        break;
-                }
-
-                $item->expiresAfter(3600);
-                $item->set($response);
+            switch ($authType) {
+                case self::AUTH_TYPE_TOKEN:
+                    $response = $this->getServerToken();
+                    break;
+                case self::AUTH_TYPE_USER:
+                    $response = $this->getUserAccessToken();
+                    break;
             }
+
+            $item->expiresAfter(3600);
+            $item->set($response);
             return $item->get();
         });
 

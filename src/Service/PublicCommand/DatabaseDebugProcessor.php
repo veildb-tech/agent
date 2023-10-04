@@ -10,7 +10,6 @@ use App\Service\AppLogger;
 use App\ServiceApi\Entity\DatabaseDump;
 use Psr\Cache\InvalidArgumentException;
 use App\Service\DumpManagement;
-use App\Service\PublicCommand\Database\Analyzer;
 use App\ServiceApi\Actions\GetDatabaseRules;
 use DbManager\CoreBundle\DbProcessorFactory;
 use DbManager\CoreBundle\Service\DbDataManager;
@@ -23,7 +22,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use DbManager\CoreBundle\DBManagement\DBManagementFactory;
 
-class DatabaseProcessor extends AbstractCommand
+class DatabaseDebugProcessor extends AbstractCommand
 {
     /**
      * @param AppLogger $appLogger
@@ -39,8 +38,7 @@ class DatabaseProcessor extends AbstractCommand
         private readonly DumpManagement $dumpManagement,
         private readonly DBManagementFactory $dbManagementFactory,
         private readonly DbProcessorFactory $processorFactory,
-        private readonly GetDatabaseRules $getDatabaseRules,
-        private readonly Analyzer $analyzer
+        private readonly GetDatabaseRules $getDatabaseRules
     ) {
     }
 
@@ -59,14 +57,28 @@ class DatabaseProcessor extends AbstractCommand
      */
     public function execute(InputInterface $input, OutputInterface $output): void
     {
-        $this->appLogger->initAppLogger($output);
-        try {
-            $scheduledData = $this->databaseDump->getScheduled();
-        } catch (\Exception $exception) {
-            if ($output->isVerbose()) {
-                $output->writeln($exception->getMessage());
-            }
-        }
+        $dbuuid = $input->getOption('uuid');
+        $dbName = $input->getOption('db_name');
+        $database = new DbDataManager(
+            array_merge(
+                $this->getDatabaseRules->get($dbuuid),
+                [
+                    'name' => $dbName,
+                    'inputFile' => '/var/www/bridgedigital/db-manager/server/dumps/untouched/018a50ff-0af9-70ce-a8b1-b988cbf15fa5/1694441058.sql',
+                    'backup_path' => '/var/www/bridgedigital/db-manager/server/dumps/untouched/018a50ff-0af9-70ce-a8b1-b988cbf15fa5/1694441058-1.sql'
+                ]
+            )
+        );
+//        $dbManagement = $this->dbManagementFactory->create();
+//        $dbManagement->create($database);
+
+
+
+
+        $this->processorFactory->create($database->getEngine())->process($database);
+
+return;
+        $scheduledData = $this->databaseDump->getScheduled();
         if (!empty($scheduledData)) {
             $dbuuid = $scheduledData['db']['uid'];
             $dumpuuid = $scheduledData['uuid'];
@@ -123,13 +135,6 @@ class DatabaseProcessor extends AbstractCommand
                 "Creating new dump file"
             );
             $dbManagement->dump($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Analyze new database schema"
-            );
-            $this->analyzer->process($dbuuid, $tempDatabase);
 
             $this->appLogger->logToService(
                 $dumpuuid,

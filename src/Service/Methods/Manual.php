@@ -8,7 +8,6 @@ use App\Exception\DumpNotFoundException;
 
 class Manual extends AbstractMethod
 {
-
     /**
      * @param array $dbConfig
      * @param string $dbUuid
@@ -18,7 +17,10 @@ class Manual extends AbstractMethod
      */
     public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
-        $originFile = $this->getOriginFile($dbUuid, $dbConfig['dump_name']);
+        $originFile = $dbConfig['dump_name'];
+        if (!is_file($originFile)) {
+            $originFile = $this->getOriginFile($dbUuid, $dbConfig['dump_name']);
+        }
 
         if (!$filename) {
             $filename = time() . '.sql';
@@ -29,8 +31,9 @@ class Manual extends AbstractMethod
             throw new DumpNotFoundException("Dump file not found");
         }
 
-        rename($originFile, $destFile);
-        return $destFile;
+        copy($originFile, $destFile);
+//        rename($originFile, $destFile);
 
+        return $destFile;
     }
 }

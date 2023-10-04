@@ -130,8 +130,8 @@ class AddDatabase extends AbstractCommand
             'engine'    => $this->config['engine'],
             'platform'  => $this->config['platform'],
             'status'    => 'pending',
-            'server'    => $server['id'],
-            "workspaceId" => (int)str_replace('/api/workspaces/', '', $server['workspaceId'])
+            'server'    => '/api/servers/' . $server['uuid'],
+            "workspace" => $server['workspace']
         ]);
 
         $this->config['db_uuid'] = $data['uid'];

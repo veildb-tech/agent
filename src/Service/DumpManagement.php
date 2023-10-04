@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\ServiceApi\Entity\DatabaseDump;
+use Exception;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\HttpFoundation\File\File;
 use App\Exception\NoSuchMethodException;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use Symfony\Component\HttpFoundation\File\File;
-use App\ServiceApi\Actions\GetDumpByUuid;
 use App\Service\Methods\MethodFactory;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -15,33 +17,36 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-
 class DumpManagement
 {
+    const DEFAULT_FILE_PERMISSION = 0777;
+
     /**
-     * @param GetDumpByUuid $dumpWebService
+     * @param DatabaseDump $databaseDump
      * @param AppConfig $appConfig
      * @param MethodFactory $methodFactory
-     * @param string $dumpPath
      */
     public function __construct(
-        private readonly GetDumpByUuid $dumpWebService,
+        private readonly DatabaseDump $databaseDump,
         private readonly AppConfig $appConfig,
-        private readonly MethodFactory $methodFactory,
-        private readonly string $dumpPath = ''
+        private readonly MethodFactory $methodFactory
     ) {
     }
 
     /**
      * @param string $dbUuid
      * @param string|null $filename
-     * @return string
+     *
+     * @return File
      * @throws NoSuchMethodException
      */
     public function createDump(string $dbUuid, ?string $filename = null): File
     {
         $this->initDumpDirectories($dbUuid);
-        $dbConfig = $this->appConfig->getDatabaseConfig($dbUuid);;
+        $dbConfig = $this->appConfig->getDatabaseConfig($dbUuid);
+        if (!$dbConfig) {
+            throw new \Exception("Couldn't find database config");
+        }
         $method = $this->methodFactory->create($dbConfig['method']);
         $dumpFile = $method->execute($dbConfig, $dbUuid, $filename);
 
@@ -54,12 +59,15 @@ class DumpManagement
 
     /**
      * @param string $uuid
+     *
      * @return File|null
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws Exception
      */
     public function getDumpFileByUuid(string $uuid): ?File
     {
@@ -70,23 +78,25 @@ class DumpManagement
         }
 
         if (empty($dump['db'])) {
-            throw new \Exception("Couldn't allocate database for dump");
+            throw new Exception("Couldn't allocate database for dump");
         }
-        return new File($this->dumpPath . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
+        return new File($this->appConfig->getDumpProcessedDirectory() . '/' . $dump['db']['uid'] . '/' . $dump['filename']);
     }
 
     /**
      * @param string $uuid
+     *
      * @return array
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      */
     public function getDumpByUuid(string $uuid): array
     {
-        return $this->dumpWebService->execute($uuid);
+        return $this->databaseDump->getByUuid($uuid);
     }
 
     /**
@@ -111,11 +121,11 @@ class DumpManagement
         $untouchedDir = $this->appConfig->getDumpUntouchedDirectory() . '/' . $dbuid;
         $processedDir = $this->appConfig->getDumpProcessedDirectory() . '/' . $dbuid;
         if (!is_dir($untouchedDir)) {
-            mkdir($untouchedDir);
+            mkdir($untouchedDir, self::DEFAULT_FILE_PERMISSION, true);
         }
 
         if (!is_dir($processedDir)) {
-            mkdir($processedDir);
+            mkdir($processedDir, self::DEFAULT_FILE_PERMISSION, true);
         }
     }
 }

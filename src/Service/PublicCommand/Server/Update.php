@@ -67,11 +67,16 @@ final class Update extends AbstractServerCommand
      */
     private function updateServer(InputOutput $inputOutput, array $user, string $userEmail, string $password): array
     {
-        $uuid   = $inputOutput->ask("Enter server UUID");
+        if ($this->input->getOption('current')) {
+            $uuid = $this->appConfig->getServerUuid();
+        } else {
+            $uuid = $inputOutput->ask("Enter server UUID");
+        }
         $server = $this->serverApi->setCredentials($userEmail, $password)->get(htmlspecialchars($uuid));
 
-        $serverWorkspace = (int)str_replace('/api/workspaces/', '', $server['workspaceId']);
-        if (!in_array($serverWorkspace, array_column($user['workspaces'], 'id'))) {
+        $serverWorkspace = str_replace('/api/workspaces/', '', $server['workspace']);
+
+        if (!in_array($serverWorkspace, array_column($user['workspaces'], 'code'))) {
             throw new Exception('You do not have access to this server!!!');
         }
 

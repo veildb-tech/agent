@@ -28,6 +28,7 @@ abstract class AbstractServerCommand extends AbstractCommand
      */
     public const GET_IP_URL = 'https://ipecho.net/plain';
 
+
     /**
      * @param AppConfig $appConfig
      * @param Server $serverApi
@@ -63,7 +64,7 @@ abstract class AbstractServerCommand extends AbstractCommand
     {
         $this->initInputOutput($input, $output);
 
-        if ($this->process()) {
+        if ($this->process() && !$input->getOption('current')) {
             $this->addDatabase->execute($input, $output);
         }
     }

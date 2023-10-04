@@ -13,6 +13,11 @@ abstract class AbstractCommand
 {
     private ?InputOutput $inputOutput = null;
 
+    /**
+     * @var InputInterface
+     */
+    protected InputInterface $input;
+
     abstract public function execute(InputInterface $input, OutputInterface $output);
 
     /**
@@ -33,6 +38,7 @@ abstract class AbstractCommand
     protected function initInputOutput(InputInterface $input, OutputInterface $output): static
     {
         $this->inputOutput = new InputOutput($input, $output);
+        $this->input = $input;
         return $this;
     }
 

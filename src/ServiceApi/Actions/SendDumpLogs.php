@@ -6,6 +6,7 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -33,7 +34,7 @@ final class SendDumpLogs extends AppService
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws Exception
+     * @throws Exception|InvalidArgumentException
      */
     public function execute(string $dumpUuid, string $status, string $message): void
     {
@@ -48,17 +49,16 @@ final class SendDumpLogs extends AppService
 
     /**
      * @param array $log
-     *
      * @return array
-     *
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     protected function sendLogs(array $log): array
     {
-        return $this->sendRequest(['json' => $log], 'POST');
+        return $this->sendRequest(['json' => $log]);
     }
 }

@@ -1,0 +1,10 @@
+NAME=qwe
+ENGINE=postgresql
+PLATFORM=magento
+DB_UUID=018a26ad-f7fe-7690-b6c3-7352199837af
+METHOD=dump
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=12345
+DB_NAME=test
+DB_PORT=3306

@@ -100,19 +100,21 @@ abstract class AbstractEngineProcessor implements EngineInterface
     /**
      * Generate fake data
      *
-     * @param string $column
+     * @param string $method
      * @param array  $options
      *
      * @return string
      */
-    protected function generateFake(string $column, array $options): string
+    protected function generateFake(string $method, array $options): string
     {
-        $value = $this->getFakerInstance()->{$column}(...$options);
-        if (isset($this->generated[$column]) && in_array($value, $this->generated[$column])) {
-            return $this->generateFake($column, $options);
+        return (string)$this->getFakerInstance()->{$method}(...$options);
+        // TODO need to think about unique value. Currently it makes looping when there are a lot of records
+        $value = $this->getFakerInstance()->{$method}(...$options);
+        if (isset($this->generated[$method]) && in_array($value, $this->generated[$method])) {
+            return $this->generateFake($method, $options);
         }
 
-        $this->generated[$column][] = $value;
+        $this->generated[$method][] = $value;
 
         return $value;
     }
@@ -154,9 +156,9 @@ abstract class AbstractEngineProcessor implements EngineInterface
                 throw new Exception('For method Update column is required');
             }
 
-            if (!isset($rule['where'])) {
+            /*if (!isset($rule['where'])) {
                 throw new Exception('For method Update condition is required');
-            }
+            }*/
 
             if (!key_exists('value', $rule)) {
                 throw new Exception('For method Update value is required');

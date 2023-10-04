@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Action\ClearBackupsAction;
-use App\Service\Database\Analyzer;
-use Doctrine\DBAL\Exception;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -16,6 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: 'app:db:backups:clear',
@@ -24,13 +23,11 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 final class AppDbClearBackupsCommand extends Command
 {
     /**
-     * @param Analyzer $databaseAnalyzer
      * @param ClearBackupsAction $clearBackupsAction
      * @param LoggerInterface $logger
      * @param string|null $name
      */
     public function __construct(
-        protected readonly Analyzer $databaseAnalyzer,
         protected readonly ClearBackupsAction $clearBackupsAction,
         protected readonly LoggerInterface $logger,
         string $name = null
@@ -43,7 +40,8 @@ final class AppDbClearBackupsCommand extends Command
      * @param OutputInterface $output
      *
      * @return int
-     * @throws Exception|InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws TransportExceptionInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

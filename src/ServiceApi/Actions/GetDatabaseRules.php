@@ -6,6 +6,7 @@ namespace App\ServiceApi\Actions;
 
 use App\ServiceApi\AppService;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -38,6 +39,7 @@ final class GetDatabaseRules extends AppService
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function get(string $databaseUid): array
     {
@@ -71,11 +73,11 @@ final class GetDatabaseRules extends AppService
      */
     protected function formRulesData(array $data): array
     {
-        if (!isset($data['rule'])) {
+        if (!isset($data['databaseRule'])) {
             throw new Exception('An information about DB processing rules was not found...');
         }
 
-        return $this->prepareRules($data['rule']['rule']);
+        return $this->prepareRules($data['databaseRule']['rule']);
     }
 
     /**
@@ -99,6 +101,7 @@ final class GetDatabaseRules extends AppService
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     protected function getRules(string $databaseUid): array
     {
@@ -115,18 +118,7 @@ final class GetDatabaseRules extends AppService
      */
     private function prepareRules(array $rules): array
     {
-        $transformedRules = [];
-        foreach ($rules as $rule) {
-            $transformedRules[$rule['table']] = [
-                'columns' => [],
-                'method' => $rule['method']
-            ];
-
-            foreach ($rule['columns'] as $column) {
-                $transformedRules[$rule['table']]['columns'][$column['name']] = $column;
-            }
-        }
-
-        return $transformedRules;
+        // Nothing to do here. Rules should be delivered prepared :)
+        return $rules;
     }
 }

@@ -94,7 +94,7 @@ final class Add extends AbstractServerCommand
     private function getWorkspaceId(array $user, InputOutput $inputOutput): string
     {
         if (count($user['workspaces']) == 1) {
-            return "/api/workspaces/" . $user['workspaces'][0]['id'];
+            return "/api/workspaces/" . $user['workspaces'][0]['code'];
         }
 
         $workspaceCode = $inputOutput->choice(
@@ -104,6 +104,6 @@ final class Add extends AbstractServerCommand
 
         $key = array_search($workspaceCode, array_column($user['workspaces'], 'code'));
 
-        return "/api/workspaces/" . $user['workspaces'][$key]['id'];
+        return "/api/workspaces/" . $user['workspaces'][$key]['code'];
     }
 }
