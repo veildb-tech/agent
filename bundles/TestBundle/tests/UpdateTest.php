@@ -1,23 +1,27 @@
 <?php
 
-namespace DbManager\TestBundle\Tests;
+namespace tests;
 
+use DbManager\TestBundle\Tests\AbstractTest;
 use Doctrine\DBAL\Query\QueryBuilder;
 
-class TruncateTest extends AbstractTest
+class UpdateTest extends AbstractTest
 {
-    public function testNotificationTable(): void
+    public function testOrderTable(): void
     {
         $queryBuilder = new QueryBuilder($this->connection);
         $queryBuilder
             ->select('*')
-            ->from('user_notifications');
+            ->from('orders');
 
         $statement = $this->connection->executeQuery($queryBuilder->getSQL());
 
         // Fetch all rows from the result
         $rows = $statement->fetchAllAssociative();
+        $this->assertNotEmpty($rows);
 
-        $this->assertEmpty($rows);
+        foreach ($rows as $row) {
+            $this->assertEquals('updated', $row['shipping_address']);
+        }
     }
 }
