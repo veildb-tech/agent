@@ -19,7 +19,7 @@ APP_ENV=dev
 APP_SECRET=9240f159ac991e85598420a53ed3bc39
 ###< symfony/framework-bundle ###
 
-APP_SERVICE_URL=
+APP_SERVICE_URL=https://dbm-service.bridge.digital/
 APP_SERVICE_WORKSPACE=
 APP_SERVICE_TOKEN=
 
