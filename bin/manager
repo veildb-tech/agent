@@ -1,0 +1,35 @@
+#!/bin/bash
+
+export PROJECT_DIR="$( cd "$(dirname "$0")/../" >/dev/null 2>&1 ; pwd -P )"
+export COMPOSE_FILE=${PROJECT_DIR}/docker/docker-compose.yml
+export ENV_FILE=${PROJECT_DIR}/.env
+export CONTAINER_NAME="${TMP_PROJECT_CONTAINER_NAME//./_}"
+
+case "$1" in
+  -v)
+    . ${ODOCKER_DIR}/bin/service/version
+    exit
+    ;;
+  init)
+    echo "Start Odocker Initializaion";
+    . ${ODOCKER_DIR}/bin/init
+    echo "Your Odocker been initialized, your config file there: ${ODOCKER_DIR_DATA}/.env";
+
+    if [ "$(uname)" == "Darwin" ]; then
+      echo "By default Odocker use Mutagen for optimization, but you can change it in .env file";
+    fi
+    ;;
+  start)
+    docker compose -f ${COMPOSE_FILE} --env-file "${ENV_FILE}" build --no-cache
+    docker compose -f ${COMPOSE_FILE} --env-file "${ENV_FILE}" up -d --force-recreate
+    ;;
+  stop)
+    docker compose -f ${COMPOSE_FILE} --env-file "${ENV_FILE}" down --remove-orphans
+    ;;
+  console)
+    docker compose -f ${COMPOSE_FILE} --env-file "${ENV_FILE}" exec -w /app ${CONTAINER_NAME} bin/console "$@"
+    ;;
+  *)
+    echo "Entered command not found."
+    exit 1
+esac

@@ -1,0 +1,56 @@
+#syntax=docker/dockerfile:1.4
+
+# Versions
+FROM dunglas/frankenphp:latest-alpine AS frankenphp_upstream
+FROM composer/composer:2-bin AS composer_upstream
+
+# BaseFrankenPHP image
+FROM frankenphp_upstream AS frankenphp_base
+
+WORKDIR /app
+
+# persistent / runtime deps
+# hadolint ignore=DL3018
+RUN apk add --no-cache \
+    acl \
+    file \
+    gettext \
+    git \
+    nss-tools \
+    openssl
+
+RUN set -eux; \
+    install-php-extensions \
+        apcu \
+        intl \
+        opcache \
+        zip
+
+###> recipes ###
+###< recipes ###
+
+COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
+
+ENTRYPOINT ["docker-entrypoint"]
+
+# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV PATH="${PATH}:/root/.composer/vendor/bin"
+
+COPY --from=composer_upstream --link /composer /usr/bin/composer
+
+HEALTHCHECK CMD wget --no-verbose --tries=1 --spider http://localhost:2019/metrics || exit 1
+CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
+
+# Prod FrankenPHP image
+FROM frankenphp_base AS frankenphp_prod
+
+ENV APP_ENV=prod
+ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+COPY --link frankenphp/conf.d/app.prod.ini $PHP_INI_DIR/conf.d/
+COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile

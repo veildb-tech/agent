@@ -1,0 +1,46 @@
+version: "3.7"
+
+services:
+  php:
+    build:
+      context: .
+      target: frankenphp_prod
+    image: ${IMAGES_PREFIX:-}app-php
+    restart: unless-stopped
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      TRUSTED_HOSTS: ^${SERVER_NAME:-example\.com|localhost}|php$$
+    volumes:
+      - ${PROJECT_DIR}:/app:delegated
+
+      # Caddy Volumes
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      # HTTP
+      - target: 80
+        published: ${HTTP_PORT:-80}
+        protocol: tcp
+      # HTTPS
+      - target: 443
+        published: ${HTTPS_PORT:-443}
+        protocol: tcp
+      # HTTP/3
+      - target: 443
+        published: ${HTTP3_PORT:-443}
+        protocol: udp
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - db-manager-network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  db-manager-network:
+    name: db-manager-network
+    driver: bridge

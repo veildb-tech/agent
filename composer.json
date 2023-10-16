@@ -24,6 +24,7 @@
         "fakerphp/faker": "^1.22",
         "illuminate/database": "^10.12",
         "phpoption/phpoption": "^1.9",
+        "runtime/frankenphp-symfony": "^0.1.1",
         "symfony/console": "6.2.*",
         "symfony/dependency-injection": "6.2.*",
         "symfony/dotenv": "6.2.*",
