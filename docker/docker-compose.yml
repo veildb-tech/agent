@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  php:
+  server_manager:
     build:
       context: .
       target: frankenphp_prod
@@ -13,7 +13,8 @@ services:
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ^${SERVER_NAME:-example\.com|localhost}|php$$
     volumes:
-      - ${PROJECT_DIR}:/app:delegated
+      - ${PROJECT_ROOT}:/app:delegated
+      - ${APP_DUMP_PATH}:/app/dumps:delegated
 
       # Caddy Volumes
       - caddy_data:/data
@@ -42,5 +43,6 @@ volumes:
 
 networks:
   db-manager-network:
+    external: true
     name: db-manager-network
     driver: bridge

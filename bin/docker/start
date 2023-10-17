@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+bin/docker/docker-compose build --no-cache
+bin/docker/docker-compose up -d --force-recreate

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+[ -z "$1" ] && echo "Please specify a Console command (ex. ls)" && exit
+
+bin/docker/docker-compose exec server_manager bin/console "$@"

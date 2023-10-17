@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+export PROJECT_ROOT
+PROJECT_ROOT="$( cd "$(dirname "$0")/../../" >/dev/null 2>&1 ; pwd -P )"
+COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml
+ENV_FILE=${PROJECT_ROOT}/.env
+
+# Get project configurations
+export $(cat "${ENV_FILE}" | grep -v ^# | grep -v ^alias | xargs)
+
+if [[ -z $APP_DUMP_PATH ]]; then
+  export $APP_DUMP_PATH='/app/dumps/'
+fi
+
+if docker compose version > /dev/null 2>&1; then
+  DOCKER_COMPOSE="docker compose"
+else
+  DOCKER_COMPOSE="docker-compose"
+fi
+
+if [ "$1" == "--no-dev" ]; then
+  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "${@:2}"
+else
+  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "$@"
+fi
