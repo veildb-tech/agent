@@ -27,6 +27,9 @@ You can enable a new DB engine in two cases:
    2. update configurations
    3. execute command: `make start-db <engine>` ( ex.: `make start-db mysql`)
 
+# Enabling Cron Jobs
+`make console c='app:cron:install'` - install required Cron Jobs
+
 Libraries:
 ----------
 - Mongodb: https://github.com/jenssegers/laravel-mongodb/tree/master

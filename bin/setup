@@ -56,11 +56,11 @@ echo "Initializing Base configurations"
 if [ ! -f ${PROJECT_ROOT}/.env ]; then
     cp ${PROJECT_ROOT}/env-sample ${PROJECT_ROOT}/.env
 
-    # 3.1. Get Service URL
+    # Get Service URL
     read -p "Enter the host name for service:" APP_SERVICE_URL
     _replace_pattern "APP_SERVICE_URL=" "APP_SERVICE_URL=${APP_SERVICE_URL}" ${PROJECT_ROOT}/.env
 
-    # 3.2. Get path to dumps folder
+    # Get path to dumps folder
     PROJECT_BACKUPS_FOLDERS=''
     while [[ ${PROJECT_BACKUPS_FOLDERS} == '' || "${PROJECT_BACKUPS_FOLDERS}" =~ "~" ]]; do
         read -p "Enter the full the path to folder with dumps:" PROJECT_BACKUPS_FOLDERS
@@ -70,7 +70,7 @@ if [ ! -f ${PROJECT_ROOT}/.env ]; then
     done
     _replace_pattern "PROJECTS_FOLDER=" "PROJECTS_FOLDER=${PROJECT_BACKUPS_FOLDERS}" ${PROJECT_ROOT}/.env
 
-    # 3.4. Generate JWT secret
+    # Generate JWT secret
     _replace_pattern "CADDY_MERCURE_JWT_SECRET=" "CADDY_MERCURE_JWT_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
 fi
 
@@ -98,9 +98,17 @@ select option in "${options[@]}"; do
     esac
 done
 
+# Get project configurations
+export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
+
 # 4. Validate and create all folders and sub-folders
 mkdir -p "${PROJECT_BACKUPS_FOLDERS}"/dumps "${PROJECT_BACKUPS_FOLDERS}"/dumps/processed "${PROJECT_BACKUPS_FOLDERS}"/dumps/untoched \
   && chown -R "$(id -u)":"$(id -g)" "${PROJECT_BACKUPS_FOLDERS}"/*
+
+if [[ ! -z $APP_SERVICE_URL && -z $(grep ${APP_SERVICE_URL} /etc/hosts) ]]; then
+    echo "Your system password has been requested to add an entry to /etc/hosts..."
+    echo "127.0.0.1 ::1 $APP_SERVICE_URL" | sudo tee -a /etc/hosts
+fi
 
 # 5. Start docker with DB's
 echo "Starting Docker containers"
@@ -112,7 +120,7 @@ echo "Installing required modules"
 
 # 6. Add required commands to cron
 echo "Added cron jobs"
-"${PROJECT_ROOT}"/bin/docker/console app:cron:install
+"${PROJECT_ROOT}"/bin/docker/cli bin/console app:cron:install
 
 # 7. Start initializing / adding server and backups
 "${PROJECT_ROOT}"/bin/docker/console app:server:add

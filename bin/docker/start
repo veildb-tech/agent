@@ -5,10 +5,10 @@ PROJECT_ROOT="$( cd "$(dirname "$0")/../../" >/dev/null 2>&1 ; pwd -P )"
 
 if [[ -n ${1} && ${1} == '-b' ]]; then
     bin/docker/docker-compose build --no-cache
-    bin/docker/docker-compose up --pull -d --force-recreate
-else
-    bin/docker/docker-compose up -d
 fi
+bin/docker/docker-compose up -d
+
+bin/docker/cron start
 
 # Start required DBs
 if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then

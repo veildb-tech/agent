@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+[ -z "$1" ] && echo "Please specify a command (ex. start|stop)" && exit
+
+if [[ ${1} == "start" ]]; then
+    bin/docker/cli crond
+fi
+
+if [[ ${1} == "stop" ]]; then
+    bin/docker/cli pkill crond
+fi

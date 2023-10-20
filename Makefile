@@ -41,11 +41,17 @@ console:
 cc: c=c:c
 cc: console
 
+sh:
+	@./bin/docker/cli sh
+
 setup:
 	@./bin/setup
 
 start:
-	@./bin/docker/start $(call args)
+	@./bin/docker/start
+
+build:
+	@./bin/docker/start -b
 
 stop:
 	@./bin/docker/stop
@@ -61,3 +67,9 @@ stop-db:
 
 logs:
 	@./bin/docker/logs
+
+cron-start:
+	@./bin/docker/cron start
+
+cron-stop:
+	@./bin/docker/cron stop

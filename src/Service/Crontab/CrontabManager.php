@@ -26,11 +26,11 @@ class CrontabManager
     public const CRON_TASKS = [
         [
             'time'    => '* * * * *',
-            'command' => '{rootDir}/bin/console app:db:process >> {logDir}/cron.log'
+            'command' => '{rootDir}/bin/console app:db:process >> {logDir}/cron.log 2>&1'
         ],
         [
             'time'    => '* * * * *',
-            'command' => '{rootDir}/bin/console app:db:backups:clear >> {logDir}/cron.log'
+            'command' => '{rootDir}/bin/console app:db:backups:clear >> {logDir}/cron.log 2>&1'
         ]
     ];
     /**#@-*/
