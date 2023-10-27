@@ -55,6 +55,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
      * @param string $dbName
      *
      * @return Connection
+     * @throws Exception
      */
     protected function getDbConnection(string $dbName): Connection
     {
@@ -63,7 +64,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
             'driver'    => static::DRIVER_ENGINE,
             'host'      => $this->appConfig->getDbEngineConfig('database_host', static::DRIVER_ENGINE),
             'port'      => $this->appConfig->getDbEngineConfig('database_port', static::DRIVER_ENGINE),
-            'database'  => escapeshellarg($dbName),
+            'database'  => $dbName,
             'username'  => $this->appConfig->getDbEngineConfig('database_user', static::DRIVER_ENGINE),
             'password'  => $this->appConfig->getPassword(static::DRIVER_ENGINE),
         ]);

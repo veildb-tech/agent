@@ -24,6 +24,10 @@ class Manual extends AbstractMethod
 
         if (!$filename) {
             $filename = time() . '.sql';
+
+            if (str_contains($originFile, '.gz')) {
+                $filename .= '.gz';
+            }
         }
         $destFile = $this->getOriginFile($dbUuid, $filename);
 
@@ -32,7 +36,6 @@ class Manual extends AbstractMethod
         }
 
         copy($originFile, $destFile);
-//        rename($originFile, $destFile);
 
         return $destFile;
     }

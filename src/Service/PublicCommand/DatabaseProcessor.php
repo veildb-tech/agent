@@ -79,7 +79,7 @@ class DatabaseProcessor extends AbstractCommand
                 LogStatusEnum::PROCESSING->value,
                 "Preparing backup"
             );
-            $originFile = $this->dumpManagement->createDump($dbuuid);
+            $originFile = $this->dumpManagement->createDump($dbuuid, $scheduledData['filename'] ?? '');
             $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
 
             $tempDatabase = 'temp_' . time();
@@ -94,7 +94,7 @@ class DatabaseProcessor extends AbstractCommand
                     ]
                 )
             );
-            $dbManagement = $this->dbManagementFactory->create();
+            $dbManagement = $this->dbManagementFactory->create($database->getEngine());
 
             $this->appLogger->logToService(
                 $dumpuuid,

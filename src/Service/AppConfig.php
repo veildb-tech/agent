@@ -172,7 +172,8 @@ class AppConfig
      */
     public function getConfigDirectory(): string
     {
-        $path = trim(env('APP_CONFIG_PATH')) ? trim(env('APP_CONFIG_PATH')) : $this->getProjectDir();
+        $path = trim(env('APP_CONFIG_PATH'))
+            ? trim(env('APP_CONFIG_PATH')) : rtrim($this->getProjectDir(), '/') . '/backups/config';
 
         return rtrim($path, '/');
     }
@@ -184,7 +185,8 @@ class AppConfig
      */
     public function getAppDumpDir(): string
     {
-        $path = !empty(trim(env('APP_DUMP_PATH'))) ? trim(env('APP_DUMP_PATH')) : $this->getProjectDir();
+        $path = !empty(trim(env('APP_DUMP_PATH')))
+            ? trim(env('APP_DUMP_PATH')) : rtrim($this->getProjectDir(), '/') . '/backups/dumps';
 
         return rtrim($path, '/');
     }
