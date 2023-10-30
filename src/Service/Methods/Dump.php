@@ -18,11 +18,7 @@ class Dump extends AbstractMethod
      */
     public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
-        if (!$filename) {
-            $filename = time() . '.sql';
-        }
-
-        $destFile = $this->getOriginFile($dbUuid, $filename);
+        $destFile = $this->getDestinationFile($dbUuid, $filename);
         $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p%s', $dbConfig['db_password']) : '';
         $this->shellProcess->run(sprintf(
             "mysqldump -u %s %s -h%s -P%s %s > %s",

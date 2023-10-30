@@ -22,6 +22,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-openssl": "*",
+        "aws/aws-sdk-php": "^3.283",
         "db-manager/core-bundle": "dev-main",
         "db-manager/mysql-bundle": "dev-main",
         "doctrine/dbal": "^3.6",

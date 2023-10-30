@@ -51,9 +51,9 @@ class Manual extends AbstractMethod
      */
     public function askConfig(InputOutput $inputOutput): array
     {
-        $config = [];
-        $config['dump_name'] = $inputOutput->ask('Enter full path to DB dump file?');
-        return $config;
+        return [
+            'dump_name' => $inputOutput->ask('Enter full path to DB dump file?')
+        ];
     }
 
     /**

@@ -31,6 +31,22 @@ abstract class AbstractMethod implements MethodInterface
     }
 
     /**
+     * Retrieve destination file
+     *
+     * @param string $dbUuid
+     * @param string|null $filename
+     * @return string
+     */
+    protected function getDestinationFile(string $dbUuid, ?string $filename): string
+    {
+        if (!$filename) {
+            $filename = time() . '.sql';
+        }
+
+        return $this->getOriginFile($dbUuid, $filename);
+    }
+
+    /**
      * For now support everything
      *
      * @param string $engine

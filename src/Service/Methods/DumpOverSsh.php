@@ -21,11 +21,7 @@ class DumpOverSsh extends AbstractMethod
      */
     public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
-        if (!$filename) {
-            $filename = time() . '.sql';
-        }
-
-        $destFile = $this->getOriginFile($dbUuid, $filename);
+        $destFile = $this->getDestinationFile($dbUuid, $filename);
         $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p%s', $dbConfig['db_password']) : '';
         $mysqlCommand = sprintf(
             "mysqldump -u %s %s -h%s -P%s %s",
@@ -37,7 +33,6 @@ class DumpOverSsh extends AbstractMethod
         );
 
         $sshCommand = $this->prepareSshCommand($dbConfig);
-
         $this->shellProcess->run(sprintf('%s "%s" > %s', $sshCommand, $mysqlCommand, $destFile));
 
         return $destFile;
