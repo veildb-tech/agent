@@ -63,6 +63,7 @@ services:
                 - "@App\\Service\\Methods\\Dump"
                 - "@App\\Service\\Methods\\DumpOverSsh"
                 - "@App\\Service\\Methods\\AwsS3"
+                - "@App\\Service\\Methods\\Sftp"
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

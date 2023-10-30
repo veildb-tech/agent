@@ -97,7 +97,14 @@ class AddDatabase extends AbstractCommand
 
         $this->getDumpMethods();
 
-        if ($this->validateConnection()) {
+        try {
+            $valid = $this->validateConnection();
+        } catch (\Exception $exception) {
+            $valid = false;
+            $this->getInputOutput()->error($exception->getMessage());
+        }
+
+        if ($valid) {
             $this->sendDatabaseToService($server);
             $this->appConfig->saveDatabaseConfig($this->config);
 

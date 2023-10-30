@@ -7,6 +7,9 @@ namespace App\Service\Methods;
 use App\Service\InputOutput;
 use \Exception;
 
+/**
+ * TODO: maybe better to use ssh2_shell to connect by SSH instead of Process
+ */
 class DumpOverSsh extends AbstractMethod
 {
     const AUTH_TYPE_KEY = 'key';
@@ -164,20 +167,13 @@ class DumpOverSsh extends AbstractMethod
      */
     private function askDatabaseConfig(InputOutput $inputOutput): array
     {
-        $validateRequired = function ($value) {
-            if (empty($value)) {
-                throw new \RuntimeException('Value is required.');
-            }
-
-            return $value;
-        };
         $config = [];
 
-        $config['db_host'] = $inputOutput->ask('Database Host', 'localhost', $validateRequired);
-        $config['db_user'] = $inputOutput->ask('Database User:', 'root', $validateRequired);
+        $config['db_host'] = $inputOutput->ask('Database Host', 'localhost', self::validateRequired(...));
+        $config['db_user'] = $inputOutput->ask('Database User:', 'root', self::validateRequired(...));
         $config['db_password'] = $inputOutput->askHidden('Password');
-        $config['db_name'] = $inputOutput->ask('Database name:', null, $validateRequired);
-        $config['db_port'] = $inputOutput->ask('Database Port: ', '3306', $validateRequired);
+        $config['db_name'] = $inputOutput->ask('Database name:', null, self::validateRequired(...));
+        $config['db_port'] = $inputOutput->ask('Database Port: ', '3306', self::validateRequired(...));
 
         return $config;
     }

@@ -73,20 +73,13 @@ class Dump extends AbstractMethod
      */
     public function askConfig(InputOutput $inputOutput): array
     {
-        $validateRequired = function ($value) {
-            if (empty($value)) {
-                throw new \RuntimeException('Value is required.');
-            }
-
-            return $value;
-        };
         $config = [];
 
-        $config['db_host'] = $inputOutput->ask('Host', 'localhost', $validateRequired);
-        $config['db_user'] = $inputOutput->ask('User:', 'root', $validateRequired);
+        $config['db_host'] = $inputOutput->ask('Host', 'localhost', self::validateRequired(...));
+        $config['db_user'] = $inputOutput->ask('User:', 'root', self::validateRequired(...));
         $config['db_password'] = $inputOutput->askHidden('Password');
-        $config['db_name'] = $inputOutput->ask('Database name:', null, $validateRequired);
-        $config['db_port'] = $inputOutput->ask('Port: ', '3306', $validateRequired);
+        $config['db_name'] = $inputOutput->ask('Database name:', null, self::validateRequired(...));
+        $config['db_port'] = $inputOutput->ask('Port: ', '3306', self::validateRequired(...));
 
         return $config;
     }

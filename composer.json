@@ -39,7 +39,8 @@
         "symfony/process": "6.2.*",
         "symfony/runtime": "6.2.*",
         "symfony/yaml": "6.2.*",
-        "vlucas/phpdotenv": "^5.5"
+        "vlucas/phpdotenv": "^5.5",
+        "ext-ssh2": "*"
     },
     "config": {
         "allow-plugins": {

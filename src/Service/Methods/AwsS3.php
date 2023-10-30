@@ -80,21 +80,13 @@ class AwsS3 extends AbstractMethod
      */
     public function askConfig(InputOutput $inputOutput): array
     {
-        $validateRequired = function ($value) {
-            if (empty($value)) {
-                throw new \RuntimeException('Value is required.');
-            }
-
-            return $value;
-        };
-
         return [
-            'aws_s3_key' => $inputOutput->ask("AWS Key", null, $validateRequired),
-            'aws_s3_secret' => $inputOutput->ask("AWS Secret", null, $validateRequired),
-            'aws_s3_bucket' => $inputOutput->ask("Bucket name", null, $validateRequired),
-            'aws_s3_region' => $inputOutput->ask("Region", null, $validateRequired),
-            'aws_s3_version' => $inputOutput->ask("Version", 'latest', $validateRequired),
-            'aws_s3_filename' => $inputOutput->ask("Filename", 'backup.sql', $validateRequired),
+            'aws_s3_key' => $inputOutput->ask("AWS Key", null, self::validateRequired(...)),
+            'aws_s3_secret' => $inputOutput->ask("AWS Secret", null, self::validateRequired(...)),
+            'aws_s3_bucket' => $inputOutput->ask("Bucket name", null, self::validateRequired(...)),
+            'aws_s3_region' => $inputOutput->ask("Region", null, self::validateRequired(...)),
+            'aws_s3_version' => $inputOutput->ask("Version", 'latest', self::validateRequired(...)),
+            'aws_s3_filename' => $inputOutput->ask("Filename", 'backup.sql', self::validateRequired(...)),
         ];
     }
 
