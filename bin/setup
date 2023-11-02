@@ -1,23 +1,37 @@
 #!/usr/bin/env bash
 
 export PROJECT_ROOT
-PROJECT_ROOT="$(dirname "$(realpath $0)")"
+PROJECT_ROOT="$(dirname "$(realpath $0)")/../"
 
 # Validate is docker installed and run
 function _validateDocker() {
-    if ! docker --version; then
-        read -r -p "ERROR: Did Docker get installed! Do you want to proceed? (yes/no) " yn
-
+    if [ ! -x "$(command -v docker)" ]; then
+        read -r -p "Did Docker get installed! Do you want to proceed? (Y/N) " yn
         case $yn in
-            yes )
+            [Yy]* )
                 "${PROJECT_ROOT}"/bin/docker/install.sh ;;
-            no )
+            [Nn]* )
                 echo "Installation process stopped...";
                 exit;;
         esac
     fi
 
     if [ ! -f /.dockerenv  ]; then
+        if [ "${USER}" != 'root' ]; then
+            if command -v sudo; then
+                sudo -E sh -c "usermod -a -G docker ${USER}"
+                sudo -E sh -c "chown root:docker /var/run/docker.sock"
+                sudo -E sh -c "chmod -R 777 /var/run/docker.sock"
+            elif command -v su; then
+                su -c "usermod -aG docker ${USER}"
+                su -c "chown root:docker /var/run/docker.sock"
+                su -c "chmod -R 777 /var/run/docker.sock"
+            else
+                echo "Error: this installer needs the ability to run commands as root. We are unable to find either 'sudo' or 'su' available to make this happen."
+                exit 1
+            fi
+        fi
+
         if ! docker run --rm hello-world; then
             echo "ERROR: Could not get docker to run the hello world container"
             exit 2
@@ -57,21 +71,30 @@ if [ ! -f ${PROJECT_ROOT}/.env ]; then
     cp ${PROJECT_ROOT}/env-sample ${PROJECT_ROOT}/.env
 
     # Get Service URL
-    read -p "Enter the host name for service:" APP_SERVICE_URL
+    read -rp "Enter the host name for the Service:" APP_SERVICE_URL
     _replace_pattern "APP_SERVICE_URL=" "APP_SERVICE_URL=${APP_SERVICE_URL}" ${PROJECT_ROOT}/.env
 
+    # Get Server URL
+    read -rp "Enter the host name for the Server:" APP_DOCKER_SERVER_URL
+    _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${APP_DOCKER_SERVER_URL}" ${PROJECT_ROOT}/.env
+
     # Get path to dumps folder
-    PROJECT_BACKUPS_FOLDERS=''
-    while [[ ${PROJECT_BACKUPS_FOLDERS} == '' || "${PROJECT_BACKUPS_FOLDERS}" =~ "~" ]]; do
-        read -p "Enter the full the path to folder with dumps:" PROJECT_BACKUPS_FOLDERS
-        if [ "${PROJECT_BACKUPS_FOLDERS::1}" != "/" ]; then
-            PROJECT_BACKUPS_FOLDERS="/${PROJECT_BACKUPS_FOLDERS}"
+    APP_DUMP_PATH=''
+    while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
+        read -rp "Enter the full the path to folder with dumps:" APP_DUMP_PATH
+        if [ "${APP_DUMP_PATH::1}" != "/" ]; then
+            APP_DUMP_PATH="/${APP_DUMP_PATH}"
         fi
     done
-    _replace_pattern "PROJECTS_FOLDER=" "PROJECTS_FOLDER=${PROJECT_BACKUPS_FOLDERS}" ${PROJECT_ROOT}/.env
+    _replace_pattern "APP_DUMP_PATH=''" "APP_DUMP_PATH='${APP_DUMP_PATH}'" ${PROJECT_ROOT}.env
+    _replace_pattern "APP_DOCKER_PATH_DUMP=''" "APP_DOCKER_PATH_DUMP='${APP_DUMP_PATH}dumps'" ${PROJECT_ROOT}.env
+    _replace_pattern "APP_DOCKER_PATH_CONFIG=''" "APP_DOCKER_PATH_CONFIG='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
 
     # Generate JWT secret
     _replace_pattern "CADDY_MERCURE_JWT_SECRET=" "CADDY_MERCURE_JWT_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
+
+    # Generate APP secret
+    _replace_pattern "APP_SECRET=" "APP_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
 fi
 
 # 3. Select engines:
@@ -99,11 +122,13 @@ select option in "${options[@]}"; do
 done
 
 # Get project configurations
-export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
+export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # 4. Validate and create all folders and sub-folders
-mkdir -p "${PROJECT_BACKUPS_FOLDERS}"/dumps "${PROJECT_BACKUPS_FOLDERS}"/dumps/processed "${PROJECT_BACKUPS_FOLDERS}"/dumps/untoched \
-  && chown -R "$(id -u)":"$(id -g)" "${PROJECT_BACKUPS_FOLDERS}"/*
+if [ ! -d "${APP_DUMP_PATH}/dumps" ]; then
+    mkdir -p "${APP_DUMP_PATH}/dumps" "${APP_DUMP_PATH}/dumps/processed" "${APP_DUMP_PATH}/dumps/untoched" \
+        && chown -R "$(id -u)":"$(id -g)" "${APP_DUMP_PATH}"/*
+fi
 
 if [[ ! -z $APP_SERVICE_URL && -z $(grep ${APP_SERVICE_URL} /etc/hosts) ]]; then
     echo "Your system password has been requested to add an entry to /etc/hosts..."
@@ -112,15 +137,11 @@ fi
 
 # 5. Start docker with DB's
 echo "Starting Docker containers"
-"${PROJECT_ROOT}"/bin/docker/start -b
+"${PROJECT_ROOT}"bin/docker/start -b
 
 # 5. Install symfony modules
 echo "Installing required modules"
-"${PROJECT_ROOT}"/bin/docker/cli composer install --prefer-dist --no-dev --no-progress --no-scripts --no-interaction
-
-# 6. Add required commands to cron
-echo "Added cron jobs"
-"${PROJECT_ROOT}"/bin/docker/cli bin/console app:cron:install
+"${PROJECT_ROOT}"bin/docker/cli composer install --prefer-dist --no-dev --no-progress --no-scripts --no-interaction
 
 # 7. Start initializing / adding server and backups
-"${PROJECT_ROOT}"/bin/docker/console app:server:add
+"${PROJECT_ROOT}"bin/docker/console app:server:add

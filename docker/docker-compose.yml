@@ -8,7 +8,7 @@ services:
     image: ${IMAGES_PREFIX:-}app-server
     environment:
       APP_SECRET: ${APP_SECRET}
-      SERVER_NAME: ${APP_SERVER_URL:-localhost}, php:80
+      SERVER_NAME: ${APP_DOCKER_SERVER_URL:-localhost}, php:80
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ^${APP_DOCKER_SERVER_URL:-example\.com|localhost}|php$$
     volumes:
@@ -40,7 +40,7 @@ services:
   adminer:
     image: adminer
     ports:
-      - 8080:8080
+      - 8080:${HTTP_ADMINER_PORT:-8080}
     networks:
       - db-manager-network
 
@@ -50,5 +50,4 @@ volumes:
 
 networks:
   db-manager-network:
-    external: true
     name: db-manager-network

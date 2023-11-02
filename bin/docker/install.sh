@@ -89,20 +89,20 @@ VERSION="${VERSION#v}"
 #   * stable
 #   * test
 #   * edge (deprecated)
-#   * nightly (unmaintained)
+#   * nightly (deprecated)
 DEFAULT_CHANNEL_VALUE="stable"
 if [ -z "$CHANNEL" ]; then
-    CHANNEL=$DEFAULT_CHANNEL_VALUE
+	CHANNEL=$DEFAULT_CHANNEL_VALUE
 fi
 
 DEFAULT_DOWNLOAD_URL="https://download.docker.com"
 if [ -z "$DOWNLOAD_URL" ]; then
-    DOWNLOAD_URL=$DEFAULT_DOWNLOAD_URL
+	DOWNLOAD_URL=$DEFAULT_DOWNLOAD_URL
 fi
 
 DEFAULT_REPO_FILE="docker-ce.repo"
 if [ -z "$REPO_FILE" ]; then
-    REPO_FILE="$DEFAULT_REPO_FILE"
+	REPO_FILE="$DEFAULT_REPO_FILE"
 fi
 
 mirror=''
@@ -150,7 +150,7 @@ case "$CHANNEL" in
 	stable|test)
 		;;
 	edge|nightly)
-		>&2 echo "DEPRECATED: the $CHANNEL channel has been deprecated and no longer supported by this script."
+		>&2 echo "DEPRECATED: the $CHANNEL channel has been deprecated and is no longer supported by this script."
 		exit 1
 		;;
 	*)
@@ -383,7 +383,7 @@ do_install() {
 
 	user="$(id -un 2>/dev/null || true)"
 
-	sh_c='sh -c'
+	ssh_ch_c='sh -c'
 	if [ "$user" != 'root' ]; then
 		if command_exists sudo; then
 			sh_c='sudo -E sh -c'

@@ -10,8 +10,14 @@ _startContainer() {
         exit;
     fi
 
-    docker compose -f "${1}" --env-file "${2}" build --no-cache
-    docker compose -f "${1}" --env-file "${2}" up -d --force-recreate
+    if docker compose version > /dev/null 2>&1; then
+      DOCKER_COMPOSE="docker compose"
+    else
+      DOCKER_COMPOSE="docker-compose"
+    fi
+
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" build --no-cache
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" up -d --force-recreate
 }
 
 # Get the options
