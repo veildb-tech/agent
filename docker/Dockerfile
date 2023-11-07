@@ -7,13 +7,14 @@ FROM composer/composer:2-bin AS composer_upstream
 # BaseFrankenPHP image
 FROM frankenphp_upstream AS frankenphp_base
 
+ARG APP_ENV
+
 # persistent / runtime deps
 # hadolint ignore=DL3018
 RUN apk add --no-cache \
     acl \
     file \
     gettext \
-    git \
     nss-tools \
     openssl \
     mariadb-client \
@@ -33,7 +34,7 @@ RUN set -eux; \
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-ENV APP_ENV=prod
+ENV APP_ENV=$APP_ENV
 ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/

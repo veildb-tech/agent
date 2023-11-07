@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Service\PublicCommand\Server\Update;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -62,6 +63,7 @@ final class AppServerUpdateCommand extends Command
             $this->serverUpdate->execute($input, $output);
         } catch (
             ClientExceptionInterface
+            | InvalidArgumentException
             | RedirectionExceptionInterface
             | ServerExceptionInterface
             | DecodingExceptionInterface

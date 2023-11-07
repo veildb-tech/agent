@@ -7,6 +7,7 @@ services:
       target: frankenphp_base
     image: ${IMAGES_PREFIX:-}app-server
     environment:
+      APP_ENV: ${APP_ENV}
       APP_SECRET: ${APP_SECRET}
       SERVER_NAME: ${APP_DOCKER_SERVER_URL:-localhost}, php:80
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}

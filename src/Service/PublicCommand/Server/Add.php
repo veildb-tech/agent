@@ -42,7 +42,7 @@ final class Add extends AbstractServerCommand
             | InvalidArgumentException
             | RedirectionExceptionInterface $e
         ) {
-            $inputOutput->error("During adding server an error happened: " . $e->getMessage());
+            $inputOutput->error("During adding the server an error happened: " . $e->getMessage());
 
             return false;
         }

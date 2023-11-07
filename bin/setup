@@ -62,10 +62,10 @@ function _generateJwtKey() {
 
 echo "Started Project setting"
 
-# 1. Validate environment.
+# Validate environment.
 _validateDocker
 
-# 2. Init configurations:
+# Init configurations:
 echo "Initializing Base configurations"
 if [ ! -f ${PROJECT_ROOT}/.env ]; then
     cp ${PROJECT_ROOT}/env-sample ${PROJECT_ROOT}/.env
@@ -85,19 +85,20 @@ if [ ! -f ${PROJECT_ROOT}/.env ]; then
         if [ "${APP_DUMP_PATH::1}" != "/" ]; then
             APP_DUMP_PATH="/${APP_DUMP_PATH}"
         fi
+
+        if [ "${APP_DUMP_PATH: -1}" != "/" ]; then
+            APP_DUMP_PATH="${APP_DUMP_PATH}/"
+        fi
     done
     _replace_pattern "APP_DUMP_PATH=''" "APP_DUMP_PATH='${APP_DUMP_PATH}'" ${PROJECT_ROOT}.env
     _replace_pattern "APP_DOCKER_PATH_DUMP=''" "APP_DOCKER_PATH_DUMP='${APP_DUMP_PATH}dumps'" ${PROJECT_ROOT}.env
     _replace_pattern "APP_DOCKER_PATH_CONFIG=''" "APP_DOCKER_PATH_CONFIG='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
 
-    # Generate JWT secret
-    _replace_pattern "CADDY_MERCURE_JWT_SECRET=" "CADDY_MERCURE_JWT_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
-
     # Generate APP secret
     _replace_pattern "APP_SECRET=" "APP_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
 fi
 
-# 3. Select engines:
+# Select engines:
 echo "Initializing supported DB engines"
 options=("MySQL" "Postgres" "Continue")
 select option in "${options[@]}"; do
@@ -124,24 +125,23 @@ done
 # Get project configurations
 export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
 
-# 4. Validate and create all folders and sub-folders
+# Validate and create all folders and sub-folders
 if [ ! -d "${APP_DUMP_PATH}/dumps" ]; then
-    mkdir -p "${APP_DUMP_PATH}/dumps" "${APP_DUMP_PATH}/dumps/processed" "${APP_DUMP_PATH}/dumps/untoched" \
-        && chown -R "$(id -u)":"$(id -g)" "${APP_DUMP_PATH}"/*
+    mkdir -p "${APP_DUMP_PATH}/dumps" "${APP_DUMP_PATH}/dumps/processed" "${APP_DUMP_PATH}/dumps/untoched"
 fi
 
-if [[ ! -z $APP_SERVICE_URL && -z $(grep ${APP_SERVICE_URL} /etc/hosts) ]]; then
+if [[ ! -z ${APP_DOCKER_SERVER_URL} && -z $(grep ${APP_DOCKER_SERVER_URL} /etc/hosts) ]]; then
     echo "Your system password has been requested to add an entry to /etc/hosts..."
-    echo "127.0.0.1 ::1 $APP_SERVICE_URL" | sudo tee -a /etc/hosts
+    echo "127.0.0.1 ::1 ${APP_DOCKER_SERVER_URL}" | sudo tee -a /etc/hosts
 fi
 
-# 5. Start docker with DB's
+# Start docker with DB's
 echo "Starting Docker containers"
 "${PROJECT_ROOT}"bin/docker/start -b
 
-# 5. Install symfony modules
+# Install symfony modules
 echo "Installing required modules"
-"${PROJECT_ROOT}"bin/docker/cli composer install --prefer-dist --no-dev --no-progress --no-scripts --no-interaction
+# "${PROJECT_ROOT}"bin/docker/cli composer install --prefer-dist --no-progress --no-interaction
 
-# 7. Start initializing / adding server and backups
-"${PROJECT_ROOT}"bin/docker/console app:server:add
+# Start initializing / adding server and backups
+"${PROJECT_ROOT}"bin/docker/cli bin/console app:server:add

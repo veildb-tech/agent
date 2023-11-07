@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Service\PublicCommand\Server\Add;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -37,6 +38,19 @@ final class AppServerAddCommand extends Command
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function configure(): void
+    {
+        $this->addOption(
+            'current',
+            null,
+            null,
+            'If this option set it command only updates server credentials'
+        );
+    }
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      *
@@ -49,6 +63,7 @@ final class AppServerAddCommand extends Command
             $this->serverAdd->execute($input, $output);
         } catch (
             ClientExceptionInterface
+            | InvalidArgumentException
             | RedirectionExceptionInterface
             | ServerExceptionInterface
             | DecodingExceptionInterface

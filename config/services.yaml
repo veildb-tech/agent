@@ -10,7 +10,9 @@ parameters:
     app.service_url: '%env(APP_SERVICE_URL)%'
     app.dump_path: '%env(APP_DUMP_PATH)%'
     app.secret_key_private: '%env(SECRET_KEY_PRIVATE)%'
+    env(SECRET_KEY_PRIVATE): '/app/config/keys/private'
     app.secret_key_public: '%env(SECRET_KEY_PUBLIC)%'
+    env(SECRET_KEY_PUBLIC): '/app/config/keys/public'
 
 services:
     # default configuration for services in *this* file

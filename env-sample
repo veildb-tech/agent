@@ -38,13 +38,10 @@ APP_CONFIG_PATH=''
 APP_DUMP_PATH=''
 
 # Docker Configurations
-APP_DOCKER_SERVER_URL='db-manager-server.local'
+APP_DOCKER_SERVER_URL=
 APP_DOCKER_PATH_DUMP=''
 APP_DOCKER_PATH_CONFIG=''
 
 # Path to files with public and private keys
 SECRET_KEY_PRIVATE=
 SECRET_KEY_PUBLIC=
-
-# Symfony JWT Secret Keys
-CADDY_MERCURE_JWT_SECRET=
