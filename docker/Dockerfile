@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     gettext \
     nss-tools \
     openssl \
+    libssh2-dev \
     mariadb-client \
     postgresql-client
 
@@ -24,6 +25,7 @@ RUN set -eux; \
     install-php-extensions \
         apcu \
         intl \
+        ssh2 \
         opcache \
         pdo_mysql \
         pdo_pgsql \
