@@ -57,6 +57,7 @@ class DatabaseDebugProcessor extends AbstractCommand
             )
         );
 
-        $this->processorFactory->create($database->getEngine(), $database->getPlatform())->process($database);
+        $dbManager = $this->processorFactory->create($database->getEngine(), $database->getPlatform());
+        $dbManager->process($database);
     }
 }

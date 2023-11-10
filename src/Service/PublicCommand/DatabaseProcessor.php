@@ -32,6 +32,7 @@ class DatabaseProcessor extends AbstractCommand
      * @param DBManagementFactory $dbManagementFactory
      * @param DbProcessorFactory $processorFactory
      * @param GetDatabaseRules $getDatabaseRules
+     * @param Analyzer $analyzer
      */
     public function __construct(
         private readonly AppLogger $appLogger,
@@ -74,76 +75,118 @@ class DatabaseProcessor extends AbstractCommand
                 throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
             }
 
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Preparing backup"
-            );
-            $originFile = $this->dumpManagement->createDump($dbuuid);
-            $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
-
-            $tempDatabase = 'temp_' . time();
-
-            $database = new DbDataManager(
-                array_merge(
-                    $this->getDatabaseRules->get($dbuuid),
-                    [
-                        'name' => $tempDatabase,
-                        'inputFile' => $originFile->getPathname(),
-                        'backup_path' => $destinationFile->getPathname()
-                    ]
-                )
-            );
-            $dbManagement = $this->dbManagementFactory->create();
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Creating temporary table"
-            );
-            $dbManagement->create($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Import backup to temporary table"
-            );
-            $dbManagement->import($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Processing database dump"
-            );
-            $this->processorFactory->create($database->getEngine())->process($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Creating new dump file"
-            );
-            $dbManagement->dump($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Analyze new database schema"
-            );
-            $this->analyzer->process($dbuuid, $tempDatabase);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::PROCESSING->value,
-                "Dropping temporary database"
-            );
-            $dbManagement->drop($database);
-
-            $this->appLogger->logToService(
-                $dumpuuid,
-                LogStatusEnum::SUCCESS->value,
-                "Completed!"
-            );
-            $this->databaseDump->updateByUuid($dumpuuid, 'ready', $destinationFile->getFilename());
+            try {
+                $this->process($dbuuid, $dumpuuid);
+            } catch (\Exception $exception) {
+                $this->appLogger->logToService(
+                    $dumpuuid,
+                    LogStatusEnum::ERROR->value,
+                    sprintf("Something went wrong during update. Msg: %s", $exception->getMessage())
+                );
+                $this->databaseDump->updateByUuid($dumpuuid, 'error');
+            }
         }
+    }
+
+    /**
+     * @param string $dbuuid
+     * @param string $dumpuuid
+     * @return void
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws InvalidArgumentException
+     * @throws NoSuchMethodException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws \DbManager\CoreBundle\Exception\EngineNotSupportedException
+     * @throws \DbManager\CoreBundle\Exception\NoSuchEngineException
+     * @throws \DbManager\CoreBundle\Exception\ShellProcessorException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function process(string $dbuuid, string $dumpuuid): void
+    {
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Preparing backup"
+        );
+        $originFile = $this->dumpManagement->createDump($dbuuid);
+        $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
+
+        $tempDatabase = 'temp_' . time();
+
+        $database = new DbDataManager(
+            array_merge(
+                $this->getDatabaseRules->get($dbuuid),
+                [
+                    'name' => $tempDatabase,
+                    'inputFile' => $originFile->getPathname(),
+                    'backup_path' => $destinationFile->getPathname()
+                ]
+            )
+        );
+        $dbManagement = $this->dbManagementFactory->create();
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Creating temporary table"
+        );
+        $dbManagement->create($database);
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Import backup to temporary table"
+        );
+        $dbManagement->import($database);
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Processing database dump"
+        );
+
+        $processor = $this->processorFactory->create($database->getEngine(), $database->getPlatform());
+        $processor->process($database);
+
+        if ($processor->getErrors()) {
+            foreach ($processor->getErrors() as $error) {
+                $this->appLogger->logToService(
+                    $dumpuuid,
+                    LogStatusEnum::ERROR->value,
+                    $error->getMessage()
+                );
+            }
+        }
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Creating new dump file"
+        );
+        $dbManagement->dump($database);
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Analyze new database schema"
+        );
+        $this->analyzer->process($dbuuid, $tempDatabase);
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::PROCESSING->value,
+            "Dropping temporary database"
+        );
+        $dbManagement->drop($database);
+
+        $this->appLogger->logToService(
+            $dumpuuid,
+            LogStatusEnum::SUCCESS->value,
+            "Completed!"
+        );
+        $this->databaseDump->updateByUuid($dumpuuid, 'ready', $destinationFile->getFilename());
     }
 }

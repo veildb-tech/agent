@@ -64,8 +64,7 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
         }
 
         return [
-            'db_schema'       => $dbSchema,
-            'additional_data' => $this->getAdditionalData($dbDataManager, $connection)
+            'db_schema'       => $dbSchema
         ];
     }
 

@@ -146,7 +146,7 @@ class Analyzer extends AbstractCommand
             )
         );
 
-        $structure = $this->processorFactory->create($dbManager->getEngine())->getDbStructure($dbManager);
+        $structure = $this->processorFactory->create($dbManager->getEngine(), $dbManager->getPlatform())->getDbStructure($dbManager);
         $this->sendDbStructure->execute($databaseUid, $structure);
     }
 

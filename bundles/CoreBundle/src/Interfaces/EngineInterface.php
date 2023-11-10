@@ -21,6 +21,11 @@ interface EngineInterface
     public function process(DbDataManagerInterface $dbDataManager): void;
 
     /**
+     * @return array
+     */
+    public function getErrors(): array;
+
+    /**
      * Get DB structure
      * return array:
      * [

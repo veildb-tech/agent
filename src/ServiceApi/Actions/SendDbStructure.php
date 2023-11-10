@@ -37,7 +37,7 @@ final class SendDbStructure extends AppService
 
         $this->sendData(
             JSON::encode($data['db_schema']),
-            JSON::encode($data['additional_data']),
+            JSON::encode($data['additional_data'] ?? []),
         );
     }
 
