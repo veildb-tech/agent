@@ -17,4 +17,4 @@ if [ -f "${PROJECT_ROOT}/.env.postgres" ]; then
     bin/docker/start-db postgres
 fi
 
-bin/docker/cron start
+bin/docker/cron setup

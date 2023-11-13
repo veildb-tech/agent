@@ -25,7 +25,7 @@ Before starting need to prepare are next parameters
 3. Run `make setup` and decline the proposition about Docker using
 4. Install cron jobs with command: `php bin/console app:cron:install`
 
-Usage
+Usage:
 -----
 Available commands:
 1. `make console app:db:process --uid=<Database UID> --db=<Database Name>` - start db backup processing
@@ -34,7 +34,7 @@ Available commands:
 4. `make console app:db:log --uuid=<Backup UUID> --status=<Process Status>` --message=<Message> - send log information to service
 
 
-Enabling a new DB Engine
+Enabling a new DB Engine:
 ------------------------
 You can enable a new DB engine in two cases:
 1. during first installation process
@@ -43,7 +43,7 @@ You can enable a new DB engine in two cases:
    2. update configurations
    3. execute command: `make start-db <engine>` ( ex.: `make start-db mysql`)
 
-# Enabling Cron Jobs
+# Enabling Cron Jobs:
 `make console c='app:cron:install'` - install required Cron Jobs
 
 Libraries:

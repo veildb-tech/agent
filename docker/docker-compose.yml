@@ -4,7 +4,7 @@ services:
   server_manager:
     build:
       context: .
-      target: frankenphp_base
+      target: frankenphp_prod
     image: ${IMAGES_PREFIX:-}app-server
     environment:
       APP_ENV: ${APP_ENV}
@@ -33,6 +33,24 @@ services:
       - target: 443
         published: ${APP_DOCKER_HTTP3_PORT:-443}
         protocol: udp
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - db-manager-network
+
+  server_cron_manager:
+    build:
+      context: .
+      target: frankenphp_cron
+    image: ${IMAGES_PREFIX:-}app-cron-server
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_SECRET: ${APP_SECRET}
+    init: true
+    volumes:
+      - ${PROJECT_ROOT}:/app:delegated
+      - ${APP_DOCKER_PATH_DUMP}:/app/backups/dumps:delegated
+      - ${APP_DOCKER_PATH_CONFIG}:/app/backups/config:delegated
     extra_hosts:
       - host.docker.internal:host-gateway
     networks:

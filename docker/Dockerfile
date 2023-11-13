@@ -4,7 +4,8 @@
 FROM dunglas/frankenphp:latest-alpine AS frankenphp_upstream
 FROM composer/composer:2-bin AS composer_upstream
 
-# BaseFrankenPHP image
+
+# BaseFrankenPHP Dockerfile
 FROM frankenphp_upstream AS frankenphp_base
 
 ARG APP_ENV
@@ -55,5 +56,20 @@ COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
 WORKDIR /app
 
+
+# Prod Dockerfile
+FROM frankenphp_base AS frankenphp_prod
+
 HEALTHCHECK CMD wget --no-verbose --tries=1 --spider http://localhost:2019/metrics || exit 1
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
+
+
+# Cron Dockerfile
+FROM frankenphp_base AS frankenphp_cron
+
+RUN which crond && \
+    rm -rf /etc/periodic
+
+WORKDIR /app
+
+CMD ["crond", "-l", "0", "-d", "0", "-f"]

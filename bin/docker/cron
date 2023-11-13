@@ -2,10 +2,14 @@
 
 [ -z "$1" ] && echo "Please specify a command (ex. start|stop)" && exit
 
+if [[ ${1} == "setup" ]]; then
+    bin/docker/docker-compose exec server_cron_manager bin/console app:cron:install
+fi
+
 if [[ ${1} == "start" ]]; then
-    bin/docker/cli crond
+    bin/docker/docker-compose exec server_cron_manager crond -f
 fi
 
 if [[ ${1} == "stop" ]]; then
-    bin/docker/cli pkill crond
+     bin/docker/docker-compose exec server_cron_manager pkill crond
 fi
