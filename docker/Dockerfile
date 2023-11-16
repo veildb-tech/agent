@@ -67,8 +67,10 @@ CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 # Cron Dockerfile
 FROM frankenphp_base AS frankenphp_cron
 
-RUN which crond && \
-    rm -rf /etc/periodic
+RUN apk add --no-cache \
+    logrotate
+
+COPY --link frankenphp/logrotate.conf /etc/logrotate.d/
 
 WORKDIR /app
 
