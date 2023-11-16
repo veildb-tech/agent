@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "babd03acb80a13af521a76950705108e",
+    "content-hash": "54556e079bd4d77cdb30eea0ff850a5d",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -1346,16 +1346,16 @@
         },
         {
             "name": "illuminate/database",
-            "version": "v10.31.0",
+            "version": "v10.32.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/database.git",
-                "reference": "ceb58d11cdc25cff06bc84ef847ce2a806bfaabe"
+                "reference": "0c7819430a1805cd1646ac523d50abe86b6d8687"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/database/zipball/ceb58d11cdc25cff06bc84ef847ce2a806bfaabe",
-                "reference": "ceb58d11cdc25cff06bc84ef847ce2a806bfaabe",
+                "url": "https://api.github.com/repos/illuminate/database/zipball/0c7819430a1805cd1646ac523d50abe86b6d8687",
+                "reference": "0c7819430a1805cd1646ac523d50abe86b6d8687",
                 "shasum": ""
             },
             "require": {
@@ -1411,7 +1411,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2023-11-03T13:08:47+00:00"
+            "time": "2023-11-13T16:39:12+00:00"
         },
         {
             "name": "illuminate/macroable",
@@ -7495,5 +7495,5 @@
         "ext-ssh2": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

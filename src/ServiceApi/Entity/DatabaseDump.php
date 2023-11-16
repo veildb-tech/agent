@@ -15,7 +15,10 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 final class DatabaseDump extends AppService
 {
-    protected string $action = 'database_dumps';
+    /**
+     * Api URL
+     */
+    public const ACTION_URL = 'database_dumps';
 
     /**
      * @param string $dumpUuid
@@ -31,7 +34,7 @@ final class DatabaseDump extends AppService
      */
     public function getByUuid(string $dumpUuid): array
     {
-        $this->action .= '/' . $dumpUuid;
+        $this->action = self::ACTION_URL . '/' . $dumpUuid;
 
         return $this->sendRequest([], 'GET');
     }
@@ -52,6 +55,8 @@ final class DatabaseDump extends AppService
      */
     public function getScheduled(): array
     {
+        $this->action = self::ACTION_URL;
+
         $result = $this->sendRequest(
             [
                 'query' => [
@@ -79,7 +84,7 @@ final class DatabaseDump extends AppService
      */
     public function updateByUuid(string $dumpUuid, string $status, ?string $filename = ''): void
     {
-        $this->action  .= '/' . $dumpUuid;
+        $this->action = self::ACTION_URL . '/' . $dumpUuid;
         $this->sendRequest(
             [
                 'json' => [
@@ -103,7 +108,7 @@ final class DatabaseDump extends AppService
      */
     public function delete(string $dumpUuid): void
     {
-        $this->action  .= '/' . $dumpUuid;
+        $this->action = self::ACTION_URL . '/' . $dumpUuid;
 
         $this->sendDeleteRequest([]);
     }

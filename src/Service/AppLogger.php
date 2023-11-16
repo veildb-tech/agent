@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpKernel\Log\Logger;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -62,6 +63,7 @@ class AppLogger
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function logToService(string $dumpuuid, string $status, string $message, bool $localLog = true): void
     {

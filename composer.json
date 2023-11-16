@@ -22,12 +22,13 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-openssl": "*",
+        "ext-ssh2": "*",
         "aws/aws-sdk-php": "^3.283",
         "db-manager/core-bundle": "dev-main",
         "db-manager/mysql-bundle": "dev-main",
         "doctrine/dbal": "^3.6",
         "fakerphp/faker": "^1.22",
-        "illuminate/database": "^10.12",
+        "illuminate/database": "^10.32",
         "phpoption/phpoption": "^1.9",
         "runtime/frankenphp-symfony": "^0.1.1",
         "symfony/console": "6.2.*",
@@ -40,8 +41,7 @@
         "symfony/process": "6.2.*",
         "symfony/runtime": "6.2.*",
         "symfony/yaml": "6.2.*",
-        "vlucas/phpdotenv": "^5.5",
-        "ext-ssh2": "*"
+        "vlucas/phpdotenv": "^5.5"
     },
     "config": {
         "allow-plugins": {
