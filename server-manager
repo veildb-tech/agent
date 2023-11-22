@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Init main directory
+if [ -z "${MANAGER_DIR}" ]; then
+    MANAGER_DIR="$(dirname "$(realpath $0)")"
+fi
+
+# Get configurations
+export $(cat "${MANAGER_DIR}/.env" | grep -v ^# | grep -v ^alias | xargs)
+
+# Help command
+_help() {
+    # -----------------------------------
+    # Colors
+    GREEN=$'\e[0;32m'
+    RED=$'\e[0;31m'
+    NC=$'\e[0m'
+    # -----------------------------------
+
+    echo "Usage: ${GREEN}server-manager [command]${NC}
+
+Available Commands:
+${RED}===============================${NC}
+${GREEN}start${NC}      - start environment
+${GREEN}stop${NC}       - stop environment
+
+${GREEN}cli${NC}        - allows to run command line command inside of docker environment
+${GREEN}console${NC}    - run commands
+${GREEN}composer${NC}   - run composer commands
+${GREEN}mysql${NC}      - run mysql command
+
+${RED}setup${NC}        - initial setup
+"
+}
+
+# Check is docker been started
+_checkDocker() {
+    if [[ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}app-server") ]]; then
+        echo "You must start docker instance before continue."
+
+        exit 1
+    fi
+}
+
+if [ "${APP_DOCKER_USE}" == "1" ]; then
+    case "$1" in
+      setup)
+        . "${MANAGER_DIR}"/bin/docker/setup
+        ;;
+      start)
+        . "${MANAGER_DIR}"/bin/docker/start
+        ;;
+      stop)
+        _checkDocker
+        . "${MANAGER_DIR}"/bin/docker/stop
+        ;;
+      console)
+        _checkDocker
+        . "${MANAGER_DIR}"/bin/docker/console "${@:2}"
+        ;;
+      composer)
+        _checkDocker
+        . "${MANAGER_DIR}"/bin/docker/composer "${@:2}"
+        ;;
+      cli)
+        _checkDocker
+        . "${MANAGER_DIR}"/bin/docker/cli "${@:2}"
+        ;;
+      *)
+        _help
+        ;;
+    esac
+else
+    php ${MANAGER_DIR}/bin/console
+fi
+
