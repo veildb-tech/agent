@@ -1,37 +1,74 @@
 #!/bin/bash
 
+# -----------------------------------
+# Colors
+GREEN=$'\e[0;32m'
+RED=$'\e[0;31m'
+NC=$'\e[0m'
+# -----------------------------------
+
 # Init main directory
 if [ -z "${MANAGER_DIR}" ]; then
     MANAGER_DIR="$(dirname "$(realpath $0)")"
 fi
 
-# Get configurations
-export $(cat "${MANAGER_DIR}/.env" | grep -v ^# | grep -v ^alias | xargs)
-
-# Help command
+# Help commands
 _help() {
-    # -----------------------------------
-    # Colors
-    GREEN=$'\e[0;32m'
-    RED=$'\e[0;31m'
-    NC=$'\e[0m'
-    # -----------------------------------
+    if [ ! -f "${MANAGER_DIR}/.env" ]; then
+        echo "
+Usage:
+    ${GREEN}server-manager [command]${NC}
 
-    echo "Usage: ${GREEN}server-manager [command]${NC}
+Options:
+    ${GREEN}-l|--list${NC}  - list of available commands
 
 Available Commands:
-${RED}===============================${NC}
-${GREEN}start${NC}      - start environment
-${GREEN}stop${NC}       - stop environment
+    ${RED}setup${NC}      - initial setup
 
-${GREEN}cli${NC}        - allows to run command line command inside of docker environment
-${GREEN}console${NC}    - run commands
-${GREEN}composer${NC}   - run composer commands
-${GREEN}mysql${NC}      - run mysql command
-
-${RED}setup${NC}        - initial setup
+Tool:
+    ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
 "
+    else
+        echo "
+Usage:
+    ${GREEN}server-manager [command]${NC}
+
+Options:
+    ${GREEN}-l|--list${NC}  - list of available commands
+
+Available Commands:
+    ${GREEN}start${NC}      - start environment
+    ${GREEN}stop${NC}       - stop environment
+    ${GREEN}cli${NC}        - allows to run command line command inside of docker environment
+    ${GREEN}composer${NC}   - run composer commands
+    ${GREEN}mysql${NC}      - run mysql command
+    ${GREEN}console${NC}    - run application commands
+
+    ${RED}setup${NC}      - initial setup
+
+Tool:
+    ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
+"
+    fi
 }
+
+# Get configurations
+if [ ! -f "${MANAGER_DIR}/.env" ]; then
+    case "$1" in
+        setup)
+            . "${MANAGER_DIR}"/bin/setup
+            ;;
+        *)
+            _help
+            ;;
+    esac
+
+    exit 1
+fi
+
+export $(cat "${MANAGER_DIR}/.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # Check is docker been started
 _checkDocker() {
@@ -42,35 +79,64 @@ _checkDocker() {
     fi
 }
 
-if [ "${APP_DOCKER_USE}" == "1" ]; then
-    case "$1" in
-      setup)
-        . "${MANAGER_DIR}"/bin/docker/setup
-        ;;
-      start)
-        . "${MANAGER_DIR}"/bin/docker/start
-        ;;
-      stop)
-        _checkDocker
-        . "${MANAGER_DIR}"/bin/docker/stop
-        ;;
-      console)
-        _checkDocker
-        . "${MANAGER_DIR}"/bin/docker/console "${@:2}"
-        ;;
-      composer)
-        _checkDocker
-        . "${MANAGER_DIR}"/bin/docker/composer "${@:2}"
-        ;;
-      cli)
-        _checkDocker
-        . "${MANAGER_DIR}"/bin/docker/cli "${@:2}"
-        ;;
-      *)
-        _help
-        ;;
-    esac
+if [[ ${1} == '-l' || ${1} == '--list' ]]; then
+    _help
+    exit 1
+elif [ "${1}" == 'setup' ]; then
+    . "${MANAGER_DIR}"/bin/setup
 else
-    php ${MANAGER_DIR}/bin/console
+    if [ "${APP_DOCKER_USE}" == "1" ]; then
+        case "$1" in
+            start)
+                . "${MANAGER_DIR}"/bin/docker/start
+                ;;
+            stop)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/stop
+                ;;
+            stopall)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/stopall
+                ;;
+            console)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/console "${@:2}"
+                ;;
+            composer)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/composer "${@:2}"
+                ;;
+            cli)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/cli "${@:2}"
+                ;;
+            app:server:add)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/console "app:server:add"
+                ;;
+            app:db:process)
+                _checkDocker
+                . "${MANAGER_DIR}"/bin/docker/console "app:db:process"
+                ;;
+            *)
+                _help
+                ;;
+        esac
+    else
+        case "$1" in
+            console)
+                php ${MANAGER_DIR}/bin/console "${@:2}"
+                ;;
+            app:server:add)
+                php ${MANAGER_DIR}/bin/console "app:server:add"
+                ;;
+            app:db:process)
+                php ${MANAGER_DIR}/bin/console "app:db:process"
+                ;;
+            *)
+                _help
+                ;;
+        esac
+    fi
 fi
 

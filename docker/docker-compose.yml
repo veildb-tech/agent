@@ -2,6 +2,7 @@ version: "3.7"
 
 services:
   server_manager:
+    container_name: ${IMAGES_PREFIX:-}app-server
     build:
       context: .
       target: frankenphp_prod

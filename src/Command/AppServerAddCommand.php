@@ -20,7 +20,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: 'app:server:add',
-    description: 'Add server',
+    description: 'Start adding the server to service',
 )]
 final class AppServerAddCommand extends Command
 {

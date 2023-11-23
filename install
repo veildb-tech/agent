@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-app_download_url="http://db-manager-cli.bridge2.digital/download/db-server-manager.zip"
+app_download_url="https://gitea.bridge.digital/bridgedigital/db-manager-server-symfony/archive/163_server_installer.zip"
 app_name="server-manager"
 app_dir=".server-manager"
 app_bin_path="$HOME/$app_dir/bin"
@@ -36,16 +36,6 @@ function output {
     fi
 
     builtin echo -e "${style_start}${1}${style_end}"
-}
-
-function exit_with_error() {
-    output "+--------------------------------------------------+" "error"
-    output "|                                                  |" "error"
-    output "|              Installation failed                 |" "error"
-    output "|                                                  |" "error"
-    output "+--------------------------------------------------+" "error"
-
-    exit 1
 }
 
 function intro() {

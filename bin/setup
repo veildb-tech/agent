@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 export PROJECT_ROOT
-PROJECT_ROOT="$(dirname "$(realpath $0)")/../"
+PROJECT_ROOT="$(dirname "$(realpath $0)")/"
 USE_DOCKER=0
-MANAGER_CLI="${PROJECT_ROOT}/server-manager"
+MANAGER_CLI="${PROJECT_ROOT}server-manager"
 
 _output() {
     style_start=""
@@ -63,13 +63,13 @@ _installDocker() {
                 su -c "chown root:docker /var/run/docker.sock"
                 su -c "chmod -R 777 /var/run/docker.sock"
             else
-                echo "Error: this installer needs the ability to run commands as root. We are unable to find either 'sudo' or 'su' available to make this happen."
+                _output "  ERROR: This installer needs the ability to run commands as root. We are unable to find either 'sudo' or 'su' available to make this happen." "error"
                 exit 1
             fi
         fi
 
         if ! docker run --rm hello-world; then
-            echo "ERROR: Could not get docker to run the hello world container"
+            _output "  ERROR: Could not get docker to run the hello world container" "error"
             exit 2
         fi
     fi
@@ -112,9 +112,9 @@ _checkRequiredLibs() {
     fi
 
     if command -v curl >/dev/null 2>&1; then
-        _output "  [*] CURL is installed" "success"
+        _output "  [*] Curl is installed" "success"
     else
-        _output "  [ ] ERROR: CURL is required for installation" "error"
+        _output "  [ ] ERROR: Curl is required for installation" "error"
         exit 1
     fi
 }
@@ -140,18 +140,38 @@ _generateJwtKey() {
     echo "$jwt_secret"
 }
 
-_setCliLocation() {
-    CLI_LOC=/usr/bin/server-manager
+# Init global command alias
+_initAlias() {
+    NAME="server-manager"
+    DEFINITION="${MANAGER_CLI}"
 
-    if [ -n "${SM_INSTALL_CLIPATH}" ]; then
-        CLI_LOC="${SM_INSTALL_CLIPATH}"
+    if [ `alias | grep ${NAME} | wc -l` != 0 ]; then
+        return;
+    fi
+
+    if [ -f ${HOME}/.bash_aliases ]; then
+        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
+
+        . ${HOME}/.bash_aliases
+    fi
+
+    if [ -f ${HOME}/.zshrc ]; then
+        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
+
+        . ${HOME}/.zshrc
+    fi
+
+    if [ -f ${HOME}/.bashrc ]; then
+        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
+
+        . ${HOME}/.bashrc
     fi
 }
 
-echo "Started Project setting"
+_output " Started Project setting " "heading"
 
 # Validate environment.
-read -r -p "Do you want to use a docker? (Y/N) " yn
+read -r -p " Do you want to use a docker? (Y/N) " yn
 case $yn in
     [Yy]* )
         USE_DOCKER=1
@@ -164,22 +184,23 @@ case $yn in
 esac
 
 # Init configurations:
-echo "Initializing Base configurations"
-if [ ! -f ${PROJECT_ROOT}/.env ]; then
-    cp ${PROJECT_ROOT}/env-sample ${PROJECT_ROOT}/.env
+if [ ! -f "${PROJECT_ROOT}.env" ]; then
+    _output " Initializing Base configurations " "heading"
+
+    cp "${PROJECT_ROOT}env-sample" "${PROJECT_ROOT}.env"
 
     _replace_pattern "APP_DOCKER_USE=1" "APP_DOCKER_USE=${USE_DOCKER}" ${PROJECT_ROOT}/.env
 
     # Get Server URL
     if [ $USE_DOCKER == 1 ]; then
-        read -rp "Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL
+        read -rp " Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL
         _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${APP_DOCKER_SERVER_URL}" ${PROJECT_ROOT}/.env
     fi
 
     # Get path to dumps folder
     APP_DUMP_PATH=""
     while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
-        read -rp "Enter the full the path to folder with dumps (default: "${HOME}/backups/" ): " APP_DUMP_PATH
+        read -rp " Enter the full the path to folder with dumps (default: "${HOME}/backups/" ): " APP_DUMP_PATH
         APP_DUMP_PATH=${APP_DUMP_PATH:="${HOME}/backups/"}
         if [ "${APP_DUMP_PATH::1}" != "/" ]; then
             APP_DUMP_PATH="/${APP_DUMP_PATH}"
@@ -199,19 +220,20 @@ if [ ! -f ${PROJECT_ROOT}/.env ]; then
 fi
 
 # Select engines:
-echo "Initializing supported DB engines"
-options=("MySQL" "Postgres" "Next Steps")
+_output " Initializing supported DB engines " "heading"
+
+options=(" MySQL" " Postgres" " Continue")
 select option in "${options[@]}"; do
     case $REPLY in
         1)
-            if [ ! -f ${PROJECT_ROOT}/.env.mysql ]; then
-                cp ${PROJECT_ROOT}/env.mysql-sample ${PROJECT_ROOT}/.env.mysql
+            if [ ! -f ${PROJECT_ROOT}.env.mysql ]; then
+                cp ${PROJECT_ROOT}env.mysql-sample ${PROJECT_ROOT}.env.mysql
             fi
             echo "MySQL Selected."
             ;;
         2)
-            if [ ! -f {PROJECT_ROOT}/.env.postgres ]; then
-                cp ${PROJECT_ROOT}/env.postgres-sample ${PROJECT_ROOT}/.env.postgres
+            if [ ! -f {PROJECT_ROOT}.env.postgres ]; then
+                cp ${PROJECT_ROOT}env.postgres-sample ${PROJECT_ROOT}.env.postgres
             fi
             echo "Postgres Selected."
             ;;
@@ -228,39 +250,26 @@ done
 export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # Validate and create all folders and sub-folders
-if [ ! -d "${APP_DUMP_PATH}/dumps" ]; then
-    mkdir -p "${APP_DUMP_PATH}/dumps" "${APP_DUMP_PATH}/dumps/processed" "${APP_DUMP_PATH}/dumps/untoched"
+if [ ! -d "${APP_DUMP_PATH}dumps" ]; then
+    mkdir -p "${APP_DUMP_PATH}dumps" "${APP_DUMP_PATH}dumps/processed" "${APP_DUMP_PATH}dumps/untouched"
 fi
 
 if [[ ! -z ${APP_DOCKER_SERVER_URL} && -z $(grep ${APP_DOCKER_SERVER_URL} /etc/hosts) ]]; then
-    echo "Your system password has been requested to add an entry to /etc/hosts..."
+    _output " Your system password has been requested to add an entry to /etc/hosts... " "info"
     echo "127.0.0.1 ::1 ${APP_DOCKER_SERVER_URL}" | sudo tee -a /etc/hosts
 fi
 
 if [ $USE_DOCKER == 1 ]; then
     # Start docker with DB's
-    echo "Starting Docker containers"
-    "${PROJECT_ROOT}"bin/docker/start -b
+    _output " Starting Docker containers " "heading"
 
-    # Start initializing / adding server and backups
-    "${PROJECT_ROOT}"bin/docker/cli bin/console app:server:add
+    "${PROJECT_ROOT}"bin/docker/start -b
 else
     if [ -z "$(ls -A "${PROJECT_ROOT}/vendor/" 2>/dev/null)" ]; then
         composer install --working-dir="${PROJECT_ROOT}" --prefer-dist --no-progress --no-interaction
     fi
-
-    php "${PROJECT_ROOT}"bin/console app:server:add
 fi
 
-_setCliLocation
+_initAlias
 
-if rm -f "${CLI_LOC}"; then
-    if cp -f "${MANAGER_CLI}" "${CLI_LOC}"; then
-        chmod 755 "${CLI_LOC}"
-        echo "cli installed"
-    else
-        echo "failed to copy new cli into place"
-    fi
-else
-    echo "could not remove existing cli"
-fi
+${MANAGER_CLI} app:server:add
