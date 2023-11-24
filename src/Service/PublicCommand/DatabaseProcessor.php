@@ -138,7 +138,8 @@ class DatabaseProcessor extends AbstractCommand
                 ]
             )
         );
-        $dbManagement = $this->dbManagementFactory->create();
+
+        $dbManagement = $this->dbManagementFactory->create($database->getEngine());
 
         $this->appLogger->logToService(
             $dumpuuid,

@@ -16,10 +16,10 @@ services:
     tags:
       - { name: 'app.backup_method' }
 
-#  DbManager\PostgresqlBundle\Service\Methods\MysqldumpOverSsh:
-#    autowire: true
-#    tags:
-#      - { name: 'app.backup_method' }
+  DbManager\PostgresqlBundle\Service\Methods\PgdumpOverSsh:
+    autowire: true
+    tags:
+      - { name: 'app.backup_method' }
 
   DbManager\PostgresqlBundle\Service\Engine\Postgresql:
     autowire: true

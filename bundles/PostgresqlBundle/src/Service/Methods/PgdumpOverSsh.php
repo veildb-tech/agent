@@ -10,7 +10,7 @@ use \Exception;
 /**
  * TODO: maybe better to use ssh2_shell to connect by SSH instead of Process
  */
-class MysqldumpOverSsh extends PgMethod
+class PgdumpOverSsh extends PgMethod
 {
     const AUTH_TYPE_KEY = 'key';
     const AUTH_TYPE_PASS = 'password';
@@ -25,9 +25,10 @@ class MysqldumpOverSsh extends PgMethod
     public function execute(array $dbConfig, string $dbUuid, ?string $filename = null): string
     {
         $destFile = $this->getDestinationFile($dbUuid, $filename);
-        $command = sprintf("pg_dump %s > %s", $this->getPgsqlUrl($dbConfig), $destFile);
 
+        $command = sprintf("pg_dump %s", $this->getPgsqlUrl($dbConfig), $destFile);
         $sshCommand = $this->prepareSshCommand($dbConfig);
+
         $this->shellProcess->run(sprintf('%s "%s" > %s', $sshCommand, $command, $destFile));
 
         return $destFile;
