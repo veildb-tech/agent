@@ -40,7 +40,7 @@ _output() {
 # Install in case required
 _installDocker() {
     if [ ! -x "$(command -v docker)" ]; then
-        read -r -p "Did Docker get installed! Do you want to proceed? (Y/N) " yn
+        read -r -p "Did Docker get installed! Do you want to proceed? (Y/N) " yn </dev/tty
         case $yn in
             [Yy]* )
                 "${PROJECT_ROOT}"/bin/docker/install.sh
@@ -90,6 +90,9 @@ _checkDockerPorts() {
 
 # Check is all required applications are installed
 _checkRequiredLibs() {
+
+    _output " Start checking required applications: " "heading"
+
     if command -v composer >/dev/null 2>&1; then
         _output "  [*] Composer is installed" "success"
     else
@@ -101,6 +104,13 @@ _checkRequiredLibs() {
         _output "  [*] PHP is installed" "success"
     else
         _output "  [ ] ERROR: PHP is required for installation" "error"
+        exit 1
+    fi
+
+    if [ "$(php -m | grep -c ssh2)" != "0" ]; then
+        _output "  [*] PHP Extension ext-ssh2 is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension ext-ssh2 is required for installation" "error"
         exit 1
     fi
 
@@ -145,33 +155,36 @@ _initAlias() {
     NAME="server-manager"
     DEFINITION="${MANAGER_CLI}"
 
-    if [ `alias | grep ${NAME} | wc -l` != 0 ]; then
-        return;
-    fi
-
     if [ -f ${HOME}/.bash_aliases ]; then
-        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
+        if [ "$(cat < "${HOME}/.bash_aliases" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
 
-        . ${HOME}/.bash_aliases
+            source ${HOME}/.bash_aliases
+            source ${HOME}/.bashrc
+        fi
     fi
 
     if [ -f ${HOME}/.zshrc ]; then
-        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
+        if [ "$(cat < "${HOME}/.zshrc" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
 
-        . ${HOME}/.zshrc
+            source ${HOME}/.zshrc
+        fi
     fi
 
     if [ -f ${HOME}/.bashrc ]; then
-        echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
+        if [ "$(cat < "${HOME}/.bashrc" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
 
-        . ${HOME}/.bashrc
+            source ${HOME}/.bashrc
+        fi
     fi
 }
 
 _output " Started Project setting " "heading"
 
 # Validate environment.
-read -r -p " Do you want to use a docker? (Y/N) " yn
+read -r -p " \nDo you want to use a docker? (Y/N) " yn </dev/tty
 case $yn in
     [Yy]* )
         USE_DOCKER=1
@@ -193,14 +206,14 @@ if [ ! -f "${PROJECT_ROOT}.env" ]; then
 
     # Get Server URL
     if [ $USE_DOCKER == 1 ]; then
-        read -rp " Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL
+        read -rp " Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL </dev/tty
         _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${APP_DOCKER_SERVER_URL}" ${PROJECT_ROOT}/.env
     fi
 
     # Get path to dumps folder
     APP_DUMP_PATH=""
     while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
-        read -rp " Enter the full the path to folder with dumps (default: "${HOME}/backups/" ): " APP_DUMP_PATH
+        read -rp " Enter the full the path to folder with dumps (default: "${HOME}/backups/" ): " APP_DUMP_PATH </dev/tty
         APP_DUMP_PATH=${APP_DUMP_PATH:="${HOME}/backups/"}
         if [ "${APP_DUMP_PATH::1}" != "/" ]; then
             APP_DUMP_PATH="/${APP_DUMP_PATH}"
@@ -244,7 +257,7 @@ select option in "${options[@]}"; do
             echo "Invalid option. Please select a valid option."
             ;;
     esac
-done
+done </dev/tty
 
 # Get project configurations
 export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)

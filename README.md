@@ -12,18 +12,17 @@
 Before starting need to prepare are next parameters
 - URL to Service.
 - Current server URL
-- Full path to dumps ( ex.: /home/user/dumps/ )
+- Full path to dumps ( default is: /home/user/dumps/ )
 
 ### Via Docker
-1. Run `make setup`
+1. Run `./server-manager setup`
 2. On asking about Docker use, select - Yes
 3. Follow the further instructions
 
 ### Manually
 1. Make sure that all requirement modules are installed
 2. Setup your web server according to Symfony instructions: https://symfony.com/doc/current/setup/web_server_configuration.html
-3. Run `make setup` and decline the proposition about Docker using
-4. Install cron jobs with command: `php bin/console app:cron:install`
+3. Run `./server-manager setup` and decline the proposition about Docker using
 
 Usage:
 -----
