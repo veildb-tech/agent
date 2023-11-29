@@ -3,7 +3,7 @@
 [ -z "$1" ] && echo "Please specify a Db engine  (ex. --mysql|--postgres)" && exit
 
 if [ -z "${PROJECT_ROOT}" ]; then
-    export PROJECT_ROOT="$( cd "$(dirname "$0")/../../" >/dev/null 2>&1 ; pwd -P )"
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
 ENV_FILE=${PROJECT_ROOT}/.env
 

@@ -2,6 +2,7 @@
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
+    "version": "1.0.0",
     "prefer-stable": true,
     "repositories": [
         {

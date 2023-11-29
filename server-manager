@@ -8,13 +8,13 @@ NC=$'\e[0m'
 # -----------------------------------
 
 # Init main directory
-if [ -z "${MANAGER_DIR}" ]; then
-    export MANAGER_DIR="$(dirname "$(realpath $0)")"
+if [ -z "${PROJECT_ROOT}" ]; then
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")"
 fi
 
 # Help commands
 _help() {
-    if [ ! -f "${MANAGER_DIR}/.env" ]; then
+    if [ ! -f "${PROJECT_ROOT}/.env" ]; then
         echo "
 Usage:
     ${GREEN}server-manager [command]${NC}
@@ -27,7 +27,11 @@ Available Commands:
 
 Tool:
     ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:server:update${NC} - Update the server data
+    ${GREEN}app:db:add${NC}        - SCreate DB dump
+    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
     ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
+    ${GREEN}app:cron:install${NC}  - Install required cron jobs
 "
     else
         echo "
@@ -40,25 +44,30 @@ Options:
 Available Commands:
     ${GREEN}start${NC}      - start environment
     ${GREEN}stop${NC}       - stop environment
+    ${GREEN}stopall${NC}    - stop all environment
     ${GREEN}cli${NC}        - allows to run command line command inside of docker environment
     ${GREEN}composer${NC}   - run composer commands
     ${GREEN}mysql${NC}      - run mysql command
     ${GREEN}console${NC}    - run application commands
+    ${GREEN}cron${NC}       - run application commands
 
     ${RED}setup${NC}      - initial setup
 
 Tool:
     ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:server:update${NC} - Update the server data
     ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
+    ${GREEN}app:db:add${NC}        - Create DB dump
+    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
 "
     fi
 }
 
 # Get configurations
-if [ ! -f "${MANAGER_DIR}/.env" ]; then
+if [ ! -f "${PROJECT_ROOT}/.env" ]; then
     case "$1" in
         setup)
-            . "${MANAGER_DIR}"/bin/setup
+            . "${PROJECT_ROOT}"/bin/setup
             ;;
         *)
             _help
@@ -68,7 +77,7 @@ if [ ! -f "${MANAGER_DIR}/.env" ]; then
     exit 1
 fi
 
-export $(cat "${MANAGER_DIR}/.env" | grep -v ^# | grep -v ^alias | xargs)
+export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # Check is docker been started
 _checkDocker() {
@@ -83,40 +92,56 @@ if [[ ${1} == '-l' || ${1} == '--list' ]]; then
     _help
     exit 1
 elif [ "${1}" == 'setup' ]; then
-    . "${MANAGER_DIR}"/bin/setup
+    . "${PROJECT_ROOT}"/bin/setup
 else
     if [ "${APP_DOCKER_USE}" == "1" ]; then
         case "$1" in
             start)
-                . "${MANAGER_DIR}"/bin/docker/start
+                . "${PROJECT_ROOT}"/bin/docker/start
                 ;;
             stop)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/stop
+                . "${PROJECT_ROOT}"/bin/docker/stop
                 ;;
             stopall)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/stopall
+                . "${PROJECT_ROOT}"/bin/docker/stopall
                 ;;
             console)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/console "${@:2}"
+                . "${PROJECT_ROOT}"/bin/docker/console "${@:2}"
                 ;;
             composer)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/composer "${@:2}"
+                . "${PROJECT_ROOT}"/bin/docker/composer "${@:2}"
                 ;;
             cli)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/cli "${@:2}"
+                . "${PROJECT_ROOT}"/bin/docker/cli "${@:2}"
+                ;;
+            cron)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/cron "${@:2}"
                 ;;
             app:server:add)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/console "app:server:add"
+                . "${PROJECT_ROOT}"/bin/docker/console "app:server:add" "${@:2}"
+                ;;
+            app:server:update)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:server:update" "${@:2}"
                 ;;
             app:db:process)
                 _checkDocker
-                . "${MANAGER_DIR}"/bin/docker/console "app:db:process"
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:process"
+                ;;
+            app:db:add)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:add"
+                ;;
+            app:db:analyze)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:analyze" "${@:2}"
                 ;;
             *)
                 _help
@@ -125,13 +150,25 @@ else
     else
         case "$1" in
             console)
-                php ${MANAGER_DIR}/bin/console "${@:2}"
+                php "${PROJECT_ROOT}"/bin/console "${@:2}"
                 ;;
             app:server:add)
-                php ${MANAGER_DIR}/bin/console "app:server:add"
+                php "${PROJECT_ROOT}"/bin/console "app:server:add" "${@:2}"
+                ;;
+            app:server:update)
+                php "${PROJECT_ROOT}"/bin/console "app:server:update" "${@:2}"
                 ;;
             app:db:process)
-                php ${MANAGER_DIR}/bin/console "app:db:process"
+                php "${PROJECT_ROOT}"/bin/console "app:db:process"
+                ;;
+            app:db:add)
+                php "${PROJECT_ROOT}"/bin/console "app:db:add"
+                ;;
+            app:cron:install)
+                php "${PROJECT_ROOT}"/bin/console "app:cron:install"
+                ;;
+            app:db:analyze)
+                php "${PROJECT_ROOT}"/bin/console "app:db:analyze" "${@:2}"
                 ;;
             *)
                 _help
@@ -139,4 +176,3 @@ else
         esac
     fi
 fi
-

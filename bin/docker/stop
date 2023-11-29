@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ -z "${PROJECT_ROOT}" ]; then
-    export PROJECT_ROOT="$( cd "$(dirname "$0")/../../" >/dev/null 2>&1 ; pwd -P )"
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
 
-"${PROJECT_ROOT}"bin/docker/docker-compose down --remove-orphans
+"${PROJECT_ROOT}"/bin/docker/docker-compose down --remove-orphans

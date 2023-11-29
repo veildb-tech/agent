@@ -285,4 +285,4 @@ fi
 
 _initAlias
 
-${MANAGER_CLI} app:server:add
+${MANAGER_CLI} app:server:add </dev/tty
