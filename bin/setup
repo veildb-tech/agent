@@ -213,7 +213,7 @@ if [ ! -f "${PROJECT_ROOT}.env" ]; then
     # Get path to dumps folder
     APP_DUMP_PATH=""
     while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
-        read -rp " Enter the full the path to folder with dumps (default: "${HOME}/backups/" ): " APP_DUMP_PATH </dev/tty
+        read -rp " Enter the full the path to folder where processed dumps will be placed (default: "${HOME}/backups/" ): " APP_DUMP_PATH </dev/tty
         APP_DUMP_PATH=${APP_DUMP_PATH:="${HOME}/backups/"}
         if [ "${APP_DUMP_PATH::1}" != "/" ]; then
             APP_DUMP_PATH="/${APP_DUMP_PATH}"
@@ -224,9 +224,13 @@ if [ ! -f "${PROJECT_ROOT}.env" ]; then
         fi
     done
 
-    _replace_pattern "APP_DUMP_PATH=''" "APP_DUMP_PATH='${APP_DUMP_PATH}'" ${PROJECT_ROOT}.env
-    _replace_pattern "APP_DOCKER_PATH_DUMP=''" "APP_DOCKER_PATH_DUMP='${APP_DUMP_PATH}dumps'" ${PROJECT_ROOT}.env
-    _replace_pattern "APP_DOCKER_PATH_CONFIG=''" "APP_DOCKER_PATH_CONFIG='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
+    if [ $USE_DOCKER == 1 ]; then
+        _replace_pattern "APP_DOCKER_PATH_DUMP=''" "APP_DOCKER_PATH_DUMP='${APP_DUMP_PATH}dumps'" ${PROJECT_ROOT}.env
+        _replace_pattern "APP_DOCKER_PATH_CONFIG=''" "APP_DOCKER_PATH_CONFIG='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
+    else
+        _replace_pattern "APP_DUMP_PATH=''" "APP_DUMP_PATH='${APP_DUMP_PATH}dumps'" ${PROJECT_ROOT}.env
+        _replace_pattern "APP_CONFIG_PATH=''" "APP_CONFIG_PATH='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
+    fi
 
     # Generate APP secret
     _replace_pattern "APP_SECRET=" "APP_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env

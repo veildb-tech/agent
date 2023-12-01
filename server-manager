@@ -104,7 +104,6 @@ else
                 . "${PROJECT_ROOT}"/bin/docker/stop
                 ;;
             stopall)
-                _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/stopall
                 ;;
             console)
@@ -142,6 +141,10 @@ else
             app:db:analyze)
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:db:analyze" "${@:2}"
+                ;;
+            app:cron:install)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/cron setup
                 ;;
             *)
                 _help

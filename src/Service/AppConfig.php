@@ -56,6 +56,16 @@ class AppConfig
     }
 
     /**
+     * Check is tool based on Docker env
+     *
+     * @return bool
+     */
+    public function isDockerUsed(): bool
+    {
+        return (bool)env('APP_DOCKER_USE', false);
+    }
+
+    /**
      * @param string $dbUuid
      *
      * @return array
