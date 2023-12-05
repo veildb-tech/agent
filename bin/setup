@@ -121,6 +121,13 @@ _checkRequiredLibs() {
         exit 1
     fi
 
+    if [ "$(php -m | grep -c pdo)" != "0" ]; then
+        _output "  [*] PHP Extension php-mysql is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension php-mysql is required for installation" "error"
+        exit 1
+    fi
+
     if command -v zip >/dev/null 2>&1; then
         _output "  [*] Zip is installed" "success"
     else
