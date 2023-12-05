@@ -114,6 +114,13 @@ _checkRequiredLibs() {
         exit 1
     fi
 
+    if [ "$(php -m | grep -c dom)" != "0" ]; then
+        _output "  [*] PHP Extension ext-xml is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension ext-xml is required for installation" "error"
+        exit 1
+    fi
+
     if command -v zip >/dev/null 2>&1; then
         _output "  [*] Zip is installed" "success"
     else
