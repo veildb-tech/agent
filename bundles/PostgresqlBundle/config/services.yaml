@@ -1,0 +1,27 @@
+services:
+  db_manager_core.engines.pgsql:
+    autowire: true
+    public: true
+    class: DbManager\PostgresqlBundle\Processor
+    arguments: []
+
+  db_manager_core.management.engines.pgsql:
+    autowire: true
+    public: true
+    class: DbManager\PostgresqlBundle\DBManagement\Management
+    arguments: []
+
+  DbManager\PostgresqlBundle\Service\Methods\Pgdump:
+    autowire: true
+    tags:
+      - { name: 'app.backup_method' }
+
+  DbManager\PostgresqlBundle\Service\Methods\PgdumpOverSsh:
+    autowire: true
+    tags:
+      - { name: 'app.backup_method' }
+
+  DbManager\PostgresqlBundle\Service\Engine\Postgresql:
+    autowire: true
+    tags:
+      - { name: 'app.engine' }

@@ -28,7 +28,6 @@ abstract class AbstractServerCommand extends AbstractCommand
      */
     public const GET_IP_URL = 'https://ipecho.net/plain';
 
-
     /**
      * @param AppConfig $appConfig
      * @param Server $serverApi

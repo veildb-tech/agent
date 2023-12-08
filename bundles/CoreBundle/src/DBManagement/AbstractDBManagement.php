@@ -85,14 +85,21 @@ abstract class AbstractDBManagement implements DBManagementInterface
     }
 
     /**
-     * Get DB password
+     * Get DB credentials
      *
-     * @return string
+     * @param string $dbName
+     *
+     * @return array
+     * @throws \Exception
      */
-    protected function getPassword(): string
+    protected function getCredentials(string $dbName): array
     {
-        return $this->appConfig->getConfig('work_db_password')
-            ? $this->appConfig->getConfig('work_db_password')
-            : '';
+        return [
+            $this->appConfig->getDbEngineConfig('database_user', static::DRIVER_ENGINE),
+            $this->appConfig->getPassword(static::DRIVER_ENGINE),
+            $this->appConfig->getDbEngineConfig('database_host', static::DRIVER_ENGINE),
+            $this->appConfig->getDbEngineConfig('database_port', static::DRIVER_ENGINE),
+            escapeshellarg($dbName),
+        ];
     }
 }

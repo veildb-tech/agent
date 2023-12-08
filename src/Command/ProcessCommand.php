@@ -6,7 +6,7 @@ namespace App\Command;
 
 use App\Exception\NoSuchMethodException;
 use App\Service\PublicCommand\DatabaseProcessor;
-use DbManager\CoreBundle\Exception\EngineNotSupportedException;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -40,8 +40,10 @@ final class ProcessCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return int
      * @throws \Exception
+     * @throws InvalidArgumentException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

@@ -22,12 +22,12 @@ final class DBManagementFactory
 
     /**
      * @param string|null $engine
+     *
      * @return DBManagementInterface
      * @throws NoSuchEngineException
      */
-    public function create(?string $engine = null): DBManagementInterface
+    public function create(string $engine = null): DBManagementInterface
     {
-        $engine = $engine ?? env('DATABASE_ENGINE');
         return $this->getEngine($engine);
     }
 

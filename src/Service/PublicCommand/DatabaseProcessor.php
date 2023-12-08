@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Service\PublicCommand;
 
+use App\Enum\DumpStatusEnum;
 use App\Enum\LogStatusEnum;
 use App\Exception\LockException;
 use App\Exception\NoSuchMethodException;
 use App\Service\AppLogger;
 use App\Service\LockService;
 use App\ServiceApi\Entity\DatabaseDump;
+use DbManager\CoreBundle\Exception\EngineNotSupportedException;
+use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use DbManager\CoreBundle\Exception\ShellProcessorException;
 use Psr\Cache\InvalidArgumentException;
 use App\Service\DumpManagement;
 use App\Service\PublicCommand\Database\Analyzer;
@@ -24,6 +28,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use DbManager\CoreBundle\DBManagement\DBManagementFactory;
+use Exception;
 
 class DatabaseProcessor extends AbstractCommand
 {
@@ -52,6 +57,7 @@ class DatabaseProcessor extends AbstractCommand
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
@@ -60,48 +66,51 @@ class DatabaseProcessor extends AbstractCommand
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws Exception
      */
     public function execute(InputInterface $input, OutputInterface $output): void
     {
-        if (!$this->lockService->isLocked()) {
-            $this->lockService->lock();
-
-            $this->appLogger->initAppLogger($output);
-            try {
-                $scheduledData = $this->databaseDump->getScheduled();
-            } catch (\Exception $exception) {
-                if ($output->isVerbose()) {
-                    $output->writeln($exception->getMessage());
-                }
-            }
-            if (!empty($scheduledData)) {
-                $dbuuid = $scheduledData['db']['uid'];
-                $dumpuuid = $scheduledData['uuid'];
-                if (empty($dumpuuid) || empty($dbuuid)) {
-                    throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
-                }
-
-                try {
-                    $this->process($dbuuid, $dumpuuid);
-                } catch (\Exception $exception) {
-                    $this->appLogger->logToService(
-                        $dumpuuid,
-                        LogStatusEnum::ERROR->value,
-                        sprintf("Something went wrong during update. Msg: %s", $exception->getMessage())
-                    );
-                    $this->databaseDump->updateByUuid($dumpuuid, 'error');
-                }
-            }
-
-            $this->lockService->unlock();
-        } else {
+        if ($this->lockService->isLocked()) {
             throw new LockException("There is another process running. Aborting...");
         }
+        $this->lockService->lock();
+
+        $this->appLogger->initAppLogger($output);
+        try {
+            $scheduledData = $this->databaseDump->getScheduled();
+        } catch (\Exception $exception) {
+            if ($output->isVerbose()) {
+                $output->writeln($exception->getMessage());
+            }
+        }
+
+        if (!empty($scheduledData)) {
+            $dbUuid = $scheduledData['db']['uid'];
+            $dumpUuid = $scheduledData['uuid'];
+            if (empty($dumpUuid) || empty($dbUuid)) {
+                throw new \Exception("Something went wrong. Scheduled uuid and database uuid is required");
+            }
+
+            try {
+                $this->process($dbUuid, $dumpUuid, $scheduledData);
+            } catch (\Exception $exception) {
+                $this->appLogger->logToService(
+                    $dumpUuid,
+                    LogStatusEnum::ERROR->value,
+                    sprintf("Something went wrong during update. Msg: %s", $exception->getMessage())
+                );
+                $this->databaseDump->updateByUuid($dumpUuid, DumpStatusEnum::ERROR->value, $scheduledData['filename']);
+            }
+        }
+
+        $this->lockService->unlock();
     }
 
     /**
      * @param string $dbuuid
      * @param string $dumpuuid
+     * @param array $scheduledData
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
@@ -110,20 +119,21 @@ class DatabaseProcessor extends AbstractCommand
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws \DbManager\CoreBundle\Exception\EngineNotSupportedException
-     * @throws \DbManager\CoreBundle\Exception\NoSuchEngineException
-     * @throws \DbManager\CoreBundle\Exception\ShellProcessorException
-     * @throws \Doctrine\DBAL\Exception
+     * @throws EngineNotSupportedException
+     * @throws NoSuchEngineException
+     * @throws ShellProcessorException
+     * @throws Exception
      */
-    private function process(string $dbuuid, string $dumpuuid): void
+    private function process(string $dbuuid, string $dumpuuid, array $scheduledData): void
     {
-        $this->databaseDump->updateByUuid($dumpuuid, 'processing');
+        $this->databaseDump->updateByUuid($dumpuuid, DumpStatusEnum::PROCESSING->value, $scheduledData['filename']);
         $this->appLogger->logToService(
             $dumpuuid,
             LogStatusEnum::PROCESSING->value,
             "Preparing backup"
         );
-        $originFile = $this->dumpManagement->createDump($dbuuid);
+
+        $originFile = $this->dumpManagement->createDump($dbuuid, $scheduledData['filename'] ?? '');
         $destinationFile = $this->dumpManagement->getDestinationFilePath($dbuuid);
 
         $tempDatabase = 'temp_' . time();
@@ -138,7 +148,8 @@ class DatabaseProcessor extends AbstractCommand
                 ]
             )
         );
-        $dbManagement = $this->dbManagementFactory->create();
+
+        $dbManagement = $this->dbManagementFactory->create($database->getEngine());
 
         $this->appLogger->logToService(
             $dumpuuid,
@@ -200,6 +211,6 @@ class DatabaseProcessor extends AbstractCommand
             "Completed!"
         );
 
-        $this->databaseDump->updateByUuid($dumpuuid, 'ready', $destinationFile->getFilename());
+        $this->databaseDump->updateByUuid($dumpuuid, DumpStatusEnum::READY->value, $destinationFile->getFilename());
     }
 }

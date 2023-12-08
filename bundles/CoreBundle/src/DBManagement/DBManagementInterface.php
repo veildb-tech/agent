@@ -10,6 +10,11 @@ use DbManager\CoreBundle\Interfaces\DbDataManagerInterface;
 interface DBManagementInterface
 {
     /**
+     * Driver engine
+     */
+    public const DRIVER_ENGINE = '';
+
+    /**
      * Create DB
      *
      * @param DbDataManagerInterface $database

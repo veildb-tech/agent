@@ -8,6 +8,7 @@ use App\Service\PublicCommand\Database\Analyzer;
 use DbManager\CoreBundle\Exception\EngineNotSupportedException;
 use DbManager\CoreBundle\Exception\NoSuchEngineException;
 use Doctrine\DBAL\Exception;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -63,6 +64,7 @@ final class AppDbAnalyzeCommand extends Command
      *
      * @return int
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

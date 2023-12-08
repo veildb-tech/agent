@@ -108,6 +108,7 @@ final class DbProcessorFactory
      */
     private function validate(string $engine): void
     {
+        // TODO: remove validation from enum. Use dynamic validation instead
         if (!DatabaseEngineEnum::tryFrom($engine)) {
             throw new EngineNotSupportedException('The DB engine is not supported...');
         }

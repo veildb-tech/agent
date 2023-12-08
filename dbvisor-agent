@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+
+# -----------------------------------
+# Colors
+GREEN=$'\e[0;32m'
+RED=$'\e[0;31m'
+NC=$'\e[0m'
+# -----------------------------------
+
+# Init main directory
+if [ -z "${PROJECT_ROOT}" ]; then
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")"
+fi
+
+# Help commands
+_help() {
+    if [ ! -f "${PROJECT_ROOT}/.env" ]; then
+        echo "
+Usage:
+    ${GREEN}dbvisor-agent [command]${NC}
+
+Options:
+    ${GREEN}-l|--list${NC}  - list of available commands
+
+Available Commands:
+    ${RED}setup${NC}      - initial setup
+
+Tool:
+    ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:server:update${NC} - Update the server data
+    ${GREEN}app:db:add${NC}        - SCreate DB dump
+    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
+    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
+    ${GREEN}app:cron:install${NC}  - Install required cron jobs
+"
+    else
+        echo "
+Usage:
+    ${GREEN}dbvisor-agent [command]${NC}
+
+Options:
+    ${GREEN}-l|--list${NC}  - list of available commands
+
+Available Commands:
+    ${GREEN}start${NC}      - start environment
+    ${GREEN}stop${NC}       - stop environment
+    ${GREEN}stopall${NC}    - stop all environment
+    ${GREEN}cli${NC}        - allows to run command line command inside of docker environment
+    ${GREEN}composer${NC}   - run composer commands
+    ${GREEN}mysql${NC}      - run mysql command
+    ${GREEN}console${NC}    - run app console commands
+    ${GREEN}cron${NC}       - run con commands
+
+    ${RED}setup${NC}      - initial setup
+
+Tool:
+    ${GREEN}app:server:add${NC}    - Start adding the server to service
+    ${GREEN}app:server:update${NC} - Update the server data
+    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
+    ${GREEN}app:db:add${NC}        - Create DB dump
+    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
+"
+    fi
+}
+
+# Get configurations
+if [ ! -f "${PROJECT_ROOT}/.env" ]; then
+    case "$1" in
+        setup)
+            . "${PROJECT_ROOT}"/bin/setup
+            ;;
+        *)
+            _help
+            ;;
+    esac
+
+    exit 1
+fi
+
+export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
+
+# Check is docker been started
+_checkDocker() {
+    if [[ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}dbvisor-agent-server") ]]; then
+        echo "You must start docker instance before continue."
+
+        exit 1
+    fi
+}
+
+if [[ ${1} == '-l' || ${1} == '--list' ]]; then
+    _help
+    exit 1
+elif [ "${1}" == 'setup' ]; then
+    . "${PROJECT_ROOT}"/bin/setup
+else
+    if [ "${APP_DOCKER_USE}" == "1" ]; then
+        case "$1" in
+            start)
+                . "${PROJECT_ROOT}"/bin/docker/start "${@:2}"
+                ;;
+            stop)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/stop
+                ;;
+            stopall)
+                . "${PROJECT_ROOT}"/bin/docker/stopall
+                ;;
+            console)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "${@:2}"
+                ;;
+            composer)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/composer "${@:2}"
+                ;;
+            cli)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/cli "${@:2}"
+                ;;
+            cron)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/cron "${@:2}"
+                ;;
+            app:server:add)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:server:add" "${@:2}"
+                ;;
+            app:server:update)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:server:update" "${@:2}"
+                ;;
+            app:db:process)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:process"
+                ;;
+            app:db:add)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:add"
+                ;;
+            app:db:analyze)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:analyze" "${@:2}"
+                ;;
+            app:cron:install)
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/cron setup
+                ;;
+            *)
+                _help
+                ;;
+        esac
+    else
+        case "$1" in
+            console)
+                php "${PROJECT_ROOT}"/bin/console "${@:2}"
+                ;;
+            app:server:add)
+                php "${PROJECT_ROOT}"/bin/console "app:server:add" "${@:2}"
+                ;;
+            app:server:update)
+                php "${PROJECT_ROOT}"/bin/console "app:server:update" "${@:2}"
+                ;;
+            app:db:process)
+                php "${PROJECT_ROOT}"/bin/console "app:db:process"
+                ;;
+            app:db:add)
+                php "${PROJECT_ROOT}"/bin/console "app:db:add"
+                ;;
+            app:cron:install)
+                php "${PROJECT_ROOT}"/bin/console "app:cron:install"
+                ;;
+            app:db:analyze)
+                php "${PROJECT_ROOT}"/bin/console "app:db:analyze" "${@:2}"
+                ;;
+            *)
+                _help
+                ;;
+        esac
+    fi
+fi

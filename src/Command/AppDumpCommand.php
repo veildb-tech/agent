@@ -48,6 +48,12 @@ final class AppDumpCommand extends Command
             null,
             InputOption::VALUE_OPTIONAL,
             'Path for backup file'
+        )->addOption(
+            'engine',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Db Engine ( mysql | postgres )',
+            'mysql'
         );
     }
 
@@ -63,7 +69,8 @@ final class AppDumpCommand extends Command
         try {
             $this->dumpProcessor->dump(
                 $input->getOption('db'),
-                $input->getOption('path')
+                $input->getOption('path'),
+                $input->getOption('engine'),
             );
         } catch (ShellProcessorException $e) {
             $this->logger->error($e->getMessage());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbManager\CoreBundle\Service;
 
+use App\Service\AppConfig;
 use DbManager\CoreBundle\DataProcessor\DataProcessorFactoryInterface;
 use DbManager\CoreBundle\DataProcessor\DataProcessorInterface;
 use DbManager\CoreBundle\Interfaces\EngineInterface;
@@ -46,10 +47,13 @@ abstract class AbstractEngineProcessor implements EngineInterface
     protected array $errors = [];
 
     /**
+     * @param AppConfig $appConfig
      * @param DataProcessorFactoryInterface $dataProcessorFactory
      */
-    public function __construct(protected readonly DataProcessorFactoryInterface $dataProcessorFactory)
-    {
+    public function __construct(
+        protected readonly AppConfig $appConfig,
+        protected readonly DataProcessorFactoryInterface $dataProcessorFactory
+    ) {
     }
 
     /**
@@ -77,17 +81,18 @@ abstract class AbstractEngineProcessor implements EngineInterface
      * @param string $dbName
      *
      * @return Connection
+     * @throws Exception
      */
     protected function getDbConnection(string $dbName): Connection
     {
         $capsule = new Manager();
         $capsule->addConnection([
             'driver'    => static::DRIVER_ENGINE,
-            'host'      => env('DATABASE_HOST'),
-            'port'      => env('DATABASE_PORT'),
+            'host'      => $this->appConfig->getDbEngineConfig('database_host', static::DRIVER_ENGINE),
+            'port'      => $this->appConfig->getDbEngineConfig('database_port', static::DRIVER_ENGINE),
             'database'  => $dbName,
-            'username'  => env('DATABASE_USER'),
-            'password'  => env('DATABASE_PASSWD'),
+            'username'  => $this->appConfig->getDbEngineConfig('database_user', static::DRIVER_ENGINE),
+            'password'  => $this->appConfig->getPassword(static::DRIVER_ENGINE),
         ]);
 
         return $capsule->getConnection();

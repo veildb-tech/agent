@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+if [ -z "${PROJECT_ROOT}" ]; then
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
+fi
+
+ENV_FILE=${PROJECT_ROOT}/.env
+
+# Get project configurations
+export $(cat "${ENV_FILE}" | grep -v ^# | grep -v ^alias | xargs)
+
+if [ -z ${APP_DOCKER_PATH_DUMP} ]; then
+    export APP_DOCKER_PATH_DUMP="${PROJECT_ROOT}/backups/dumps"
+fi
+
+if [ -z ${APP_DOCKER_PATH_CONFIG} ]; then
+    export APP_DOCKER_PATH_CONFIG="${PROJECT_ROOT}/backups/config"
+fi
+
+COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml
+
+# Get path to config
+if [ "$(uname)" == "Darwin" ]; then
+  export DOCKER_UID=1000
+  export DOCKER_GID=1000
+else
+  # shellcheck disable=SC2155
+  export DOCKER_UID=$(id -u)
+  # shellcheck disable=SC2155
+  export DOCKER_GID=$(id -g)
+fi
+
+if docker compose version > /dev/null 2>&1; then
+  DOCKER_COMPOSE="docker compose"
+else
+  DOCKER_COMPOSE="docker-compose"
+fi
+
+if [ "$1" == "--no-dev" ]; then
+  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "${@:2}"
+else
+  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "$@"
+fi

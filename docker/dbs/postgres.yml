@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  # -------------- #
+  # -- Database -- #
+  # -------------- #
+  postgres:
+    image: postgres:${POSTGRES_DB_VERSION:-latest}
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-root}
+    ports:
+      - ${DATABASE_PORT:-5432}:5432
+    expose:
+      - ${DATABASE_PORT:-5432}
+    init: true
+    networks:
+      - db-manager-network
+
+networks:
+  db-manager-network:
+    external: true
+    name: db-manager-network

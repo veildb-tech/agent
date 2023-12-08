@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+[ -z "$1" ] && echo "Please specify a Db engine  (ex. mysql | postgres)" && exit
+
+if [ -z "${PROJECT_ROOT}" ]; then
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
+fi
+
+_startContainer() {
+    if [ ! -f ${2} ]; then
+        echo "For working MySql engine the file ${2} is required!";
+        exit;
+    fi
+
+    if docker compose version > /dev/null 2>&1; then
+      DOCKER_COMPOSE="docker compose"
+    else
+      DOCKER_COMPOSE="docker-compose"
+    fi
+
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" build --no-cache
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" up -d --force-recreate
+}
+
+# Get the options
+while [ "$1" != "" ]; do
+    case $1 in
+        mysql )
+            _startContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml" "${PROJECT_ROOT}/.env.mysql"
+            ;;
+        postgres )
+            _startContainer "${PROJECT_ROOT}/docker/dbs/postgres.yml" "${PROJECT_ROOT}/.env.postgres"
+            ;;
+        * )
+            echo "Invalid option: $1"
+            echo "Usage: start-db [-m] [-p]"
+            echo "     mysql start mysql db"
+            echo "     postgres start postgres db"
+            echo "     the command requires an argument"
+            exit
+            ;;
+    esac
+    shift
+done

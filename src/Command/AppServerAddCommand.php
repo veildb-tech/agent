@@ -6,10 +6,12 @@ namespace App\Command;
 
 use App\Service\PublicCommand\Server\Add;
 use Exception;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -19,7 +21,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: 'app:server:add',
-    description: 'Add server',
+    description: 'Start adding the server to service',
 )]
 final class AppServerAddCommand extends Command
 {
@@ -37,6 +39,31 @@ final class AppServerAddCommand extends Command
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function configure(): void
+    {
+        $this->addOption(
+            'current',
+            null,
+            null,
+            'If this option set it command only updates server credentials'
+        );
+        $this->addOption(
+            'email',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Email to authorize'
+        );
+        $this->addOption(
+            'password',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Password to authorize'
+        );
+    }
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      *
@@ -49,6 +76,7 @@ final class AppServerAddCommand extends Command
             $this->serverAdd->execute($input, $output);
         } catch (
             ClientExceptionInterface
+            | InvalidArgumentException
             | RedirectionExceptionInterface
             | ServerExceptionInterface
             | DecodingExceptionInterface

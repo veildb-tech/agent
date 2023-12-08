@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+[ -z "$1" ] && echo "Please specify a Db engine  (ex. --mysql|--postgres)" && exit
+
+if [ -z "${PROJECT_ROOT}" ]; then
+    export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
+fi
+ENV_FILE=${PROJECT_ROOT}/.env
+
+_stopContainer() {
+    if docker compose version > /dev/null 2>&1; then
+        DOCKER_COMPOSE="docker compose"
+    else
+        DOCKER_COMPOSE="docker-compose"
+    fi
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${ENV_FILE}" down --remove-orphans
+}
+
+# Get the options
+while [ "$1" != "" ]; do
+    case $1 in
+        -m | --mysql )
+            _stopContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml"
+            ;;
+        -p | --postgres )
+            _stopContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml"
+            ;;
+        * )
+            echo "Invalid option: $1"
+            echo "Usage: stop-db [-m] [-p]"
+            echo "     -m | --mysql start mysql db"
+            echo "     -p | --postgres start postgres db"
+            echo "     the command requires an argument"
+            exit
+            ;;
+    esac
+    shift
+done

@@ -31,6 +31,7 @@ final class Add extends AbstractServerCommand
             $server     = $this->createServer($inputOutput, $user, $userEmail, $password);
 
             $this->updateEnvFile($server['uuid'], $server['secret_key']);
+            $this->setupCronJobs();
 
             return true;
         } catch (
@@ -42,7 +43,7 @@ final class Add extends AbstractServerCommand
             | InvalidArgumentException
             | RedirectionExceptionInterface $e
         ) {
-            $inputOutput->error("During adding server an error happened: " . $e->getMessage());
+            $inputOutput->error("During adding the server an error happened: " . $e->getMessage());
 
             return false;
         }
@@ -105,5 +106,18 @@ final class Add extends AbstractServerCommand
         $key = array_search($workspaceCode, array_column($user['workspaces'], 'code'));
 
         return "/api/workspaces/" . $user['workspaces'][$key]['code'];
+    }
+
+    /**
+     * Setup Cron Jobs
+     *
+     * @return void
+     * @throws Exception
+     */
+    private function setupCronJobs(): void
+    {
+        if (!$this->appConfig->isDockerUsed()) {
+            $this->shellProcess->run($this->appConfig->getProjectDir() . '/dbvisor-agent app:cron:install');
+        }
     }
 }

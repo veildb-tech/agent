@@ -1,0 +1,15 @@
+{
+    "name": "db-manager/postgresql-bundle",
+    "description": "Porstgresql engine bundle",
+    "type": "symfony-bundle",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "DbManager\\PostgresqlBundle\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+    ]
+}

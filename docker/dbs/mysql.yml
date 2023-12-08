@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  # -------------- #
+  # -- Database -- #
+  # -------------- #
+  mysql:
+    image: mariadb:${MARIA_DB_VERSION:-latest}
+    command: --max_allowed_packet=64M
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD:-root}
+    ports:
+      - ${DATABASE_PORT:-3306}:3306
+    expose:
+      - ${DATABASE_PORT:-3306}
+    init: true
+    networks:
+      - db-manager-network
+
+networks:
+  db-manager-network:
+    external: true
+    name: db-manager-network

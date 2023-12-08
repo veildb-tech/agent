@@ -32,6 +32,7 @@ class Analyzer extends AbstractCommand
      * @param GetDatabaseRules $getDatabaseRules
      * @param DbProcessorFactory $processorFactory
      * @param DBManagementFactory $dbManagementFactory
+     * @param DumpManagement $dumpManagement
      */
     public function __construct(
         private readonly AppConfig $appConfig,
@@ -75,12 +76,14 @@ class Analyzer extends AbstractCommand
      * Process without database
      *
      * @param string $databaseUid
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws InvalidArgumentException
      */
     public function createTempDbAndProcess(string $databaseUid): void
     {
@@ -103,7 +106,8 @@ class Analyzer extends AbstractCommand
                 )
             );
 
-            $dbManagement = $this->dbManagementFactory->create();
+            $dbManagement = $this->dbManagementFactory->create($dbInfo['engine'] ?? '');
+
             $dbManagement->create($dbManager);
             $dbManagement->import($dbManager);
 
@@ -122,6 +126,7 @@ class Analyzer extends AbstractCommand
      *
      * @param string $databaseUid
      * @param string $tempDatabase
+     *
      * @return void
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
@@ -161,7 +166,7 @@ class Analyzer extends AbstractCommand
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws \Exception
+     * @throws \Exception|InvalidArgumentException
      */
     private function getDbInfo(string $databaseUid): array
     {

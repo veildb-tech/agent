@@ -1,0 +1,349 @@
+#!/usr/bin/env bash
+
+export PROJECT_ROOT
+PROJECT_ROOT="$(dirname "$(realpath $0)")/"
+USE_DOCKER=0
+MANAGER_CLI="${PROJECT_ROOT}dbvisor-agent"
+
+_output() {
+    style_start=""
+    style_end=""
+    if [ "${2:-}" != "" ]; then
+    case $2 in
+        "success")
+            style_start="\033[0;32m"
+            style_end="\033[0m"
+            ;;
+        "error")
+            style_start="\033[31;31m"
+            style_end="\033[0m"
+            ;;
+        "info"|"warning")
+            style_start="\033[33m"
+            style_end="\033[39m"
+            ;;
+        "heading")
+            style_start="\033[1;33m"
+            style_end="\033[22;39m"
+            ;;
+        "comment")
+            style_start="\033[2m"
+            style_end="\033[22;39m"
+            ;;
+    esac
+    fi
+
+    builtin echo -e "${style_start}${1}${style_end}"
+}
+
+# Validate is docker installed
+# Install in case required
+_installDocker() {
+    if [ ! -x "$(command -v docker)" ]; then
+        read -r -p "Did Docker get installed! Do you want to proceed? (Y/N) " yn </dev/tty
+        case $yn in
+            [Yy]* )
+                "${PROJECT_ROOT}"bin/docker/install.sh
+                ;;
+            [Nn]* )
+                echo "Installation process stopped...";
+                exit
+                ;;
+        esac
+    fi
+
+    if [ ! -f /.dockerenv  ]; then
+        if [ "${USER}" != 'root' ]; then
+            if command -v sudo; then
+                sudo -E sh -c "usermod -a -G docker ${USER}"
+                sudo -E sh -c "chown root:docker /var/run/docker.sock"
+                sudo -E sh -c "chmod -R 777 /var/run/docker.sock"
+            elif command -v su; then
+                su -c "usermod -aG docker ${USER}"
+                su -c "chown root:docker /var/run/docker.sock"
+                su -c "chmod -R 777 /var/run/docker.sock"
+            else
+                _output "  ERROR: This installer needs the ability to run commands as root. We are unable to find either 'sudo' or 'su' available to make this happen." "error"
+                exit 1
+            fi
+        fi
+
+        if ! docker run --rm hello-world; then
+            _output "  ERROR: Could not get docker to run the hello world container" "error"
+            exit 2
+        fi
+    fi
+}
+
+# Check docker ports
+_checkDockerPorts() {
+    if lsof -i -P -n | grep LISTEN | grep :80
+    then
+        _output "  [ ] ERROR: The port 80 is already used by another service" "error"
+    fi
+
+    if lsof -i -P -n | grep LISTEN | grep :443
+    then
+        _output "  [ ] ERROR: The port 80 is already used by another service" "error"
+    fi
+}
+
+# Check is all required applications are installed
+_checkRequiredLibs() {
+
+    _output " Start checking required applications: " "heading"
+
+    if command -v composer >/dev/null 2>&1; then
+        _output "  [*] Composer is installed" "success"
+    else
+        _output "  [ ] ERROR: Composer is required for installation" "error"
+        exit 1
+    fi
+
+    if command -v php >/dev/null 2>&1; then
+        _output "  [*] PHP is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP is required for installation" "error"
+        exit 1
+    fi
+
+    if [ "$(php -m | grep -c ssh2)" != "0" ]; then
+        _output "  [*] PHP Extension ext-ssh2 is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension ext-ssh2 is required for installation" "error"
+        exit 1
+    fi
+
+    if [ "$(php -m | grep -c dom)" != "0" ]; then
+        _output "  [*] PHP Extension ext-xml is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension ext-xml is required for installation" "error"
+        exit 1
+    fi
+
+    if [ "$(php -m | grep -c pdo)" != "0" ]; then
+        _output "  [*] PHP Extension php-mysql is installed" "success"
+    else
+        _output "  [ ] ERROR: PHP Extension php-mysql is required for installation" "error"
+        exit 1
+    fi
+
+    if command -v zip >/dev/null 2>&1; then
+        _output "  [*] Zip is installed" "success"
+    else
+        _output "  [ ] ERROR: Zip is required for installation" "error"
+        exit 1
+    fi
+
+    if command -v curl >/dev/null 2>&1; then
+        _output "  [*] Curl is installed" "success"
+    else
+        _output "  [ ] ERROR: Curl is required for installation" "error"
+        exit 1
+    fi
+}
+
+# Replace Function
+_replace_pattern () {
+    local FROM=$1
+    local TO=$2
+    local FILE=$3
+
+    if [ "$(uname)" != "Darwin" ]; then
+        sed -i "s|${FROM}|${TO}|g" ${FILE}
+    else
+        LC_ALL=C sed -i '' "s|${FROM}|${TO}|g" ${FILE}
+    fi
+}
+
+# Generate JWT secret key
+_generateJwtKey() {
+    local jwt_secret
+    jwt_secret=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 43)
+
+    echo "$jwt_secret"
+}
+
+# Init global command alias
+_initAlias() {
+    NAME="dbvisor-agent"
+    DEFINITION="${MANAGER_CLI}"
+
+    if [ -f ${HOME}/.bash_aliases ]; then
+        if [ "$(cat < "${HOME}/.bash_aliases" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
+
+            source ${HOME}/.bash_aliases
+            source ${HOME}/.bashrc
+        fi
+    fi
+
+    if [ -f ${HOME}/.zshrc ]; then
+        if [ "$(cat < "${HOME}/.zshrc" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
+
+            source ${HOME}/.zshrc
+        fi
+    fi
+
+    if [ -f ${HOME}/.bashrc ]; then
+        if [ "$(cat < "${HOME}/.bashrc" | grep -c "${NAME}")" == "0" ] ; then
+            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
+
+            source ${HOME}/.bashrc
+        fi
+    fi
+}
+
+# Fix possible issues with directory
+_fixDirectory() {
+    DIRECTORY=${1}
+
+    if [ "${DIRECTORY::1}" != "/" ]; then
+        DIRECTORY="/${DIRECTORY}"
+    fi
+
+    if [ "${DIRECTORY: -1}" != "/" ]; then
+        DIRECTORY="${DIRECTORY}/"
+    fi
+
+    echo "${DIRECTORY}"
+}
+
+_output " Started Project setting " "heading"
+
+# Validate environment.
+read -r -p " Do you want to use a docker? (Y/N) " yn </dev/tty
+case $yn in
+    [Yy]* )
+        USE_DOCKER=1
+        _checkDockerPorts
+        _installDocker
+        ;;
+    [Nn]* )
+        _checkRequiredLibs
+        ;;
+esac
+
+# Init configurations:
+if [ ! -f "${PROJECT_ROOT}.env" ]; then
+    _output " Initializing Base configurations " "heading"
+
+    cp "${PROJECT_ROOT}env-sample" "${PROJECT_ROOT}.env"
+
+    # Get project configurations
+    export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
+
+    _replace_pattern "APP_DOCKER_USE=0" "APP_DOCKER_USE=${USE_DOCKER}" ${PROJECT_ROOT}/.env
+
+    # Get Server URL
+    if [ $USE_DOCKER == 1 ]; then
+        read -rp " Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL </dev/tty
+        _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${APP_DOCKER_SERVER_URL}" ${PROJECT_ROOT}/.env
+    fi
+
+    # Get path to dumps folder
+    APP_DUMP_PATH=""
+    while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
+        read -rp " Enter the full the path to folder where processed dumps will be placed (default: "${HOME}/${APP_NAME}-backups/" ): " APP_DUMP_PATH </dev/tty
+        APP_DUMP_PATH=${APP_DUMP_PATH:="${HOME}/${APP_NAME}-backups/"}
+        APP_DUMP_PATH=$(_fixDirectory "${APP_DUMP_PATH}")
+    done
+
+    if [ $USE_DOCKER == 1 ]; then
+        APP_DOCKER_LOCAL_BACKUPS_PATH=${APP_DOCKER_LOCAL_BACKUPS_PATH:="${HOME}/${APP_NAME}-backups/local_backups/"}
+        read -r -p " Do you have locally placed backups, or do you plan to use manual backups in future? (Y/N) " yn </dev/tty
+        case $yn in
+            [Yy]* )
+                APP_DOCKER_LOCAL_BACKUPS_PATH=""
+                while [[ ${APP_DOCKER_LOCAL_BACKUPS_PATH} == '' || "${APP_DOCKER_LOCAL_BACKUPS_PATH}" =~ "~" ]]; do
+                    read -rp " Enter the full the path to folder with your local dumps (default: "${HOME}/${APP_NAME}-backups/local_backups/" ): " APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
+                    APP_DOCKER_LOCAL_BACKUPS_PATH=${APP_DOCKER_LOCAL_BACKUPS_PATH:="${HOME}/${APP_NAME}-backups/local_backups/"}
+                    APP_DOCKER_LOCAL_BACKUPS_PATH=$(_fixDirectory "${APP_DOCKER_LOCAL_BACKUPS_PATH}")
+                done
+                ;;
+            [Nn]* )
+                ;;
+        esac
+    fi
+
+    if [ $USE_DOCKER == 1 ]; then
+        _replace_pattern "APP_DOCKER_PATH_DUMP=''" "APP_DOCKER_PATH_DUMP='${APP_DUMP_PATH}backups'" ${PROJECT_ROOT}.env
+        _replace_pattern "APP_DOCKER_PATH_CONFIG=''" "APP_DOCKER_PATH_CONFIG='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
+        _replace_pattern "APP_DOCKER_LOCAL_BACKUPS_PATH=''" "APP_DOCKER_LOCAL_BACKUPS_PATH='${APP_DOCKER_LOCAL_BACKUPS_PATH}'" ${PROJECT_ROOT}.env
+    else
+        _replace_pattern "APP_DUMP_PATH=''" "APP_DUMP_PATH='${APP_DUMP_PATH}backups'" ${PROJECT_ROOT}.env
+        _replace_pattern "APP_CONFIG_PATH=''" "APP_CONFIG_PATH='${APP_DUMP_PATH}config'" ${PROJECT_ROOT}.env
+    fi
+
+    # Generate APP secret
+    _replace_pattern "APP_SECRET=" "APP_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
+fi
+
+# Select engines:
+_output " Initializing supported DB engines " "heading"
+
+options=(" MySQL" " Postgres" " Continue")
+select option in "${options[@]}"; do
+    case $REPLY in
+        1)
+            if [ ! -f ${PROJECT_ROOT}.env.mysql ]; then
+                cp ${PROJECT_ROOT}env.mysql-sample ${PROJECT_ROOT}.env.mysql
+            fi
+            echo "MySQL Selected."
+            ;;
+        2)
+            if [ ! -f {PROJECT_ROOT}.env.postgres ]; then
+                cp ${PROJECT_ROOT}env.postgres-sample ${PROJECT_ROOT}.env.postgres
+            fi
+            echo "Postgres Selected."
+            ;;
+        3)
+            break
+            ;;
+        *)
+            echo "Invalid option. Please select a valid option."
+            ;;
+    esac
+done </dev/tty
+
+# Get project configurations
+export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
+
+# Validate and create all folders and sub-folders
+if [ ! -d "${APP_DUMP_PATH}backups" ]; then
+    mkdir -p "${APP_DUMP_PATH}backups" "${APP_DUMP_PATH}backups/processed" "${APP_DUMP_PATH}backups/untouched"
+fi
+
+if [ ! -d "${APP_DUMP_PATH}config" ]; then
+    mkdir -p "${APP_DUMP_PATH}config"
+fi
+
+if [ $USE_DOCKER == 1 ]; then
+    if [ ! -d "${APP_DOCKER_LOCAL_BACKUPS_PATH}" ]; then
+        mkdir -p "${APP_DOCKER_LOCAL_BACKUPS_PATH}"
+    fi
+fi
+
+if [[ ! -z ${APP_DOCKER_SERVER_URL} && -z $(grep ${APP_DOCKER_SERVER_URL} /etc/hosts) ]]; then
+    _output " Your system password has been requested to add an entry to /etc/hosts... " "info"
+    echo "127.0.0.1 ::1 ${APP_DOCKER_SERVER_URL}" | sudo tee -a /etc/hosts
+fi
+
+if [ $USE_DOCKER == 1 ]; then
+    # Start docker with DB's
+    _output " Starting Docker containers " "heading"
+
+    "${PROJECT_ROOT}"bin/docker/start -b
+else
+    if [ -z "$(ls -A "${PROJECT_ROOT}/vendor/" 2>/dev/null)" ]; then
+        composer install --working-dir="${PROJECT_ROOT}" --prefer-dist --no-progress --no-interaction
+    fi
+fi
+
+_initAlias
+
+_output " The dbvisor agent had been installed successfully. " "info"
+if [ -z "${APP_SERVER_UUID}" ]; then
+    _output " To continue please execute the command: ${MANAGER_CLI} app:server:add " "warning"
+fi

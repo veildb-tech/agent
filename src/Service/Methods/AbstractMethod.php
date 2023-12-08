@@ -57,7 +57,8 @@ abstract class AbstractMethod implements MethodInterface
         return true;
     }
 
-    static function validateRequired($value) {
+    static function validateRequired($value)
+    {
         if (empty($value)) {
             throw new \RuntimeException('Value is required.');
         }

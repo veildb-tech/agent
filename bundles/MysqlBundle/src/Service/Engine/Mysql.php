@@ -17,4 +17,12 @@ class Mysql extends AbstractEngine
     {
         return self::ENGINE_CODE;
     }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'MySQL';
+    }
 }

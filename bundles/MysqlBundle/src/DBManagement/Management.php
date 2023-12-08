@@ -12,6 +12,11 @@ use DbManager\CoreBundle\DBManagement\DBManagementInterface;
  */
 final class Management extends AbstractDBManagement implements DBManagementInterface
 {
+    /**
+     * Engine const
+     */
+    public const DRIVER_ENGINE = 'mysql';
+
     protected function getDropLine(string $dbName): string
     {
         $credentials = $this->getCredentials($dbName);
@@ -63,16 +68,5 @@ final class Management extends AbstractDBManagement implements DBManagementInter
                 escapeshellarg($outputPath)
             ]
         );
-    }
-
-    protected function getCredentials(string $dbName): array
-    {
-        return [
-            $this->appConfig->getConfig('work_db_user'),
-            $this->getPassword(),
-            $this->appConfig->getConfig('work_db_host'),
-            $this->appConfig->getConfig('work_db_port'),
-            escapeshellarg($dbName),
-        ];
     }
 }

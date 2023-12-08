@@ -9,12 +9,10 @@ parameters:
     app.service_uuid: '%env(APP_SERVER_UUID)%'
     app.service_url: '%env(APP_SERVICE_URL)%'
     app.dump_path: '%env(APP_DUMP_PATH)%'
-    app.work_db_user: '%env(WORK_DB_USER)%'
-    app.work_db_password: '%env(WORK_DB_PASSWORD)%'
-    app.work_db_host: '%env(WORK_DB_HOST)%'
-    app.work_db_port: '%env(WORK_DB_PORT)%'
     app.secret_key_private: '%env(SECRET_KEY_PRIVATE)%'
+    env(SECRET_KEY_PRIVATE): '/app/config/keys/private'
     app.secret_key_public: '%env(SECRET_KEY_PUBLIC)%'
+    env(SECRET_KEY_PUBLIC): '/app/config/keys/public'
 
 services:
     # default configuration for services in *this* file
@@ -49,12 +47,7 @@ services:
 
     App\Service\AppConfig:
         arguments:
-            $config: {
-                work_db_user: '%app.work_db_user%',
-                work_db_password: '%app.work_db_password%',
-                work_db_host: '%app.work_db_host%',
-                work_db_port: '%app.work_db_port%',
-            }
+            $config: {}
 
     App\Service\Platform\Custom:
         tags:

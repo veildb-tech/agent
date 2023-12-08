@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ -z "$(docker ps -q)" ]; then
+    echo "You have no running container"
+else
+    echo "Stopping all running containers..."
+
+    if [ -z "${PROJECT_ROOT}" ]; then
+        export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
+    fi
+
+    "${PROJECT_ROOT}"/bin/docker/stop
+
+    if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
+        "${PROJECT_ROOT}"/bin/docker/stop-db -m
+    fi
+
+    if [ -f "${PROJECT_ROOT}/.env.postgres" ]; then
+        "${PROJECT_ROOT}"/bin/docker/stop-db -p
+    fi
+
+    if [ "$(docker network ls | grep db-manager-network)" ]; then
+        docker network rm db-manager-network
+    fi
+fi

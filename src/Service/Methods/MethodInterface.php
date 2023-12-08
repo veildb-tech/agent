@@ -51,6 +51,8 @@ interface MethodInterface
     /**
      * Check if connection is OK
      *
+     * @param array $config
+     *
      * @return bool
      */
     public function validate(array $config): bool;

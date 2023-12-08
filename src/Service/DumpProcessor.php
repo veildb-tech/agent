@@ -25,14 +25,15 @@ class DumpProcessor
     /**
      * @param string $tempDatabase
      * @param string $backupPath
+     * @param string $engine
      *
      * @return void
      * @throws ShellProcessorException
      * @throws NoSuchEngineException
      */
-    public function dump(string $tempDatabase, string $backupPath = ''): void
+    public function dump(string $tempDatabase, string $backupPath = '', string $engine = 'mysql'): void
     {
-        $dbManagement = $this->dbManagementFactory->create();
+        $dbManagement = $this->dbManagementFactory->create($engine);
         $dbManagement->dump(
             new DbDataManager([
                 'name' => $tempDatabase,

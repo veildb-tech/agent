@@ -38,7 +38,7 @@ class DumpManagement
      * @param string|null $filename
      *
      * @return File
-     * @throws NoSuchMethodException
+     * @throws Exception
      */
     public function createDump(string $dbUuid, ?string $filename = null): File
     {

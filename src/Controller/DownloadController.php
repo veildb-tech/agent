@@ -15,7 +15,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\DumpManagement;
 use App\Service\Security\Encryption;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class DownloadController extends AbstractController
@@ -36,32 +39,29 @@ class DownloadController extends AbstractController
             $this->validateAccessToken->execute($token);
 
             $decryptedData = $this->encryption->execute($encryptedData);
+            $decryptedData = json_decode($decryptedData, true);
+
+            $file = $this->dumpService->getDumpFileByUuid($decryptedData['dumpuuid']);
+            if ($file === null) {
+                return $this->json(['message' => 'Not found'], 404);
+            }
+            return $this->file($file);
         } catch (EncryptionException | AccessDenyException $exception) {
             return $this->json([
                 'message' => 'Access denied'
             ], 503);
-        } catch (\Exception $exception) {
-            return $this->json([
-                'message' => 'Not found'
-            ], 404);
         } catch (
             InvalidArgumentException
             | DecodingExceptionInterface
-            | TransportExceptionInterface $exception
+            | TransportExceptionInterface
+            | RedirectionExceptionInterface
+            | ClientExceptionInterface
+            | ServerExceptionInterface
+            | \Exception $exception
         ) {
             return $this->json([
                 'message' => 'Error happened'
             ], 404);
-        }
-
-        $decryptedData = json_decode($decryptedData, true);
-        $file = $this->dumpService->getDumpFileByUuid($decryptedData['dumpuuid']);
-        if ($file === null) {
-            return $this->json([
-                'message' => 'Not found'
-            ], 404);
-        } else {
-            return $this->file($file);
         }
     }
 }

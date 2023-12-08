@@ -7,4 +7,5 @@ namespace App\Service\Engine;
 interface EngineInterface
 {
     public function getCode(): string;
+    public function getName(): string;
 }
