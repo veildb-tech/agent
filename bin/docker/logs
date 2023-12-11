@@ -4,4 +4,4 @@ if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
 
-"${PROJECT_ROOT}"/bin/docker/docker-compose logs --tail=100 -f dbvisor_agent --follow
+"${PROJECT_ROOT}"/bin/docker/docker-compose logs --tail=100 -f dbvisor-server --follow

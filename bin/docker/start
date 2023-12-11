@@ -11,11 +11,11 @@ fi
 
 # Start required DBs
 if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
-    "${PROJECT_ROOT}"/bin/docker/start-db mysql
+    "${PROJECT_ROOT}"/bin/docker/start-db --mysql
 fi
 
 if [ -f "${PROJECT_ROOT}/.env.postgres" ]; then
-    "${PROJECT_ROOT}"/bin/docker/start-db postgres
+    "${PROJECT_ROOT}"/bin/docker/start-db --postgres
 fi
 
 # Run cron setup after 5 seconds in background

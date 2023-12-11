@@ -99,7 +99,7 @@ class DatabaseProcessor extends AbstractCommand
                     LogStatusEnum::ERROR->value,
                     sprintf("Something went wrong during update. Msg: %s", $exception->getMessage())
                 );
-                $this->databaseDump->updateByUuid($dumpUuid, DumpStatusEnum::ERROR->value, $scheduledData['filename']);
+                $this->databaseDump->updateByUuid($dumpUuid, DumpStatusEnum::ERROR->value);
             }
         }
 

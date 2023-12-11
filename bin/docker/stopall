@@ -19,7 +19,7 @@ else
         "${PROJECT_ROOT}"/bin/docker/stop-db -p
     fi
 
-    if [ "$(docker network ls | grep db-manager-network)" ]; then
-        docker network rm db-manager-network
+    if [ "$(docker network ls | grep dbvisor-network)" ]; then
+        docker network rm dbvisor-network
     fi
 fi

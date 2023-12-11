@@ -4,8 +4,9 @@ services:
   # -------------- #
   # -- Database -- #
   # -------------- #
-  mysql:
+  dbvisor-mysql:
     image: mariadb:${MARIA_DB_VERSION:-latest}
+    container_name: ${IMAGES_PREFIX:-}dbvisor-mysql
     command: --max_allowed_packet=64M
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD:-root}
@@ -15,9 +16,9 @@ services:
       - ${DATABASE_PORT:-3306}
     init: true
     networks:
-      - db-manager-network
+      - dbvisor-network
 
 networks:
-  db-manager-network:
+  dbvisor-network:
     external: true
-    name: db-manager-network
+    name: dbvisor-network

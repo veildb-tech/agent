@@ -1,12 +1,12 @@
 version: "3.7"
 
 services:
-  dbvisor_agent:
-    container_name: ${IMAGES_PREFIX:-}dbvisor-agent-server
+  dbvisor-server:
+    container_name: ${IMAGES_PREFIX:-}dbvisor-server
     build:
       context: .
       target: frankenphp_prod
-    image: ${IMAGES_PREFIX:-}app-server
+    image: ${IMAGES_PREFIX:-}dbvisor-server
     environment:
       APP_ENV: ${APP_ENV}
       APP_SECRET: ${APP_SECRET}
@@ -26,26 +26,26 @@ services:
     ports:
       # HTTP
       - target: 80
-        published: ${APP_DOCKER_HTTP_PORT:-80}
+        published: ${APP_DOCKER_HTTP_PORT:-8088}
         protocol: tcp
       # HTTPS
       - target: 443
-        published: ${APP_DOCKER_HTTPS_PORT:-443}
+        published: ${APP_DOCKER_HTTPS_PORT:-8443}
         protocol: tcp
       # HTTP/3
       - target: 443
-        published: ${APP_DOCKER_HTTP3_PORT:-443}
+        published: ${APP_DOCKER_HTTP3_PORT:-8443}
         protocol: udp
     extra_hosts:
       - host.docker.internal:host-gateway
     networks:
-      - db-manager-network
+      - dbvisor-network
 
-  dbvisor_agent_cron:
+  dbvisor-cron-server:
     build:
       context: .
       target: frankenphp_cron
-    image: ${IMAGES_PREFIX:-}dbvisor-agent-cron-server
+    image: ${IMAGES_PREFIX:-}dbvisor-cron-server
     environment:
       APP_ENV: ${APP_ENV}
       APP_SECRET: ${APP_SECRET}
@@ -58,19 +58,12 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     networks:
-      - db-manager-network
-
-  adminer:
-    image: adminer
-    ports:
-      - 8080:${HTTP_ADMINER_PORT:-8080}
-    networks:
-      - db-manager-network
+      - dbvisor-network
 
 volumes:
   caddy_data:
   caddy_config:
 
 networks:
-  db-manager-network:
-    name: db-manager-network
+  dbvisor-network:
+    name: dbvisor-network

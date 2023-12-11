@@ -84,7 +84,20 @@ _checkDockerPorts() {
 
     if lsof -i -P -n | grep LISTEN | grep :443
     then
-        _output "  [ ] ERROR: The port 80 is already used by another service" "error"
+        _output "  [ ] ERROR: The port 443 is already used by another service" "error"
+    fi
+}
+
+# Check docker libs for docker
+_checkDockerRequiredLibs() {
+
+    _output " Start checking required applications: " "heading"
+
+    if command -v curl >/dev/null 2>&1; then
+        _output "  [*] Curl is installed" "success"
+    else
+        _output "  [ ] ERROR: Curl is required for installation" "error"
+        exit 1
     fi
 }
 
@@ -143,6 +156,11 @@ _checkRequiredLibs() {
     fi
 }
 
+# Get Client IP
+_getClientIP() {
+    curl -s ifconfig.me
+}
+
 # Replace Function
 _replace_pattern () {
     local FROM=$1
@@ -175,6 +193,8 @@ _initAlias() {
 
             source ${HOME}/.bash_aliases
             source ${HOME}/.bashrc
+
+            exec bash --login
         fi
     fi
 
@@ -183,6 +203,8 @@ _initAlias() {
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
 
             source ${HOME}/.zshrc
+
+            exec zsh --login
         fi
     fi
 
@@ -191,6 +213,8 @@ _initAlias() {
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
 
             source ${HOME}/.bashrc
+
+            exec bash --login
         fi
     fi
 }
@@ -217,6 +241,7 @@ read -r -p " Do you want to use a docker? (Y/N) " yn </dev/tty
 case $yn in
     [Yy]* )
         USE_DOCKER=1
+        _checkDockerRequiredLibs
         _checkDockerPorts
         _installDocker
         ;;
@@ -238,14 +263,23 @@ if [ ! -f "${PROJECT_ROOT}.env" ]; then
 
     # Get Server URL
     if [ $USE_DOCKER == 1 ]; then
-        read -rp " Enter the host name for the current Server ( example.com ): " APP_DOCKER_SERVER_URL </dev/tty
-        _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${APP_DOCKER_SERVER_URL}" ${PROJECT_ROOT}/.env
+        CLIENT_IP=$(_getClientIP)
+        read -rp " Enter the host name for the current Server ( default: ${CLIENT_IP}:${APP_DOCKER_HTTPS_PORT} ): " APP_DOCKER_SERVER_URL </dev/tty
+
+        if [ -z "${APP_DOCKER_SERVER_URL}" ]; then
+            APP_DOCKER_SERVER_URL="${CLIENT_IP}:${APP_DOCKER_HTTPS_PORT}"
+        fi
+        URL_PORT=($(echo "${APP_DOCKER_SERVER_URL}" | tr ":" "\n"))
+
+        _replace_pattern "APP_DOCKER_SERVER_URL=" "APP_DOCKER_SERVER_URL=${URL_PORT[0]:=${CLIENT_IP}}" ${PROJECT_ROOT}/.env
+        _replace_pattern "APP_DOCKER_HTTPS_PORT=8443" "APP_DOCKER_HTTPS_PORT=${URL_PORT[1]:=${APP_DOCKER_HTTPS_PORT}}" ${PROJECT_ROOT}/.env
+        _replace_pattern "APP_DOCKER_HTTP3_PORT=8443" "APP_DOCKER_HTTP3_PORT=${URL_PORT[1]:=${APP_DOCKER_HTTPS_PORT}}" ${PROJECT_ROOT}/.env
     fi
 
     # Get path to dumps folder
     APP_DUMP_PATH=""
     while [[ ${APP_DUMP_PATH} == '' || "${APP_DUMP_PATH}" =~ "~" ]]; do
-        read -rp " Enter the full the path to folder where processed dumps will be placed (default: "${HOME}/${APP_NAME}-backups/" ): " APP_DUMP_PATH </dev/tty
+        read -rp " Enter the full path to folder where processed dumps will be placed (default: "${HOME}/${APP_NAME}-backups/" ): " APP_DUMP_PATH </dev/tty
         APP_DUMP_PATH=${APP_DUMP_PATH:="${HOME}/${APP_NAME}-backups/"}
         APP_DUMP_PATH=$(_fixDirectory "${APP_DUMP_PATH}")
     done
@@ -257,7 +291,7 @@ if [ ! -f "${PROJECT_ROOT}.env" ]; then
             [Yy]* )
                 APP_DOCKER_LOCAL_BACKUPS_PATH=""
                 while [[ ${APP_DOCKER_LOCAL_BACKUPS_PATH} == '' || "${APP_DOCKER_LOCAL_BACKUPS_PATH}" =~ "~" ]]; do
-                    read -rp " Enter the full the path to folder with your local dumps (default: "${HOME}/${APP_NAME}-backups/local_backups/" ): " APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
+                    read -rp " Enter the full path to folder with your local dumps (default: "${HOME}/${APP_NAME}-backups/local_backups/" ): " APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
                     APP_DOCKER_LOCAL_BACKUPS_PATH=${APP_DOCKER_LOCAL_BACKUPS_PATH:="${HOME}/${APP_NAME}-backups/local_backups/"}
                     APP_DOCKER_LOCAL_BACKUPS_PATH=$(_fixDirectory "${APP_DOCKER_LOCAL_BACKUPS_PATH}")
                 done
@@ -283,6 +317,7 @@ fi
 # Select engines:
 _output " Initializing supported DB engines " "heading"
 
+PS3="Choose DB engines which will be used: "
 options=(" MySQL" " Postgres" " Continue")
 select option in "${options[@]}"; do
     case $REPLY in

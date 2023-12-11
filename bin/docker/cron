@@ -8,23 +8,23 @@ fi
 
 if [[ ${1} == "setup" ]]; then
     if [[ ! -z ${APP_SERVER_UUID} ]]; then
-        "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor_agent_cron bin/console app:cron:install
+        "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor-cron-server bin/console app:cron:install
     else
         echo "To setup cron jobs you must fill APP_SERVER_UUID in ${PROJECT_ROOT}/.env."
     fi
 fi
 
 if [[ ${1} == "start" ]]; then
-    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor_agent_cron crond -f
+    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor-cron-server crond -f
 fi
 
 if [[ ${1} == "stop" ]]; then
-    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor_agent_cron pkill crond
+    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor-cron-server pkill crond
 fi
 
 if [[ ${1} == "cli" ]]; then
     # shellcheck disable=SC2199
     [[ -z "${@:2}" ]] && echo "Please specify a cli command!" && exit
 
-    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -w /app dbvisor_agent_cron "${@:2}"
+    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -w /app dbvisor-cron-server "${@:2}"
 fi
