@@ -4,19 +4,22 @@ services:
   # -------------- #
   # -- Database -- #
   # -------------- #
-  postgres:
+  dbvisor-postgres:
     image: postgres:${POSTGRES_DB_VERSION:-latest}
+    container_name: ${IMAGES_PREFIX:-}dbvisor-postgres
     environment:
+      POSTGRES_USER: ${DATABASE_USER:-root}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-root}
+      PGPORT: ${DATABASE_PORT:-5432}
     ports:
-      - ${DATABASE_PORT:-5432}:5432
+      - ${DATABASE_PORT:-5432}:${DATABASE_PORT:-5432}
     expose:
       - ${DATABASE_PORT:-5432}
     init: true
     networks:
-      - db-manager-network
+      - dbvisor-network
 
 networks:
-  db-manager-network:
+  dbvisor-network:
     external: true
-    name: db-manager-network
+    name: dbvisor-network

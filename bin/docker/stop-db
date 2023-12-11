@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-[ -z "$1" ] && echo "Please specify a Db engine  (ex. --mysql|--postgres)" && exit
+[ -z "$1" ] && echo "Please specify a Db engine (ex. --mysql|--postgres)" && exit
 
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
@@ -28,8 +28,8 @@ while [ "$1" != "" ]; do
         * )
             echo "Invalid option: $1"
             echo "Usage: stop-db [-m] [-p]"
-            echo "     -m | --mysql start mysql db"
-            echo "     -p | --postgres start postgres db"
+            echo "     -m | --mysql stop mysql db"
+            echo "     -p | --postgres stop postgres db"
             echo "     the command requires an argument"
             exit
             ;;

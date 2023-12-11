@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DbManager\PostgresqlBundle\Service\Methods;
 
 use App\Service\InputOutput;
-use \Exception;
+use Exception;
 
 class Pgdump extends PgMethod
 {

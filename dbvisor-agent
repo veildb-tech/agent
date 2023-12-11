@@ -3,6 +3,8 @@
 # -----------------------------------
 # Colors
 GREEN=$'\e[0;32m'
+YELLOW=$'\e[1;33m'
+BLUE=$'\e[0;34m'
 RED=$'\e[0;31m'
 NC=$'\e[0m'
 # -----------------------------------
@@ -16,50 +18,75 @@ fi
 _help() {
     if [ ! -f "${PROJECT_ROOT}/.env" ]; then
         echo "
-Usage:
+${YELLOW}Usage:${NC}
     ${GREEN}dbvisor-agent [command]${NC}
 
-Options:
-    ${GREEN}-l|--list${NC}  - list of available commands
+${YELLOW}Options:${NC}
+    ${GREEN}-l | --list${NC}  - list of available commands
 
-Available Commands:
-    ${RED}setup${NC}      - initial setup
-
-Tool:
-    ${GREEN}app:server:add${NC}    - Start adding the server to service
-    ${GREEN}app:server:update${NC} - Update the server data
-    ${GREEN}app:db:add${NC}        - SCreate DB dump
-    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
-    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
-    ${GREEN}app:cron:install${NC}  - Install required cron jobs
+${YELLOW}Available Commands:${NC}
+    ${RED}setup${NC}          - initial setup
 "
     else
         echo "
-Usage:
+${YELLOW}Usage:${NC}
     ${GREEN}dbvisor-agent [command]${NC}
 
-Options:
-    ${GREEN}-l|--list${NC}  - list of available commands
+${YELLOW}Options:${NC}
+    ${GREEN}-l | --list${NC}  - list of available commands
 
-Available Commands:
-    ${GREEN}start${NC}      - start environment
-    ${GREEN}stop${NC}       - stop environment
-    ${GREEN}stopall${NC}    - stop all environment
-    ${GREEN}cli${NC}        - allows to run command line command inside of docker environment
-    ${GREEN}composer${NC}   - run composer commands
-    ${GREEN}mysql${NC}      - run mysql command
+${YELLOW}Available Commands:${NC}
+    ${GREEN}start${NC}      - start environment ( Docker only )
+    ${GREEN}stop${NC}       - stop environment ( Docker only )
+    ${GREEN}stopall${NC}    - stop all environment ( Docker only )
+    ${GREEN}cli${NC}        - allows to run command line command inside of docker environment ( Docker only )
+    ${GREEN}composer${NC}   - run composer commands ( Docker only )
+    ${GREEN}mysql${NC}      - run mysql command ( Docker only )
     ${GREEN}console${NC}    - run app console commands
-    ${GREEN}cron${NC}       - run con commands
+    ${GREEN}cron${NC}       - run con commands ( Docker only )
+    ${GREEN}info${NC}       - basic information about tool
 
-    ${RED}setup${NC}      - initial setup
+    ${RED}setup${NC}        - initial setup
 
-Tool:
-    ${GREEN}app:server:add${NC}    - Start adding the server to service
-    ${GREEN}app:server:update${NC} - Update the server data
-    ${GREEN}app:db:process${NC}    - Start processing database by database id and temporary database name
-    ${GREEN}app:db:add${NC}        - Create DB dump
-    ${GREEN}app:db:analyze${NC}    - Start analyzing db structure
+${YELLOW}Tool:${NC}
+    ${GREEN}app:server:add${NC}         - Start adding the server to service
+                            ${BLUE}--email[=EMAIL]${NC} Email to authorize
+                            ${BLUE}--password[=PASSWORD]${NC} Password to authorize
+                            ${BLUE}--current${NC} If this option set it command only updates server credentials
+    ${GREEN}app:server:update${NC}      - Update the server data
+                            ${BLUE}--email[=EMAIL]${NC} Email to authorize
+                            ${BLUE}--password[=PASSWORD]${NC} Password to authorize
+                            ${BLUE}--current${NC} If this option set it command only updates server credentials
+    ${GREEN}app:db:process${NC}         - Start processing scheduled database
+    ${GREEN}app:db:analyze${NC}         - Start analyzing db structure
+                            ${RED}-u | --uid[=UID]${NC} Database UUID from the service
+                            ${BLUE}--db[=DB]${NC} Database Name
+    ${GREEN}app:db:add${NC}             - Create DB dump
+                            ${RED}--db[=DB]${NC} Database Name
+                            ${BLUE}--path[=PATH]${NC} Full path to backup file
+                            ${BLUE}--engine[=ENGINE]${NC} Db Engine ( mysql | postgres ). Default: mysql
+    ${GREEN}app:db:backups:clear${NC}   - Start cleaning old DB backups
+    ${GREEN}app:cron:install${NC}       - Generates and installs crontab for current user
 "
+    fi
+}
+
+# Tool information
+_info() {
+    echo "
+    Tool is installed in dir:   ${GREEN}${PROJECT_ROOT}${NC}
+    Main config file is:        ${GREEN}${PROJECT_ROOT}/.env${NC}"
+
+    if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
+        echo "
+    MySQL config file is:       ${GREEN}${PROJECT_ROOT}/.env.mysql${NC}
+    "
+    fi
+
+    if [ -f "${PROJECT_ROOT}/.env.postgress" ]; then
+        echo "
+    Postgress config file is:   ${GREEN}${PROJECT_ROOT}/.env.postgress${NC}
+    "
     fi
 }
 
@@ -81,7 +108,7 @@ export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # Check is docker been started
 _checkDocker() {
-    if [[ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}dbvisor-agent-server") ]]; then
+    if [[ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}dbvisor-server") ]]; then
         echo "You must start docker instance before continue."
 
         exit 1
@@ -102,6 +129,12 @@ else
             stop)
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/stop
+                ;;
+            start-db)
+                . "${PROJECT_ROOT}"/bin/docker/start-db "${@:2}"
+                ;;
+            stop-db)
+                . "${PROJECT_ROOT}"/bin/docker/stop-db "${@:2}"
                 ;;
             stopall)
                 . "${PROJECT_ROOT}"/bin/docker/stopall
@@ -136,7 +169,7 @@ else
                 ;;
             app:db:add)
                 _checkDocker
-                . "${PROJECT_ROOT}"/bin/docker/console "app:db:add"
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:add" "${@:2}"
                 ;;
             app:db:analyze)
                 _checkDocker
@@ -145,6 +178,9 @@ else
             app:cron:install)
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/cron setup
+                ;;
+            info)
+                _info
                 ;;
             *)
                 _help
@@ -165,13 +201,16 @@ else
                 php "${PROJECT_ROOT}"/bin/console "app:db:process"
                 ;;
             app:db:add)
-                php "${PROJECT_ROOT}"/bin/console "app:db:add"
+                php "${PROJECT_ROOT}"/bin/console "app:db:add" "${@:2}"
                 ;;
             app:cron:install)
                 php "${PROJECT_ROOT}"/bin/console "app:cron:install"
                 ;;
             app:db:analyze)
                 php "${PROJECT_ROOT}"/bin/console "app:db:analyze" "${@:2}"
+                ;;
+            info)
+                _info
                 ;;
             *)
                 _help

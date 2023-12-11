@@ -218,9 +218,6 @@ class AddDatabase extends AbstractCommand
         );
 
         $methodConfig = $methods[$this->config['method']]->askConfig($this->getInputOutput());
-        if ($this->appConfig->isDockerUsed()) {
-            $methodConfig['dump_name'] = AppConfig::LOCAL_BACKUPS_FOLDER . ltrim($methodConfig['dump_name'], '/');
-        }
         $this->config = array_merge($methodConfig, $this->config);
     }
 

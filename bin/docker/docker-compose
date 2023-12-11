@@ -17,8 +17,6 @@ if [ -z ${APP_DOCKER_PATH_CONFIG} ]; then
     export APP_DOCKER_PATH_CONFIG="${PROJECT_ROOT}/backups/config"
 fi
 
-COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml
-
 # Get path to config
 if [ "$(uname)" == "Darwin" ]; then
   export DOCKER_UID=1000
@@ -36,8 +34,9 @@ else
   DOCKER_COMPOSE="docker-compose"
 fi
 
-if [ "$1" == "--no-dev" ]; then
-  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "${@:2}"
+COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml
+if [ "${APP_ENV}" == "dev" ]; then
+    ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" -f "${PROJECT_ROOT}/docker/docker-compose.dev.yml" --env-file "${ENV_FILE}" "$@"
 else
-  ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "$@"
+    ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "$@"
 fi

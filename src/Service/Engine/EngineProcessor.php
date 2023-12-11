@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Engine;
 
-use \Exception;
+use Exception;
 
 readonly class EngineProcessor
 {

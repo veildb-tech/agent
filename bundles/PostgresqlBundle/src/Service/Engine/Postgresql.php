@@ -8,7 +8,10 @@ use App\Service\Engine\AbstractEngine;
 
 class Postgresql extends AbstractEngine
 {
-    const ENGINE_CODE = 'pgsql';
+    /**
+     * Engine const
+     */
+    public const ENGINE_CODE = 'pgsql';
 
     /**
      * @return string

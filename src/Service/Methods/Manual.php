@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Methods;
 
 use App\Exception\DumpNotFoundException;
+use App\Service\AppConfig;
 use App\Service\InputOutput;
 
 class Manual extends AbstractMethod
@@ -56,18 +57,26 @@ class Manual extends AbstractMethod
     public function askConfig(InputOutput $inputOutput): array
     {
         if ($this->appConfig->isDockerUsed()) {
+            $dumpName = $inputOutput->ask(
+                sprintf(
+                    "Enter path to DB dump file started from %s/?",
+                    rtrim($this->appConfig->getLocalBackupsDir(), '/')
+                ),
+                null,
+                self::validateRequired(...)
+            );
+
             return [
-                'dump_name' => $inputOutput->ask(
-                    sprintf(
-                        "Enter path to DB dump file started from %s/?",
-                        rtrim($this->appConfig->getLocalBackupsDir(), '/')
-                    )
-                )
+                'dump_name' => AppConfig::LOCAL_BACKUPS_FOLDER . ltrim($dumpName, '/')
             ];
         }
 
         return [
-            'dump_name' => $inputOutput->ask('Enter full path to DB dump file?')
+            'dump_name' => $inputOutput->ask(
+                'Enter full path to DB dump file?',
+                null,
+                self::validateRequired(...)
+            )
         ];
     }
 

@@ -7,6 +7,7 @@ namespace DbManager\MysqlBundle;
 use DbManager\CoreBundle\Interfaces\DbDataManagerInterface;
 use DbManager\CoreBundle\Interfaces\EngineInterface;
 use DbManager\CoreBundle\Service\AbstractEngineProcessor;
+use DbManager\MysqlBundle\Service\Engine\Mysql;
 use Exception;
 
 /**
@@ -17,7 +18,7 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
     /**
      * Engine const
      */
-    public const DRIVER_ENGINE = 'mysql';
+    public const DRIVER_ENGINE = Mysql::ENGINE_CODE;
 
     /**
      * @inheritdoc

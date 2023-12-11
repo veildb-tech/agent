@@ -6,6 +6,7 @@ namespace DbManager\MysqlBundle\DBManagement;
 
 use DbManager\CoreBundle\DBManagement\AbstractDBManagement;
 use DbManager\CoreBundle\DBManagement\DBManagementInterface;
+use DbManager\MysqlBundle\Service\Engine\Mysql;
 
 /**
  * Mysql Dump Processor instance
@@ -15,7 +16,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
     /**
      * Engine const
      */
-    public const DRIVER_ENGINE = 'mysql';
+    public const DRIVER_ENGINE = Mysql::ENGINE_CODE;
 
     protected function getDropLine(string $dbName): string
     {

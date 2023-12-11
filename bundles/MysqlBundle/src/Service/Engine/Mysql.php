@@ -8,7 +8,7 @@ use App\Service\Engine\AbstractEngine;
 
 class Mysql extends AbstractEngine
 {
-    const ENGINE_CODE = 'mysql';
+    public const ENGINE_CODE = 'mysql';
 
     /**
      * @return string

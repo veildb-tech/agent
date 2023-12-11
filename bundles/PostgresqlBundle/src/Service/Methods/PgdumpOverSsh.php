@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DbManager\PostgresqlBundle\Service\Methods;
 
 use App\Service\InputOutput;
-use \Exception;
+use Exception;
 
 /**
  * TODO: maybe better to use ssh2_shell to connect by SSH instead of Process

@@ -7,6 +7,7 @@ namespace DbManager\PostgresqlBundle;
 use DbManager\CoreBundle\Interfaces\DbDataManagerInterface;
 use DbManager\CoreBundle\Interfaces\EngineInterface;
 use DbManager\CoreBundle\Service\AbstractEngineProcessor;
+use DbManager\PostgresqlBundle\Service\Engine\Postgresql as PostgresqlEngine;
 use Exception;
 
 /**
@@ -17,7 +18,7 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
     /**
      * Engine const
      */
-    public const DRIVER_ENGINE = 'pgsql';
+    public const DRIVER_ENGINE = PostgresqlEngine::ENGINE_CODE;
 
     /**
      * @inheritdoc

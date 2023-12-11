@@ -61,6 +61,16 @@ class AppConfig
     }
 
     /**
+     * Get Docker Server URL
+     *
+     * @return string
+     */
+    public function getDockerServerUrl(): string
+    {
+        return env('APP_DOCKER_SERVER_URL', '');
+    }
+
+    /**
      * Check is tool based on Docker env
      *
      * @return bool
