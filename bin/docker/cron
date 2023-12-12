@@ -6,6 +6,11 @@ if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
 
+ENV_FILE=${PROJECT_ROOT}/.env
+
+# Get project configurations
+export $(cat "${ENV_FILE}" | grep -v ^# | grep -v ^alias | xargs)
+
 if [[ ${1} == "setup" ]]; then
     if [[ ! -z ${APP_SERVER_UUID} ]]; then
         "${PROJECT_ROOT}"/bin/docker/docker-compose exec -T -w /app dbvisor-cron-server bin/console app:cron:install
