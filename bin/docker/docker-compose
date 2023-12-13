@@ -35,8 +35,8 @@ else
 fi
 
 COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml
-if [ "${APP_ENV}" == "dev" ]; then
-    ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" -f "${PROJECT_ROOT}/docker/docker-compose.dev.yml" --env-file "${ENV_FILE}" "$@"
-else
+# if [ "${APP_ENV}" == "dev" ]; then
+#    ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" -f "${PROJECT_ROOT}/docker/docker-compose.dev.yml" --env-file "${ENV_FILE}" "$@"
+# else
     ${DOCKER_COMPOSE} -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" "$@"
-fi
+# fi
