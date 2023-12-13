@@ -7,3 +7,7 @@ if [ -z "${PROJECT_ROOT}" ]; then
 fi
 
 "${PROJECT_ROOT}"/bin/docker/cli bin/console "$@"
+
+for value in "${@}"; do
+    [ "${value}" == 'app:server:ad' ] && ( sleep 5; "${PROJECT_ROOT}"/bin/docker/cron setup > /dev/null 2>&1 ) &
+done

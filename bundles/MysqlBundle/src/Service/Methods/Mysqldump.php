@@ -77,10 +77,10 @@ class Mysqldump extends \App\Service\Methods\AbstractMethod
         $config = [];
 
         $config['db_host'] = $inputOutput->ask('Host', 'localhost', self::validateRequired(...));
-        $config['db_user'] = $inputOutput->ask('User:', 'root', self::validateRequired(...));
+        $config['db_user'] = $inputOutput->ask('User', 'root', self::validateRequired(...));
         $config['db_password'] = $inputOutput->askHidden('Password');
-        $config['db_name'] = $inputOutput->ask('Database name:', null, self::validateRequired(...));
-        $config['db_port'] = $inputOutput->ask('Port: ', '3306', self::validateRequired(...));
+        $config['db_name'] = $inputOutput->ask('Database name', null, self::validateRequired(...));
+        $config['db_port'] = $inputOutput->ask('Port ', '3306', self::validateRequired(...));
 
         return $config;
     }

@@ -5,6 +5,6 @@ services:
     image: adminer
     container_name: ${IMAGES_PREFIX:-}dbvisor-adminer
     ports:
-      - 8080:${APP_DOCKER_ADMINER_PORT:-8080}
+      - 8080:${APP_DOCKER_ADMINER_PORT:-8098}
     networks:
       - dbvisor-network
