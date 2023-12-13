@@ -9,8 +9,6 @@ else
         export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
     fi
 
-    "${PROJECT_ROOT}"/bin/docker/stop
-
     if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
         "${PROJECT_ROOT}"/bin/docker/stop-db -m
     fi
@@ -18,6 +16,8 @@ else
     if [ -f "${PROJECT_ROOT}/.env.pgsql" ]; then
         "${PROJECT_ROOT}"/bin/docker/stop-db -p
     fi
+
+    "${PROJECT_ROOT}"/bin/docker/stop
 
     if [ "$(docker network ls | grep dbvisor-network)" ]; then
         docker network rm dbvisor-network

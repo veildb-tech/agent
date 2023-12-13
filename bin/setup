@@ -40,16 +40,13 @@ _output() {
 # Install in case required
 _installDocker() {
     if [ ! -x "$(command -v docker)" ]; then
-        read -r -p "Did Docker get installed! Do you want to proceed? (Y/N) " yn </dev/tty
-        case $yn in
-            [Yy]* )
-                "${PROJECT_ROOT}"bin/docker/install.sh
-                ;;
-            [Nn]* )
-                echo "Installation process stopped...";
-                exit
-                ;;
-        esac
+        read -r -p "Did Docker get installed! Do you want to proceed? (Y/n) " yn </dev/tty
+        if [[ $yn =~ ^[Nn]$ ]]; then
+            echo "Installation process stopped...";
+            exit
+        else
+            "${PROJECT_ROOT}"bin/docker/install.sh
+        fi
     fi
 
     if [ ! -f /.dockerenv  ]; then
