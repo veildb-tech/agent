@@ -20,6 +20,7 @@ RUN apk add --no-cache \
     openssl \
     libssh2-dev \
     mariadb-client \
+    mariadb-connector-c \
     postgresql-client
 
 RUN set -eux; \

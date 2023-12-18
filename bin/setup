@@ -184,7 +184,7 @@ _initAlias() {
     NAME="dbvisor-agent"
     DEFINITION="${MANAGER_CLI}"
 
-    if [ -f ${HOME}/.bash_aliases ]; then
+    if [[ -f ${HOME}/.bash_aliases && $(which bash) != "" ]]; then
         if [ "$(cat < "${HOME}/.bash_aliases" | grep -c "${NAME}")" == "0" ] ; then
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
 
@@ -195,7 +195,7 @@ _initAlias() {
         fi
     fi
 
-    if [ -f ${HOME}/.zshrc ]; then
+    if [[ -f ${HOME}/.zshrc && $(which zsh) != "" ]]; then
         if [ "$(cat < "${HOME}/.zshrc" | grep -c "${NAME}")" == "0" ] ; then
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
 
@@ -205,7 +205,7 @@ _initAlias() {
         fi
     fi
 
-    if [ -f ${HOME}/.bashrc ]; then
+    if [[ -f ${HOME}/.bashrc && $(which bash) != "" ]]; then
         if [ "$(cat < "${HOME}/.bashrc" | grep -c "${NAME}")" == "0" ] ; then
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
 
