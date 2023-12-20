@@ -88,6 +88,7 @@ class AddDatabase extends AbstractCommand
      */
     protected function addDatabase(): void
     {
+        $this->config = [];
         $inputOutput = $this->getInputOutput();
 
         if (!$inputOutput->confirm("Would you like to add new database?")) {
