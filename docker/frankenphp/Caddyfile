@@ -5,7 +5,6 @@
         {$FRANKENPHP_CONFIG}
     }
 
-    order vulcain after reverse_proxy
     order php_server before file_server
 }
 
@@ -15,7 +14,7 @@
     root * /app/public
     encode zstd gzip
 
-    vulcain
+    {$CADDY_SERVER_EXTRA_DIRECTIVES}
 
     # Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
     header ?Permissions-Policy "browsing-topics=()"
