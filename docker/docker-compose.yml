@@ -14,6 +14,7 @@ services:
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ^${APP_DOCKER_SERVER_URL:-example\.com|localhost}|php$$
       PHP_VERSION: 8.2
+      CADDY_GLOBAL_OPTIONS: ${CADDY_DEBUG:-}
     volumes:
       - ${PROJECT_ROOT}:/app:delegated
       - ${APP_DOCKER_PATH_DUMP}:/app/backups/backups:delegated
