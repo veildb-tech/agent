@@ -53,6 +53,16 @@ You can enable a new DB engine in two cases:
 In case you use Docker need to:
 - execute command: `make start-db <engine>` ( ex.: `make start-db mysql`)
 
+## Setup connecting to local DB
+### MySQL
+By default, the tool uses the network with the next Subnet: 172.27.0.0/16. It can be changed by using the variable: DBVISOR_SUBNET
+You must do the next steps:
+1. open the file: /etc/mysql/mysql.conf.d/mysqld.cnf
+   - add to parameter: bind-address - 172.27.0.1 via semicolon ( in case you left default Subnet value )
+2. add access to your user with mysql commands:
+   - CREATE USER '< User >'@'172.27.0.0/16' IDENTIFIED BY '< Password >';
+   - FLUSH PRIVILEGES;
+
 ### Libraries:
 - Mongodb: https://github.com/jenssegers/laravel-mongodb/tree/master
 - Oracle: https://github.com/yajra/laravel-oci8

@@ -68,3 +68,8 @@ volumes:
 networks:
   dbvisor-network:
     name: dbvisor-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "${DBVISOR_SUBNET:-172.27.0.0/16}"
