@@ -162,7 +162,7 @@ class AppConfig
         $this->filesystem->mkdir($databaseConfigDirectory);
 
         foreach ($databaseConfig as $key => $value) {
-            $this->filesystem->appendToFile($databaseConfigFile, sprintf("%s=%s\n", strtoupper($key), $value));
+            $this->filesystem->appendToFile($databaseConfigFile, sprintf("%s='%s'\n", strtoupper($key), $value));
         }
     }
 
