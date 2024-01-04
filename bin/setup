@@ -45,7 +45,7 @@ _installDocker() {
             echo "Installation process stopped...";
             exit
         else
-            "${PROJECT_ROOT}"bin/docker/install.sh
+            "${PROJECT_ROOT}"bin/docker/install_docker.sh
         fi
     fi
 
@@ -87,7 +87,6 @@ _checkDockerPorts() {
 
 # Check docker libs for docker
 _checkDockerRequiredLibs() {
-
     _output " Start checking required applications: " "heading"
 
     if command -v curl >/dev/null 2>&1; then
@@ -100,7 +99,6 @@ _checkDockerRequiredLibs() {
 
 # Check is all required applications are installed
 _checkRequiredLibs() {
-
     _output " Start checking required applications: " "heading"
 
     if command -v composer >/dev/null 2>&1; then
@@ -238,6 +236,7 @@ read -r -p " Do you want to use a docker? (Y/n) " yn </dev/tty
 if [[ $yn =~ ^[Nn]$ ]]; then
     USE_DOCKER=0
     _checkRequiredLibs
+    "${PROJECT_ROOT}"bin/docker/install_tools.sh
 else
     USE_DOCKER=1
     _checkDockerRequiredLibs

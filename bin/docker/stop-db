@@ -5,25 +5,29 @@
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
-ENV_FILE=${PROJECT_ROOT}/.env
 
 _stopContainer() {
+    if [ ! -f ${2} ]; then
+        echo "For working DB engine the file ${2} is required!";
+        exit;
+    fi
+
     if docker compose version > /dev/null 2>&1; then
         DOCKER_COMPOSE="docker compose"
     else
         DOCKER_COMPOSE="docker-compose"
     fi
-    ${DOCKER_COMPOSE} -f "${1}" --env-file "${ENV_FILE}" down --remove-orphans
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" --env-file "${PROJECT_ROOT}/.env" down
 }
 
 # Get the options
 while [ "$1" != "" ]; do
     case $1 in
         -m | --mysql )
-            _stopContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml"
+            _stopContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml" "${PROJECT_ROOT}/.env.mysql"
             ;;
         -p | --postgres )
-            _stopContainer "${PROJECT_ROOT}/docker/dbs/postgres.yml"
+            _stopContainer "${PROJECT_ROOT}/docker/dbs/postgres.yml" "${PROJECT_ROOT}/.env.pgsql"
             ;;
         * )
             echo "Invalid option: $1"

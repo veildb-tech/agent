@@ -81,6 +81,19 @@ class AppConfig
     }
 
     /**
+     * Get Docker Network Gateway
+     *
+     * @return string
+     */
+    public function getDockerGateway(): string
+    {
+        $subnet = env('DBVISOR_SUBNET', '172.27.0.0/16');
+        [$ip, $mask] = explode('/', $subnet);
+
+        return long2ip((ip2long($ip) & ((pow(2, $mask) - 1) << (32 - $mask))) + 1);
+    }
+
+    /**
      * @param string $dbUuid
      *
      * @return array

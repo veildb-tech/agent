@@ -54,16 +54,25 @@ In case you use Docker need to:
 - execute command: `make start-db <engine>` ( ex.: `make start-db mysql`)
 
 ## Setup connecting to local DB
+By default, the tool uses the network with the next Subnet: 172.27.0.0/16.
+It can be changed by using the variable: DBVISOR_SUBNET
+
 ### MySQL
-By default, the tool uses the network with the next Subnet: 172.27.0.0/16. It can be changed by using the variable: DBVISOR_SUBNET
-You must do the next steps:
 1. open the file: /etc/mysql/mysql.conf.d/mysqld.cnf
    - add to parameter: bind-address - 172.27.0.1 via semicolon ( in case you left default Subnet value )
 2. add access to your user with mysql commands:
    - CREATE USER '< User >'@'172.27.0.0/16' IDENTIFIED BY '< Password >';
+   - GRANT ALL PRIVILEGES ON *.* TO '< User >'@'172.27.0.0/16' WITH GRANT OPTION;
    - FLUSH PRIVILEGES;
 
 ### Postgres
+1. open the file: /etc/postgresql/<your_postgres_version>/main/postgresql.conf
+   - add to listen_addresses = '172.27.0.1' via semicolon ( in case you left default Subnet value )
+2. in file: /etc/postgresql/<your_postgres_version>/main/pg_hba.conf
+   - add a new entry: `host all all 172.27.0.0/16 md5`
+3. restart PostgreSQL
+
+There 172.27.0.0/16 could be replaced by your custom network.
 
 ### Libraries:
 - Mongodb: https://github.com/jenssegers/laravel-mongodb/tree/master

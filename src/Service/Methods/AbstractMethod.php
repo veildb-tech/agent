@@ -9,7 +9,6 @@ use App\Service\ShellProcess;
 
 abstract class AbstractMethod implements MethodInterface
 {
-
     /**
      * @param AppConfig $appConfig
      * @param ShellProcess $shellProcess
@@ -50,11 +49,27 @@ abstract class AbstractMethod implements MethodInterface
      * For now support everything
      *
      * @param string $engine
+     *
      * @return bool
      */
     public function support(string $engine): bool
     {
         return true;
+    }
+
+    /**
+     * Get host for connection to DB engine
+     *
+     * @param array $connConfig
+     *
+     * @return string
+     */
+    public function getConnectionHost(array $connConfig): string
+    {
+        if ($this->appConfig->isDockerUsed() && $connConfig['db_host'] === 'localhost') {
+            return $this->appConfig->getDockerGateway();
+        }
+        return $connConfig['db_host'];
     }
 
     static function validateRequired($value)

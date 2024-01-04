@@ -5,6 +5,7 @@
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
+ENV_FILE=${PROJECT_ROOT}/.env
 
 _startContainer() {
     if [ ! -f ${2} ]; then
@@ -18,8 +19,9 @@ _startContainer() {
       DOCKER_COMPOSE="docker-compose"
     fi
 
-    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" build --no-cache
-    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" up -d --force-recreate
+    export COMPOSE_IGNORE_ORPHANS=True
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" --env-file "${ENV_FILE}" build --no-cache
+    ${DOCKER_COMPOSE} -f "${1}" --env-file "${2}" --env-file "${ENV_FILE}" up -d --force-recreate
 }
 
 # Get the options

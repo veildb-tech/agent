@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace DbManager\MysqlBundle\Service\Methods;
 
 use App\Service\InputOutput;
+use App\Service\Methods\AbstractMethod;
 use DbManager\MysqlBundle\Service\Engine\Mysql as MysqlEngine;
-use \Exception;
+use Exception;
 
-class Mysqldump extends \App\Service\Methods\AbstractMethod
+class Mysqldump extends AbstractMethod
 {
     /**
      * @param array $dbConfig
      * @param string $dbUuid
      * @param string|null $filename
+     *
      * @return string
      * @throws Exception
      */
@@ -25,7 +27,7 @@ class Mysqldump extends \App\Service\Methods\AbstractMethod
             "mysqldump -u %s %s -h%s -P%s %s > %s",
             $dbConfig['db_user'],
             $dbPassword,
-            $dbConfig['db_host'],
+            $this->getConnectionHost($dbConfig),
             $dbConfig['db_port'],
             $dbConfig['db_name'],
             $destFile
@@ -36,6 +38,7 @@ class Mysqldump extends \App\Service\Methods\AbstractMethod
 
     /**
      * @param array $config
+     *
      * @return bool
      * @throws Exception
      */
@@ -46,7 +49,7 @@ class Mysqldump extends \App\Service\Methods\AbstractMethod
             "mysql -u %s %s -h%s -P%s %s -e 'SELECT 1'",
             $config['db_user'],
             $dbPassword,
-            $config['db_host'],
+            $this->getConnectionHost($config),
             $config['db_port'],
             $config['db_name'],
         ));

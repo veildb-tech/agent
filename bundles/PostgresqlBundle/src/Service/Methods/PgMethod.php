@@ -28,10 +28,10 @@ abstract class PgMethod extends AbstractMethod
         $config = [];
 
         $config['db_host'] = $inputOutput->ask('Database Host', 'localhost', self::validateRequired(...));
-        $config['db_user'] = $inputOutput->ask('Database User:', 'root', self::validateRequired(...));
+        $config['db_user'] = $inputOutput->ask('Database User', 'root', self::validateRequired(...));
         $config['db_password'] = $inputOutput->askHidden('Password');
-        $config['db_name'] = $inputOutput->ask('Database name:', null, self::validateRequired(...));
-        $config['db_port'] = $inputOutput->ask('Database Port: ', '5432', self::validateRequired(...));
+        $config['db_name'] = $inputOutput->ask('Database Name', null, self::validateRequired(...));
+        $config['db_port'] = $inputOutput->ask('Database Port ', '5432', self::validateRequired(...));
 
         return $config;
     }
@@ -47,7 +47,7 @@ abstract class PgMethod extends AbstractMethod
             "postgresql://%s%s@%s:%s/%s",
             $config['db_user'],
             $password,
-            $config['db_host'],
+            $this->getConnectionHost($config),
             $config['db_port'],
             $config['db_name']
         );

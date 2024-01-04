@@ -21,7 +21,8 @@ RUN apk add --no-cache \
     libssh2-dev \
     mariadb-client \
     mariadb-connector-c \
-    postgresql-client
+    postgresql-client \
+    sshpass
 
 RUN set -eux; \
     install-php-extensions \
@@ -39,11 +40,9 @@ RUN set -eux; \
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 ENV APP_ENV=$APP_ENV
-ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 ENTRYPOINT ["docker-entrypoint"]
 
@@ -53,7 +52,6 @@ ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 COPY --from=composer_upstream --link /composer /usr/bin/composer
 COPY --link frankenphp/conf.d/app.prod.ini $PHP_INI_DIR/conf.d/
-COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
 WORKDIR /app
 
@@ -61,8 +59,12 @@ WORKDIR /app
 # Prod Dockerfile
 FROM frankenphp_base AS frankenphp_prod
 
-HEALTHCHECK CMD wget --no-verbose --tries=1 --spider http://localhost:2019/metrics || exit 1
-CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
+ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
+
+COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
+COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
+
+CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--resume", "--environ"]
 
 WORKDIR /app
 
