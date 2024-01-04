@@ -116,6 +116,8 @@ class Analyzer extends AbstractCommand
 
             $io->info("Drop temporary database...");
             $dbManagement->drop($dbManager);
+
+            $io->info('The DB structure analyzing successfully finished.');
         } catch (\Exception $exception) {
             $this->getInputOutput()->error($exception->getMessage());
         }

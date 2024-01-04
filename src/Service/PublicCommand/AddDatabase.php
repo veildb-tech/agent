@@ -97,7 +97,16 @@ class AddDatabase extends AbstractCommand
 
         $server = $this->serverApi->get($this->appConfig->getServerUuid());
 
-        $this->config['name'] = $inputOutput->ask("Enter database name");
+        $this->config['name'] = $inputOutput->ask(
+            "Enter database name",
+            null,
+            function ($value) {
+                if (!preg_match('/^[a-zA-Z0-9\s]+$/', $value)) {
+                    throw new \RuntimeException('Invalid characters in the string. Only letters, numbers, and spaces are allowed.');
+                }
+                return $value;
+            }
+        );
 
         $this->getEngines();
         $this->getPlatforms();
@@ -241,7 +250,5 @@ class AddDatabase extends AbstractCommand
         $this->databaseAnalyzer
             ->setInputOutput($inputOutput)
             ->createTempDbAndProcess($this->config['db_uuid']);
-
-        $inputOutput->info('The DB structure analyzing successfully finished.');
     }
 }

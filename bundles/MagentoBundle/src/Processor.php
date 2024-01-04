@@ -9,6 +9,8 @@ use DbManager\CoreBundle\Interfaces\EngineInterface;
 use Illuminate\Database\Connection;
 use DbManager\MysqlBundle\Processor as MysqlProcessor;
 use DbManager\MagentoBundle\DataProcessor\Platform\MagentoEavDataProcessorService;
+use DbManager\MagentoBundle\Exception\NotMagentoException;
+use Exception;
 
 /**
  * Mysql Processor instance
@@ -62,17 +64,22 @@ final class Processor extends MysqlProcessor implements EngineInterface
      * @param Connection $connection
      *
      * @return array
+     * @throws NotMagentoException
      */
     protected function getAdditionalData(DbDataManagerInterface $dbDataManager, Connection $connection): array
     {
         $data = [];
         if ($dbDataManager->getPlatform() === 'magento') {
-            $attributes = $connection->select(
-                "SELECT `attribute_code`, `backend_type`, `eav_entity_type`.`entity_type_code`"
-                . " FROM `eav_attribute` LEFT JOIN `eav_entity_type` "
-                . " ON `eav_entity_type`.`entity_type_id` = `eav_attribute`.`entity_type_id` "
-                . " WHERE `backend_type` != 'static' AND `source_model` IS NULL;"
-            );
+            try {
+                $attributes = $connection->select(
+                    "SELECT `attribute_code`, `backend_type`, `eav_entity_type`.`entity_type_code`"
+                    . " FROM `eav_attribute` LEFT JOIN `eav_entity_type` "
+                    . " ON `eav_entity_type`.`entity_type_id` = `eav_attribute`.`entity_type_id` "
+                    . " WHERE `backend_type` != 'static' AND `source_model` IS NULL;"
+                );
+            } catch (Exception $exception) {
+                throw new NotMagentoException("Could not find Magento eav tables. Please ensure your platform is Magento. Otherwise process with a custom platform");
+            }
 
             $data['eav_attributes'] = $attributes;
         }
