@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN a2enmod ssl && a2enmod rewrite && a2enmod proxy && a2enmod proxy_http
 RUN mkdir -p /etc/apache2/certs && mkdir -p /app && mkdir -p /home/app/.composer/cache
-RUN chmod 1777 /home/app/.composer/cache && chmod 1777 /etc/apache2/certs
+RUN chmod 1777 /home/app/.composer/cache
 
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
 RUN docker-php-ext-install \
