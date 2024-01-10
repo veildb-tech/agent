@@ -10,6 +10,8 @@
 /var/
 /vendor/
 /backups/*
+/docker/server/certs/*
+/config/keys/*
 
 ###> symfony/phpunit-bridge ###
 .phpunit.result.cache

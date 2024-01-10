@@ -1,49 +1,69 @@
 #syntax=docker/dockerfile:1.4
 
 # Versions
-FROM dunglas/frankenphp:latest-alpine AS frankenphp_upstream
 FROM composer/composer:2-bin AS composer_upstream
 
 
 # BaseFrankenPHP Dockerfile
-FROM frankenphp_upstream AS frankenphp_base
+FROM php:8.3-apache AS server_base
 
 ARG APP_ENV
+ARG GID
+ARG UID
+
+RUN groupadd -f -g $GID app \
+    && useradd -g $GID -u $UID -s /bin/bash app
 
 # persistent / runtime deps
 # hadolint ignore=DL3018
-RUN apk add --no-cache \
-    acl \
-    file \
-    gettext \
-    nss-tools \
-    openssl \
-    libssh2-dev \
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libssh2-1-dev \
+    libssh2-1 \
+    libicu-dev \
+    locales \
+    zip \
+    jpegoptim optipng pngquant gifsicle \
+    unzip \
+    curl \
+    cron \
+    libapache2-mod-xsendfile \
+    libapache2-mod-fcgid \
+    libmariadb3 \
+    libmariadb-dev \
+    libpq-dev \
     mariadb-client \
-    mariadb-connector-c \
     postgresql-client \
-    openssh \
     sshpass
 
-RUN set -eux; \
-    install-php-extensions \
-        apcu \
+RUN a2enmod ssl && a2enmod rewrite && a2enmod proxy && a2enmod proxy_http
+RUN mkdir -p /etc/apache2/certs && mkdir -p /app
+
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
+RUN docker-php-ext-install \
         intl \
-        ssh2 \
         opcache \
         pdo_mysql \
         pdo_pgsql \
+        pgsql \
         zip
 
-###> recipes ###
-###< recipes ###
+# Install APCu
+RUN pecl install apcu \
+  && docker-php-ext-enable apcu
 
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+# Install ssh2
+RUN pecl install ssh2 \
+  && docker-php-ext-enable ssh2
 
 ENV APP_ENV=$APP_ENV
 
-COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
-COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link server/conf.d/app.ini "$PHP_INI_DIR/php.ini"
+COPY --link --chmod=755 server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 ENTRYPOINT ["docker-entrypoint"]
 
@@ -52,45 +72,29 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 COPY --from=composer_upstream --link /composer /usr/bin/composer
-COPY --link frankenphp/conf.d/app.prod.ini $PHP_INI_DIR/conf.d/
-
-WORKDIR /app
 
 
 # Prod Dockerfile
-FROM frankenphp_base AS frankenphp_prod
+FROM server_base AS server_prod
 
-ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
-
-COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
-COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
-
-CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--resume", "--environ"]
+COPY server/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 
 WORKDIR /app
 
+EXPOSE 443 80
 
-# Dev Dockerfile
-FROM frankenphp_base AS frankenphp_dev
+USER app:app
 
-ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
-
-COPY --link frankenphp/dev.Caddyfile /etc/caddy/Caddyfile
-COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
-
-CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--resume", "--environ"]
-
-WORKDIR /app
+CMD ["apache2ctl", "-D", "FOREGROUND"]
 
 
 # Cron Dockerfile
-FROM frankenphp_base AS frankenphp_cron
+FROM server_base AS server_cron
 
-RUN apk add --no-cache \
-    logrotate
-
-COPY --link frankenphp/logrotate.conf /etc/logrotate.d/
+RUN chmod u+s /usr/sbin/cron
 
 WORKDIR /app
 
-CMD ["crond", "-l", "0", "-d", "0", "-f"]
+USER app:app
+
+CMD ["cron", "-f"]

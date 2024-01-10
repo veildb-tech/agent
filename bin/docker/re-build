@@ -8,7 +8,4 @@ if [ ! -z "$(docker ps -q)" ]; then
     "${PROJECT_ROOT}"/bin/docker/stopall
 fi
 
-docker volume rm dbvisor-caddy-config
-docker volume rm dbvisor-caddy-data
-
 "${PROJECT_ROOT}"/bin/docker/start -b
