@@ -29,8 +29,8 @@ APP_DOCKER_HTTP_PORT=8088
 APP_DOCKER_HTTPS_PORT=8443
 APP_DOCKER_HTTP3_PORT=8443
 APP_DOCKER_LOCAL_BACKUPS_PATH=''
-CADDY_DEBUG=
 
 # Path to files with public and private keys
+# In case docker uses it must started from /app/... , ex: /app/config/keys
 SECRET_KEY_PRIVATE=
 SECRET_KEY_PUBLIC=
