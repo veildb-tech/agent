@@ -41,7 +41,8 @@ RUN apt-get update && apt-get install -y \
     sshpass
 
 RUN a2enmod ssl && a2enmod rewrite && a2enmod proxy && a2enmod proxy_http
-RUN mkdir -p /etc/apache2/certs && mkdir -p /app
+RUN mkdir -p /etc/apache2/certs && mkdir -p /app && mkdir -p /home/app/.composer/cache
+RUN chmod 1777 /home/app/.composer/cache
 
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
 RUN docker-php-ext-install \
@@ -65,12 +66,6 @@ ENV APP_ENV=$APP_ENV
 COPY --link server/conf.d/app.ini "$PHP_INI_DIR/php.ini"
 COPY --link --chmod=755 server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
-ENTRYPOINT ["docker-entrypoint"]
-
-# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
-
 COPY --from=composer_upstream --link /composer /usr/bin/composer
 
 
@@ -84,6 +79,8 @@ WORKDIR /app
 EXPOSE 443 80
 
 USER app:app
+
+ENTRYPOINT ["docker-entrypoint"]
 
 CMD ["apache2ctl", "-D", "FOREGROUND"]
 
