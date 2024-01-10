@@ -26,6 +26,8 @@ DirectoryIndex index.php
 </IfModule>
 
 <IfModule mod_rewrite.c>
+    Options +FollowSymlinks
+
     RewriteEngine On
 
     # This RewriteRule is used to dynamically discover the RewriteBase path.

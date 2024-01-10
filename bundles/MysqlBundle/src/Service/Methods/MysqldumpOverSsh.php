@@ -103,7 +103,7 @@ class MysqldumpOverSsh extends \App\Service\Methods\AbstractMethod
     {
         if ($config['ssh_auth'] === self::AUTH_TYPE_PASS) {
             $sshCommand = sprintf(
-                "sshpass -p '%s' ssh %s@%s -p %s",
+                "sshpass -p '%s' ssh -o 'StrictHostKeyChecking=no' %s@%s -p %s",
                 $config['ssh_password'],
                 $config['ssh_user'],
                 $config['ssh_host'],

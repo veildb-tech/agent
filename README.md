@@ -4,7 +4,7 @@
 
 ### For Manual Usage
 * Composer
-* PHP 8.2.x
+* PHP 8.3.x
 * PHP Libraries:
   * Ctype
   * iconv
