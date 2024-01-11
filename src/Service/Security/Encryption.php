@@ -38,15 +38,14 @@ class Encryption
      */
     private function decrypt(string $encryptedData): ?string
     {
-        $keys = $this->getKeys();
-
-        foreach ($keys as $key) {
-            $key = explode(':', $key);
-            if (empty($key[1])) {
+        $rows = $this->getKeys();
+        foreach ($rows as $row) {
+            [$id, $key] = explode(':', $row);
+            if (empty($key)) {
                 continue;
             }
 
-            $key = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n" . $key[1] . "\n-----END ENCRYPTED PRIVATE KEY-----";
+            $key = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n" . $key . "\n-----END ENCRYPTED PRIVATE KEY-----";
             if (openssl_private_decrypt($encryptedData, $decryptedData, trim($key))) {
                 return $decryptedData;
             }

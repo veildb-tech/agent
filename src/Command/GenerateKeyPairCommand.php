@@ -8,6 +8,7 @@ use App\Service\Security\GenerateKeyPair;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -26,23 +27,53 @@ final class GenerateKeyPairCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * @return void
+     */
     protected function configure(): void
     {
         $this->setDescription('Generate public/private keys for use in your application.');
+        $this->addOption(
+            'identifier',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'User identifier'
+        )->addOption(
+            'key-only',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Return only generated public key'
+        );
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $userIdentifier = $io->ask("Enter user identifier!");
-
         try {
-            [$secretKey, $publicKey] = $this->generateKeyPair->execute($userIdentifier);
+            if (!$input->hasOption('identifier')) {
+                $io->error('identifier is required');
+
+                return Command::FAILURE;
+            }
+
+            [$secretKey, $publicKey] = $this->generateKeyPair->execute($input->getOption('identifier'), $io);
         } catch (\Exception $e) {
             $io->error($e->getMessage());
 
-            return 0;
+            return Command::FAILURE;
+        }
+
+        if ($input->getOption('key-only')) {
+            $io->writeln($publicKey);
+
+            return Command::SUCCESS;
         }
 
         $io->newLine();
@@ -51,6 +82,6 @@ final class GenerateKeyPairCommand extends Command
 
         $io->success('Done!');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

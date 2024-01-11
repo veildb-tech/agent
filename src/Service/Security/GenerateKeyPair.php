@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Security;
 
 use Symfony\Component\Console\Exception\LogicException;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 final class GenerateKeyPair
@@ -70,12 +71,12 @@ final class GenerateKeyPair
     /**
      * Generate Keys
      *
-     * @param string $identifier
-     *
+     * @param string $id
+     * @param SymfonyStyle $inputOutput
      * @return array
      * @throws \Exception
      */
-    public function execute(string $identifier): array
+    public function execute(string $id, SymfonyStyle $inputOutput): array
     {
         if (!in_array($this->algorithm, self::ACCEPTED_ALGORITHMS, true)) {
             throw new \Exception(
@@ -92,7 +93,7 @@ final class GenerateKeyPair
             );
         }
 
-        $this->storeKeyPair($identifier, $secretKey, $publicKey);
+        $this->storeKeyPair($id, $secretKey, $publicKey, $inputOutput);
 
         return [$secretKey, $publicKey];
     }
@@ -100,15 +101,26 @@ final class GenerateKeyPair
     /**
      * Store keys into file
      *
-     * @param string $identifier
+     * @param string $id
      * @param string $secretKey
      * @param string $publicKey
+     * @param SymfonyStyle $inputOutput
      *
      * @return void
      */
-    private function storeKeyPair(string $identifier, string $secretKey, string $publicKey): void
+    private function storeKeyPair(string $id, string $secretKey, string $publicKey, SymfonyStyle $inputOutput): void
     {
         $alreadyExists = $this->filesystem->exists($this->secretKey) || $this->filesystem->exists($this->publicKey);
+
+        if ($this->getKeyById($id, $this->publicKey)) {
+            if (!$inputOutput->confirm(
+                sprintf("The key with ID: %s already exists. Do you want to regenerate it?", $id)
+            )) {
+                return;
+            }
+            $this->clearFile($id, $this->publicKey);
+            $this->clearFile($id, $this->secretKey);
+        }
 
         $secretKey = str_replace(
             [
@@ -133,15 +145,20 @@ final class GenerateKeyPair
         );
 
         if (!$alreadyExists) {
-            $this->filesystem->dumpFile($this->secretKey, $identifier . ':' . $secretKey);
-            $this->filesystem->dumpFile($this->publicKey, $identifier . ':' . $publicKey);
+            $this->filesystem->dumpFile($this->secretKey, $id . ':' . $secretKey);
+            $this->filesystem->dumpFile($this->publicKey, $id . ':' . $publicKey);
         } else {
-            $this->filesystem->appendToFile($this->secretKey, "\n" . $identifier . ':' . $secretKey);
-            $this->filesystem->appendToFile($this->publicKey, "\n" . $identifier . ':' . $publicKey);
+            $this->filesystem->appendToFile($this->secretKey, "\n" . $id . ':' . $secretKey);
+            $this->filesystem->appendToFile($this->publicKey, "\n" . $id . ':' . $publicKey);
         }
     }
 
-    private function generateKeyPair($passphrase): array
+    /**
+     * @param string|null $passphrase
+     *
+     * @return array
+     */
+    private function generateKeyPair(?string $passphrase): array
     {
         $config = $this->buildOpenSSLConfiguration();
 
@@ -222,5 +239,45 @@ final class GenerateKeyPair
         }
 
         return $config;
+    }
+
+    /**
+     * @param string $newId
+     * @param string $file
+     *
+     * @return string|null
+     */
+    private function getKeyById(string $newId, string $file): ?string
+    {
+        $rows = $this->readFile($file);
+        foreach ($rows as $row) {
+            [$id, $key] = explode(':', $row);
+            if ($id == $newId) {
+                return $key;
+
+            }
+        }
+        return null;
+    }
+
+    private function clearFile(string $id, $fileName): void
+    {
+        $key = $this->getKeyById($id, $$fileName);
+        file_put_contents(
+            $fileName,
+            str_replace($id . ":" . $key . "\n", '', $$fileName)
+        );
+    }
+
+    /**
+     * Read file with keys
+     *
+     * @param string $file
+     *
+     * @return array
+     */
+    private function readFile(string $file): array
+    {
+        return explode("\n", file_get_contents($file));
     }
 }
