@@ -41,6 +41,11 @@ class AppService
     protected null|string $pass = null;
 
     /**
+     * @var string|null
+     */
+    protected null|string $workspace = null;
+
+    /**
      * @param AppConfig $appConfig
      * @param AppServiceClient $client
      * @param CacheInterface $cacheAdapter
@@ -57,13 +62,14 @@ class AppService
      *
      * @param string $user
      * @param string $passwd
-     *
+     * @param string $workspace
      * @return AppService
      */
-    public function setCredentials(string $user, string $passwd): self
+    public function setCredentials(string $user, string $passwd, string $workspace = ''): self
     {
         $this->user = $user;
         $this->pass = $passwd;
+        $this->workspace = $workspace;
 
         return $this;
     }
@@ -199,7 +205,8 @@ class AppService
                 ],
                 'json' => [
                     'username' => $this->user,
-                    'password' => $this->pass
+                    'password' => $this->pass,
+                    'workspace' => $this->workspace
                 ]
             ]
         );

@@ -27,8 +27,10 @@ final class Add extends AbstractServerCommand
         try {
             $userEmail  = $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email");
             $password   = $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password");
-            $user       = $this->getUserByEmail->setCredentials($userEmail, $password)->execute($userEmail);
-            $server     = $this->createServer($inputOutput, $user, $userEmail, $password);
+            $workspace   = $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code");
+
+            $user       = $this->getUserByEmail->setCredentials($userEmail, $password, $workspace)->execute($userEmail);
+            $server     = $this->createServer($inputOutput, $user, $userEmail, $password, $workspace);
 
             $this->updateEnvFile($server['uuid'], $server['secret_key']);
             $this->setupCronJobs();
@@ -79,37 +81,12 @@ final class Add extends AbstractServerCommand
                 'name'        => $serverName,
                 'url'         => $serverUrl,
                 'status'      => ServerStatusEnum::ENABLED->value,
-                'ipAddress'   => $this->getIpAddress(),
-                'workspaceId' => $this->getWorkspaceId($user, $inputOutput)
+                'ipAddress'   => $this->getIpAddress()
             ]
         );
 
         $inputOutput->success("Server successfully added");
         return $server;
-    }
-
-    /**
-     * Get workspace ID
-     *
-     * @param array $user
-     * @param InputOutput $inputOutput
-     *
-     * @return string
-     */
-    private function getWorkspaceId(array $user, InputOutput $inputOutput): string
-    {
-        if (count($user['workspaces']) == 1) {
-            return "/api/workspaces/" . $user['workspaces'][0]['code'];
-        }
-
-        $workspaceCode = $inputOutput->choice(
-            "Select Workspace",
-            array_column($user['workspaces'], 'code')
-        );
-
-        $key = array_search($workspaceCode, array_column($user['workspaces'], 'code'));
-
-        return "/api/workspaces/" . $user['workspaces'][$key]['code'];
     }
 
     /**
