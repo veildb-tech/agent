@@ -375,10 +375,8 @@ do_install() {
 
 			If you installed the current Docker package using this script and are using it
 			again to update Docker, you can safely ignore this message.
-
-			You may press Ctrl+C now to abort this script.
 		EOF
-		( set -x; sleep 20 )
+		( set -x; sleep 5 )
 	fi
 
 	user="$(id -un 2>/dev/null || true)"
@@ -555,6 +553,7 @@ do_install() {
 				fi
 				$sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $pkgs >/dev/null"
 			)
+
 			echo_docker_as_nonroot
 			exit 0
 			;;
@@ -638,6 +637,11 @@ do_install() {
 				fi
 				$sh_c "$pkg_manager install -y -q $pkgs"
 			)
+
+            # Add user to docker group
+            $sh_c "gpasswd -a ${USER} docker"
+            $sh_c "systemctl restart docker"
+
 			echo_docker_as_nonroot
 			exit 0
 			;;

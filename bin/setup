@@ -70,7 +70,7 @@ _installDocker() {
     fi
 
     if [ ! -f /.dockerenv  ]; then
-        if [ "${USER}" != 'root' ]; then
+        if [ "${USER}" != 'root' ] && [ -e "/var/run/docker.sock" ]; then
             $sh_c "usermod -aG docker ${USER}"
             $sh_c "chown root:docker /var/run/docker.sock"
             $sh_c "chmod -R 777 /var/run/docker.sock"
@@ -99,6 +99,13 @@ _checkDockerPorts() {
 # Check docker libs for docker
 _checkDockerRequiredLibs() {
     _output " Start checking required applications: " "heading"
+
+    if command -v lsof >/dev/null 2>&1; then
+        _output "  [*] Lsof is installed" "success"
+    else
+        _output "  [ ] ERROR: Lsof is required for installation." "error"
+        exit 1
+    fi
 
     if command -v curl >/dev/null 2>&1; then
         _output "  [*] Curl is installed" "success"
