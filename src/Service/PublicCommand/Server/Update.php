@@ -27,9 +27,11 @@ final class Update extends AbstractServerCommand
         try {
             $userEmail  = $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email");
             $password   = $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password");
-            $user       = $this->getUserByEmail->setCredentials($userEmail, $password)->execute($userEmail);
+            $workspace   = $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code");
 
-            $server     = $this->updateServer($inputOutput, $user, $userEmail, $password);
+            $user       = $this->getUserByEmail->setCredentials($userEmail, $password, $workspace)->execute($userEmail);
+
+            $server     = $this->updateServer($inputOutput, $user, $userEmail, $password, $workspace);
             $this->updateEnvFile($server['uuid'], $server['secret_key']);
 
             return true;
@@ -65,25 +67,25 @@ final class Update extends AbstractServerCommand
      * @throws TransportExceptionInterface
      * @throws Exception
      */
-    private function updateServer(InputOutput $inputOutput, array $user, string $userEmail, string $password): array
-    {
+    private function updateServer(
+        InputOutput $inputOutput,
+        array $user,
+        string $userEmail,
+        string $password,
+        string $workspace = ''
+    ): array {
         if ($this->input->getOption('current')) {
             $uuid = $this->appConfig->getServerUuid();
         } else {
             $uuid = $inputOutput->ask("Enter server UUID");
         }
         $server = $this->serverApi->setCredentials($userEmail, $password)->get(htmlspecialchars($uuid));
-        $serverWorkspace = str_replace('/api/workspaces/', '', $server['workspace']);
-
-        if (!in_array($serverWorkspace, array_column($user['workspaces'], 'code'))) {
-            throw new Exception('You do not have access to this server!!!');
-        }
 
         if (!$server['url']) {
             $serverUrl = $inputOutput->ask("Enter server public Url", '');
         }
 
-        $server = $this->serverApi->setCredentials($userEmail, $password)->update(
+        $server = $this->serverApi->setCredentials($userEmail, $password, $workspace)->update(
             $uuid,
             [
                 'url'         => $serverUrl ?? $server['url'],

@@ -61,6 +61,12 @@ final class AppServerUpdateCommand extends Command
             InputOption::VALUE_OPTIONAL,
             'Password to authorize'
         );
+        $this->addOption(
+            'workspace',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Workspace code'
+        );
     }
 
     /**
