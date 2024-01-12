@@ -29,31 +29,31 @@ _output() {
     style_start=""
     style_end=""
     if [ "${2:-}" != "" ]; then
-    case $2 in
-        "success")
-            style_start="\033[0;32m"
-            style_end="\033[0m"
-            ;;
-        "error")
-            style_start="\033[31;31m"
-            style_end="\033[0m"
-            ;;
-        "info"|"warning")
-            style_start="\033[33m"
-            style_end="\033[39m"
-            ;;
-        "heading")
-            style_start="\033[1;33m"
-            style_end="\033[22;39m"
-            ;;
-        "comment")
-            style_start="\033[2m"
-            style_end="\033[22;39m"
-            ;;
-    esac
+        case $2 in
+            "success")
+                style_start="\033[0;32m"
+                style_end="\033[0m"
+                ;;
+            "error")
+                style_start="\033[31;31m"
+                style_end="\033[0m"
+                ;;
+            "info"|"warning")
+                style_start="\033[33m"
+                style_end="\033[39m"
+                ;;
+            "heading")
+                style_start="\033[1;33m"
+                style_end="\033[22;39m"
+                ;;
+            "comment")
+                style_start="\033[2m"
+                style_end="\033[22;39m"
+                ;;
+        esac
     fi
 
-    echo -e "${style_start}${1}${style_end}"
+    printf "${style_start}${1}${style_end}\n"
 }
 
 # Validate is docker installed
@@ -248,12 +248,13 @@ _initAlias() {
 # Fix possible issues with directory
 _fixDirectory() {
     DIRECTORY=${1}
+    STR_LEN=$(echo ${DIRECTORY} | wc -c)
 
-    if [ "${DIRECTORY::1}" != "/" ]; then
+    if [ "$(echo "${DIRECTORY}" | cut -b 1)" != "/" ]; then
         DIRECTORY="/${DIRECTORY}"
     fi
 
-    if [ "${DIRECTORY: -1}" != "/" ]; then
+    if [ "$(echo "${DIRECTORY}" | cut -c$(expr $STR_LEN - 1)-${STR_LEN})" != "/" ]; then
         DIRECTORY="${DIRECTORY}/"
     fi
 
@@ -290,7 +291,7 @@ if [ "${APP_DOCKER_USE}" != "${USE_DOCKER}" ]; then
 fi
 
 # Get Server URL
-if [ ${USE_DOCKER} == 1 ]; then
+if [ "${USE_DOCKER}" = "1" ]; then
     CLIENT_IP=$(_getClientIP)
     if [ ! -z "${APP_DOCKER_SERVER_URL}" ]; then
         DEFAULT_SERVER_PORT=${APP_DOCKER_SERVER_URL}:${APP_DOCKER_HTTPS_PORT}
@@ -354,7 +355,7 @@ if [ ${USE_DOCKER} = "1" ]; then
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${DEFAULT_APP_DUMP_PATH}
     else
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=""
-        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" == "" ] || [ $(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~') != 0 ]; do
+        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" = "" ] || [ $(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~') != 0 ]; do
             read -rp " Enter the full path to folder with your local dumps (default: ${DEFAULT_APP_DUMP_PATH} ): " NEW_APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH:="${DEFAULT_APP_DUMP_PATH}"}
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=$(_fixDirectory "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}")
@@ -452,10 +453,11 @@ fi
 
 _initAlias
 
-PUBLIC_KEY=$("${PROJECT_ROOT}"dbvisor-agent app:server:generate-keypair --identifier='server' --key-only)
+# Generate Server key pair
+( sleep 5; "${PROJECT_ROOT}"dbvisor-agent app:server:generate-keypair --identifier='server' --key-only > /dev/null 2>&1 )
 
 _output " The dbvisor agent had been installed successfully. " "info"
-_output " Your Public key is: ${PUBLIC_KEY}" "info"
+"${PROJECT_ROOT}"dbvisor-agent info
 if [ -z "${APP_SERVER_UUID}" ]; then
     _output " To continue please execute the command: ${MANAGER_CLI} app:server:add " "warning"
 fi

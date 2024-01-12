@@ -44,8 +44,6 @@ ${YELLOW}Available Commands:${NC}
     ${GREEN}stopall${NC}    - stop all environment ( Docker only )
     ${GREEN}re-build${NC}   - re-build containers ( Docker only )
     ${GREEN}cli${NC}        - allows to run command line command inside of docker environment ( Docker only )
-    ${GREEN}composer${NC}   - run composer commands ( Docker only )
-    ${GREEN}mysql${NC}      - run mysql command ( Docker only )
     ${GREEN}console${NC}    - run app console commands
     ${GREEN}cron${NC}       - run con commands ( Docker only )
     ${GREEN}info${NC}       - basic information about tool
@@ -98,6 +96,19 @@ _info() {
     Postgress config file is:   ${GREEN}${PROJECT_ROOT}/.env.postgress${NC}
 "
     fi
+
+    if [ "${APP_DOCKER_USE}" = "1" ]; then
+        SECRET_KEY_PUBLIC=${PROJECT_ROOT}/config/keys/public
+    fi
+
+    if [ -f "${SECRET_KEY_PUBLIC}" ]; then
+        data=$(grep -w 'server' ${SECRET_KEY_PUBLIC} | cut -d ":" -f2)
+        printf "\n${YELLOW}Server Public Key:${NC}
+-----BEGIN PUBLIC KEY-----
+$data
+-----END PUBLIC KEY-----
+"
+    fi
 }
 
 # Get configurations
@@ -132,10 +143,10 @@ elif [ "${1}" = 'setup' ]; then
     . "${PROJECT_ROOT}"/bin/setup
 else
     command=$1
-    shift 1
     if [ "${APP_DOCKER_USE}" = "1" ]; then
         case "$command" in
             start)
+                shift $(( 1 > $# ? $# : 1))
                 . "${PROJECT_ROOT}"/bin/docker/start "${@}"
                 ;;
             stop)
@@ -143,9 +154,11 @@ else
                 . "${PROJECT_ROOT}"/bin/docker/stop
                 ;;
             start-db)
+                shift $(( 1 > $# ? $# : 1))
                 . "${PROJECT_ROOT}"/bin/docker/start-db "${@}"
                 ;;
             stop-db)
+                shift $(( 1 > $# ? $# : 1))
                 . "${PROJECT_ROOT}"/bin/docker/stop-db "${@}"
                 ;;
             stopall)
@@ -155,42 +168,47 @@ else
                 . "${PROJECT_ROOT}"/bin/docker/re-build
                 ;;
             console)
+                shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "${@}"
                 ;;
-            composer)
-                _checkDocker
-                . "${PROJECT_ROOT}"/bin/docker/composer "${@}"
-                ;;
             cli)
+                shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/cli "${@}"
                 ;;
             cron)
+                shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/cron "${@}"
                 ;;
             app:server:add)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:server:add" "${@}"
                 ;;
             app:server:update)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:server:update" "${@}"
                 ;;
             app:server:generate-keypair)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:server:generate-keypair" "${@}"
                 ;;
             app:db:process)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:db:process"
                 ;;
             app:db:add)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:db:add" "${@}"
                 ;;
             app:db:analyze)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:db:analyze" "${@}"
                 ;;
@@ -207,30 +225,37 @@ else
         esac
     else
         command=$1
-        shift 1
         case "$command" in
             console)
+                shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "${@}"
                 ;;
             app:server:add)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:server:add" "${@}"
                 ;;
             app:server:update)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:server:update" "${@}"
                 ;;
             app:server:generate-keypair)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/docker/console "app:server:generate-keypair" "${@}"
                 ;;
             app:db:process)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:db:process"
                 ;;
             app:db:add)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:db:add" "${@}"
                 ;;
             app:cron:install)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:cron:install"
                 ;;
             app:db:analyze)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:db:analyze" "${@}"
                 ;;
             info)

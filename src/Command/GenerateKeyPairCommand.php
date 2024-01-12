@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Service\Security\GenerateKeyPair;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use function PHPUnit\Framework\throwException;
 
 #[AsCommand(
     name: 'app:server:generate-keypair',
@@ -32,7 +34,6 @@ final class GenerateKeyPairCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setDescription('Generate public/private keys for use in your application.');
         $this->addOption(
             'identifier',
             null,
@@ -41,7 +42,7 @@ final class GenerateKeyPairCommand extends Command
         )->addOption(
             'key-only',
             null,
-            InputOption::VALUE_OPTIONAL,
+            InputOption::VALUE_NONE,
             'Return only generated public key'
         );
     }
@@ -55,29 +56,29 @@ final class GenerateKeyPairCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-
         try {
-            if (!$input->hasOption('identifier')) {
-                $io->error('identifier is required');
+            $id = $input->getOption('identifier');
+            $keyOnly = $input->getOption('key-only');
 
-                return Command::FAILURE;
+            if (null === $id) {
+                throw new Exception(sprintf('You must provide the "%s" option.', '--identifier'));
             }
 
-            [$secretKey, $publicKey] = $this->generateKeyPair->execute($input->getOption('identifier'), $io);
-        } catch (\Exception $e) {
+            [$secretKey, $publicKey] = $this->generateKeyPair->execute($id, $keyOnly, $io);
+        } catch (Exception $e) {
             $io->error($e->getMessage());
 
             return Command::FAILURE;
         }
 
-        if ($input->getOption('key-only')) {
+        if ($keyOnly) {
             $io->writeln($publicKey);
 
             return Command::SUCCESS;
         }
 
         $io->newLine();
-        $io->writeln('Generated Public Key:');
+        $io->writeln('Public Key:');
         $io->writeln($publicKey);
 
         $io->success('Done!');

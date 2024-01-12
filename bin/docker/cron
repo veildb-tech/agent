@@ -29,7 +29,8 @@ fi
 
 if [ "${1}" = "cli" ]; then
     # shellcheck disable=SC2199
-    [ -z "${@:2}" ] && echo "Please specify a cli command!" && exit
+    shift 1
+    [ -z "${@}" ] && echo "Please specify a cli command!" && exit
 
-    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -w /app dbvisor-cron-server "${@:2}"
+    "${PROJECT_ROOT}"/bin/docker/docker-compose exec -w /app dbvisor-cron-server "${@}"
 fi

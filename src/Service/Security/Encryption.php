@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace App\Service\Security;
 
 use App\Exception\EncryptionException;
+use Symfony\Component\Filesystem\Filesystem;
 
-class Encryption
+final class Encryption extends AbstractSecurity
 {
+    /**
+     * @param Filesystem $filesystem
+     * @param string $secretKey
+     */
     public function __construct(
-        private readonly string $secretKey = ''
+        protected readonly Filesystem $filesystem,
+        protected readonly string $secretKey = ''
     ) {
     }
 
@@ -38,7 +44,7 @@ class Encryption
      */
     private function decrypt(string $encryptedData): ?string
     {
-        $rows = $this->getKeys();
+        $rows = $this->readFile($this->secretKey);
         foreach ($rows as $row) {
             [$id, $key] = explode(':', $row);
             if (empty($key)) {
@@ -51,15 +57,5 @@ class Encryption
             }
         }
         return null;
-    }
-
-    /**
-     * Retrieve private keys
-     *
-     * @return array
-     */
-    private function getKeys(): array
-    {
-        return explode("\n", file_get_contents($this->secretKey));
     }
 }
