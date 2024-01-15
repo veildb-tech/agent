@@ -29,31 +29,31 @@ _output() {
     style_start=""
     style_end=""
     if [ "${2:-}" != "" ]; then
-    case $2 in
-        "success")
-            style_start="\033[0;32m"
-            style_end="\033[0m"
-            ;;
-        "error")
-            style_start="\033[31;31m"
-            style_end="\033[0m"
-            ;;
-        "info"|"warning")
-            style_start="\033[33m"
-            style_end="\033[39m"
-            ;;
-        "heading")
-            style_start="\033[1;33m"
-            style_end="\033[22;39m"
-            ;;
-        "comment")
-            style_start="\033[2m"
-            style_end="\033[22;39m"
-            ;;
-    esac
+        case $2 in
+            "success")
+                style_start="\033[0;32m"
+                style_end="\033[0m"
+                ;;
+            "error")
+                style_start="\033[31;31m"
+                style_end="\033[0m"
+                ;;
+            "info"|"warning")
+                style_start="\033[33m"
+                style_end="\033[39m"
+                ;;
+            "heading")
+                style_start="\033[1;33m"
+                style_end="\033[22;39m"
+                ;;
+            "comment")
+                style_start="\033[2m"
+                style_end="\033[22;39m"
+                ;;
+        esac
     fi
 
-    echo -e "${style_start}${1}${style_end}"
+    printf "${style_start}${1}${style_end}\n"
 }
 
 # Validate is docker installed
@@ -248,12 +248,13 @@ _initAlias() {
 # Fix possible issues with directory
 _fixDirectory() {
     DIRECTORY=${1}
+    STR_LEN=$(echo ${DIRECTORY} | wc -c)
 
-    if [ "${DIRECTORY::1}" != "/" ]; then
+    if [ "$(echo "${DIRECTORY}" | cut -b 1)" != "/" ]; then
         DIRECTORY="/${DIRECTORY}"
     fi
 
-    if [ "${DIRECTORY: -1}" != "/" ]; then
+    if [ "$(echo "${DIRECTORY}" | cut -c$(expr $STR_LEN - 1)-${STR_LEN})" != "/" ]; then
         DIRECTORY="${DIRECTORY}/"
     fi
 
@@ -290,7 +291,7 @@ if [ "${APP_DOCKER_USE}" != "${USE_DOCKER}" ]; then
 fi
 
 # Get Server URL
-if [ ${USE_DOCKER} == 1 ]; then
+if [ "${USE_DOCKER}" = "1" ]; then
     CLIENT_IP=$(_getClientIP)
     if [ ! -z "${APP_DOCKER_SERVER_URL}" ]; then
         DEFAULT_SERVER_PORT=${APP_DOCKER_SERVER_URL}:${APP_DOCKER_HTTPS_PORT}
@@ -329,13 +330,13 @@ fi
 
 # Get path to dumps folder
 NEW_APP_DUMP_PATH=""
-while [ "${NEW_APP_DUMP_PATH}" == "" ] || [ $(expr match "${NEW_APP_DUMP_PATH}" '~') != 0 ]; do
+while [ "${NEW_APP_DUMP_PATH}" = "" ] || [ $(expr match "${NEW_APP_DUMP_PATH}" '~') != 0 ]; do
     read -rp " Enter the full path to folder where processed dumps will be placed (default: ${DEFAULT_APP_DUMP_PATH} ): " NEW_APP_DUMP_PATH </dev/tty
     NEW_APP_DUMP_PATH=${NEW_APP_DUMP_PATH:="${DEFAULT_APP_DUMP_PATH}"}
     NEW_APP_DUMP_PATH=$(_fixDirectory "${NEW_APP_DUMP_PATH}")
 done
 
-if [ "${USE_DOCKER}" == "1" ]; then
+if [ "${USE_DOCKER}" = "1" ]; then
     _replace_pattern "APP_DOCKER_PATH_DUMP='${APP_DOCKER_PATH_DUMP}'" "APP_DOCKER_PATH_DUMP='${NEW_APP_DUMP_PATH}backups'" ${PROJECT_ROOT}.env
     _replace_pattern "APP_DOCKER_PATH_CONFIG='${APP_DOCKER_PATH_CONFIG}'" "APP_DOCKER_PATH_CONFIG='${NEW_APP_DUMP_PATH}configs'" ${PROJECT_ROOT}.env
 else
@@ -343,7 +344,7 @@ else
     _replace_pattern "APP_CONFIG_PATH='${APP_CONFIG_PATH}'" "APP_CONFIG_PATH='${NEW_APP_DUMP_PATH}configs'" ${PROJECT_ROOT}.env
 fi
 
-if [ $USE_DOCKER == 1 ]; then
+if [ ${USE_DOCKER} = "1" ]; then
     DEFAULT_APP_DUMP_PATH="${HOME}/${APP_NAME}-backups/local_backups"
     if [ ! -z "${APP_DOCKER_LOCAL_BACKUPS_PATH}" ]; then
         DEFAULT_APP_DUMP_PATH=${APP_DOCKER_LOCAL_BACKUPS_PATH}
@@ -354,7 +355,7 @@ if [ $USE_DOCKER == 1 ]; then
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${DEFAULT_APP_DUMP_PATH}
     else
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=""
-        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" == "" ] || [ $(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~') != 0 ]; do
+        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" = "" ] || [ $(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~') != 0 ]; do
             read -rp " Enter the full path to folder with your local dumps (default: ${DEFAULT_APP_DUMP_PATH} ): " NEW_APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH:="${DEFAULT_APP_DUMP_PATH}"}
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=$(_fixDirectory "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}")
@@ -366,6 +367,22 @@ fi
 if [ -z "${APP_SECRET}" ]; then
     # Generate APP secret
     _replace_pattern "APP_SECRET=" "APP_SECRET=$(_generateJwtKey)" ${PROJECT_ROOT}/.env
+fi
+
+if [ -z "${SECRET_KEY_PRIVATE}" ]; then
+    if [ ${USE_DOCKER} = "1" ]; then
+        _replace_pattern "SECRET_KEY_PRIVATE=" "SECRET_KEY_PRIVATE=/app/config/keys/private" ${PROJECT_ROOT}.env
+    else
+        _replace_pattern "SECRET_KEY_PRIVATE=" "SECRET_KEY_PRIVATE=${PROJECT_ROOT}/config/keys/private" ${PROJECT_ROOT}.env
+    fi
+fi
+
+if [ -z "${SECRET_KEY_PUBLIC}" ]; then
+    if [ ${USE_DOCKER} = "1" ]; then
+        _replace_pattern "SECRET_KEY_PUBLIC=" "SECRET_KEY_PUBLIC=/app/config/keys/public" ${PROJECT_ROOT}.env
+    else
+        _replace_pattern "SECRET_KEY_PUBLIC=" "SECRET_KEY_PUBLIC=${PROJECT_ROOT}/config/keys/public" ${PROJECT_ROOT}.env
+    fi
 fi
 
 # Select engines:
@@ -436,7 +453,11 @@ fi
 
 _initAlias
 
+# Generate Server key pair
+( sleep 5; "${PROJECT_ROOT}"dbvisor-agent app:server:generate-keypair --identifier='server' --key-only > /dev/null 2>&1 )
+
 _output " The dbvisor agent had been installed successfully. " "info"
+"${PROJECT_ROOT}"dbvisor-agent info
 if [ -z "${APP_SERVER_UUID}" ]; then
     _output " To continue please execute the command: ${MANAGER_CLI} app:server:add " "warning"
 fi

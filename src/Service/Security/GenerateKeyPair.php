@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service\Security;
 
+use Exception;
 use Symfony\Component\Console\Exception\LogicException;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
-final class GenerateKeyPair
+final class GenerateKeyPair extends AbstractSecurity
 {
     private const ACCEPTED_ALGORITHMS = [
         'RS256',
@@ -20,11 +22,6 @@ final class GenerateKeyPair
         'ES384',
         'ES512',
     ];
-
-    /**
-     * @var Filesystem
-     */
-    private Filesystem $filesystem;
 
     /**
      * @var string|null
@@ -54,13 +51,12 @@ final class GenerateKeyPair
      * @param string $algorithm
      */
     public function __construct(
-        Filesystem $filesystem,
+        protected readonly Filesystem $filesystem,
         ?string $secretKey,
         ?string $publicKey,
         ?string $passphrase,
         string $algorithm
     ) {
-        $this->filesystem = $filesystem;
         $this->secretKey = $secretKey;
         $this->publicKey = $publicKey;
         $this->passphrase = $passphrase;
@@ -70,20 +66,49 @@ final class GenerateKeyPair
     /**
      * Generate Keys
      *
-     * @param string $identifier
+     * @param string $id
+     * @param bool $keyOnly
+     * @param SymfonyStyle $inputOutput
      *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
-    public function execute(string $identifier): array
+    public function execute(string $id, bool $keyOnly, SymfonyStyle $inputOutput): array
     {
-        if (!in_array($this->algorithm, self::ACCEPTED_ALGORITHMS, true)) {
-            throw new \Exception(
-                sprintf('Cannot generate key pair with the provided algorithm `%s`.', $this->algorithm)
-            );
+        $this->validateConfigs();
+
+        if ($key = $this->getKeyById($id, $this->publicKey)) {
+            if (!$keyOnly
+                && !$inputOutput->confirm(
+                    sprintf("The key with ID: %s already exists. Do you want to regenerate it?", $id))
+            ) {
+                return ['', "-----BEGIN PUBLIC KEY-----\n" . $key . "\n-----END PUBLIC KEY-----"];
+            }
+
+            $this->clearFile($id, $this->publicKey);
+            $this->clearFile($id, $this->secretKey);
         }
 
         [$secretKey, $publicKey] = $this->generateKeyPair($this->passphrase);
+
+        $this->storeKeyPair($id, $secretKey, $publicKey);
+
+        return [$secretKey, $publicKey];
+    }
+
+    /**
+     * Check configs before start
+     *
+     * @return void
+     * @throws LogicException
+     */
+    private function validateConfigs(): void
+    {
+        if (!in_array($this->algorithm, self::ACCEPTED_ALGORITHMS, true)) {
+            throw new LogicException(
+                sprintf('Cannot generate key pair with the provided algorithm `%s`.', $this->algorithm)
+            );
+        }
 
         if (!$this->secretKey || !$this->publicKey) {
             throw new LogicException(
@@ -91,22 +116,18 @@ final class GenerateKeyPair
                 . 'config options must not be empty for using the command.',
             );
         }
-
-        $this->storeKeyPair($identifier, $secretKey, $publicKey);
-
-        return [$secretKey, $publicKey];
     }
 
     /**
      * Store keys into file
      *
-     * @param string $identifier
+     * @param string $id
      * @param string $secretKey
      * @param string $publicKey
      *
      * @return void
      */
-    private function storeKeyPair(string $identifier, string $secretKey, string $publicKey): void
+    private function storeKeyPair(string $id, string $secretKey, string $publicKey): void
     {
         $alreadyExists = $this->filesystem->exists($this->secretKey) || $this->filesystem->exists($this->publicKey);
 
@@ -133,15 +154,22 @@ final class GenerateKeyPair
         );
 
         if (!$alreadyExists) {
-            $this->filesystem->dumpFile($this->secretKey, $identifier . ':' . $secretKey);
-            $this->filesystem->dumpFile($this->publicKey, $identifier . ':' . $publicKey);
-        } else {
-            $this->filesystem->appendToFile($this->secretKey, "\n" . $identifier . ':' . $secretKey);
-            $this->filesystem->appendToFile($this->publicKey, "\n" . $identifier . ':' . $publicKey);
+            $this->filesystem->dumpFile($this->secretKey, $id . ':' . $secretKey . "\n");
+            $this->filesystem->dumpFile($this->publicKey, $id . ':' . $publicKey . "\n");
+
+            return;
         }
+
+        $this->filesystem->appendToFile($this->secretKey, $id . ':' . $secretKey . "\n");
+        $this->filesystem->appendToFile($this->publicKey, $id . ':' . $publicKey . "\n");
     }
 
-    private function generateKeyPair($passphrase): array
+    /**
+     * @param string|null $passphrase
+     *
+     * @return array
+     */
+    private function generateKeyPair(?string $passphrase): array
     {
         $config = $this->buildOpenSSLConfiguration();
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ -z "$1" ] && echo "Please specify a Console command (ex. ls)" && exit
+[ -z "$1" ] && echo "Please specify a Console command (ex. list)" && exit
 
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
