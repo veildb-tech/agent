@@ -24,7 +24,7 @@ The tool could be installed by two ways:
 1. by executing: `curl http://db-manager-cli.bridge2.digital/download/server-install | bash`
 2. or manually
 
-### To setup tool manually need to do:
+### To setup the tool manually need to do:
 1. download source code to needed folder
 2. execute `./dbvisor-agent setup`
 3. Follow the further instructions
