@@ -73,30 +73,46 @@ class Sftp extends AbstractMethod
     /**
      * @inheritDoc
      */
-    public function askConfig(InputOutput $inputOutput): array
+    public function askConfig(InputOutput $inputOutput, array $config = []): array
     {
         $config = [
-            'sftp_host' => $inputOutput->ask("SFTP Host", null, self::validateRequired(...)),
-            'sftp_port' => $inputOutput->ask("SFTP Port", '22', self::validateRequired(...)),
-            'sftp_user' => $inputOutput->ask("SFTP User", null, self::validateRequired(...)),
+            'sftp_host' => $inputOutput->ask(
+                "SFTP Host",
+                $config['sftp_host'] ?? null,
+                self::validateRequired(...)
+            ),
+            'sftp_port' => $inputOutput->ask(
+                "SFTP Port",
+                $config['sftp_port'] ?? '22',
+                self::validateRequired(...)
+            ),
+            'sftp_user' => $inputOutput->ask(
+                "SFTP User",
+                $config['sftp_user'] ?? null,
+                self::validateRequired(...)
+            ),
         ];
 
-        $config['sftp_auth'] = $inputOutput->choice("Select authentication method:", [
-            self::AUTH_TYPE_KEY => 'SSH Key',
-            self::AUTH_TYPE_PASS => 'Password',
-            self::AUTH_TYPE_NONE => 'None',
-        ]);
+        $config['sftp_auth'] = $inputOutput->choice(
+            "Select authentication method:",
+            [
+                self::AUTH_TYPE_KEY => 'SSH Key',
+                self::AUTH_TYPE_PASS => 'Password',
+                self::AUTH_TYPE_NONE => 'None',
+            ],
+            $config['sftp_auth'] ?? null,
+        );
 
         if ($config['sftp_auth'] === self::AUTH_TYPE_KEY) {
             $config['sftp_public_key_path'] = $inputOutput->ask(
                 'Path to public key',
-                '~/.ssh/id_rsa.pub',
+                $config['sftp_public_key_path'] ?? '~/.ssh/id_rsa.pub',
                 self::validateRequired(...)
             );
 
             $config['sftp_private_key_path'] = $inputOutput->ask(
                 'Path to private key',
-                '~/.ssh/id_rsa',
+                $config['sftp_private_key_path'] ?? '~/.ssh/id_rsa',
                 self::validateRequired(...)
             );
 
@@ -107,7 +123,7 @@ class Sftp extends AbstractMethod
 
         $config['sftp_filepath'] = $inputOutput->ask(
             "Full path to backup",
-            null,
+            $config['sftp_filepath'] ?? null,
             self::validateRequired(...)
         );
 

@@ -14,7 +14,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
-class UpdateDatabase extends AbstractDatabaseCommand
+final class UpdateDatabase extends AbstractDatabaseCommand
 {
     /**
      * @param InputInterface $input
@@ -89,13 +89,7 @@ class UpdateDatabase extends AbstractDatabaseCommand
      * @param string $databaseUid The UID of the database to retrieve information for.
      *                           Must be a non-empty string.
      *
-     * @return array An array containing the database information. The array structure may vary
-     *               depending on the implementation, but typically includes the following keys:
-     *               - 'platform': The platform of the database. If not specified in the
-     *                             configuration, it defaults to 'custom'.
-     *               - Additional keys specific to the database configuration.
-     *               Returns an empty array if an error occurs during the retrieval process.
-     *
+     * @return array
      * @throws \Exception If an unexpected error occurs during the retrieval process.
      */
     private function getDbInfo(string $databaseUid): array
@@ -106,13 +100,16 @@ class UpdateDatabase extends AbstractDatabaseCommand
                 $dbData['platform'] = 'custom';
             }
 
-            if (!$dbData['uuid']) {
-                $dbData['uuid'] = $databaseUid;
+            if (!isset($dbData['db_uuid'])) {
+                $dbData['db_uuid'] = $databaseUid;
             }
 
             return $dbData;
         } catch (\Exception $exp) {
-            return [];
+            throw new Exception(
+                "We do not find an information by selected Db UUID."
+                . " Contact our support if you still face this problem."
+            );
         }
     }
 }

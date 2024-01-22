@@ -33,6 +33,8 @@ final class Database extends AppService
      */
     public function add(array $data): array
     {
+        $this->action = self::ACTION_URL;
+
         return $this->sendRequest(['json' => $data]);
     }
 

@@ -16,6 +16,9 @@ class AppConfig
      */
     public const LOCAL_BACKUPS_FOLDER = '/app/backups/local_backups/';
 
+    /**
+     * @var array
+     */
     private array $databaseConfig = [];
 
     /**
@@ -101,7 +104,7 @@ class AppConfig
      */
     public function getDatabaseConfig(string $dbUuid): array
     {
-        if (empty($this->databaseConfig[$dbUuid])) {
+        if (!isset($this->databaseConfig[$dbUuid]) || empty($this->databaseConfig[$dbUuid])) {
             $this->databaseConfig[$dbUuid] = array_change_key_case(
                 $this->getConfigFile($this->getConfigDirectory() . '/' . $dbUuid)
             );
@@ -160,6 +163,7 @@ class AppConfig
 
     /**
      * @param array $databaseConfig
+     *
      * @return void
      * @throws Exception
      */
@@ -169,14 +173,18 @@ class AppConfig
             throw new Exception("Can't allocate database. Please ensure token is valid");
         }
 
-        $databaseConfigDirectory = $this->getConfigDirectory() . '/' . $databaseConfig['db_uuid'];
         $databaseConfigFile = $this->getConfigDirectory() . '/' . $databaseConfig['db_uuid'] . '/config';
+        if ($this->filesystem->exists($databaseConfigFile)) {
+            $this->filesystem->remove($databaseConfigFile);
+        }
 
-        $this->filesystem->mkdir($databaseConfigDirectory);
+        $this->filesystem->mkdir($this->getConfigDirectory() . '/' . $databaseConfig['db_uuid']);
 
         foreach ($databaseConfig as $key => $value) {
             $this->filesystem->appendToFile($databaseConfigFile, sprintf("%s='%s'\n", strtoupper($key), $value));
         }
+
+        $this->databaseConfig[$databaseConfig['db_uuid']] = $databaseConfig;
     }
 
     /**

@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Command;
+namespace App\Command\Database;
 
-use App\Service\PublicCommand\Database\AddDatabase;
-use App\Service\PublicCommand\Database\UpdateDatabase;
-use Exception;
+use App\Service\PublicCommand\Database\Analyzer;
+use DbManager\CoreBundle\Exception\EngineNotSupportedException;
+use DbManager\CoreBundle\Exception\NoSuchEngineException;
+use Doctrine\DBAL\Exception;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -21,18 +22,18 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
-    name: 'app:db:update',
-    description: 'Update existing database',
+    name: 'app:db:analyze',
+    description: 'Start analyzing db structure',
 )]
-final class AppUpdateDatabaseCommand extends Command
+final class AnalyzeCommand extends Command
 {
     /**
-     * @param UpdateDatabase $updateDatabase
-     * @param LoggerInterface $logger
-     * @param string|null $name
+     * @param Analyzer $databaseAnalyzer
+     * @param LoggerInterface   $logger
+     * @param string|null       $name
      */
     public function __construct(
-        protected readonly UpdateDatabase $updateDatabase,
+        protected readonly Analyzer $databaseAnalyzer,
         protected readonly LoggerInterface $logger,
         string $name = null
     ) {
@@ -40,15 +41,20 @@ final class AppUpdateDatabaseCommand extends Command
     }
 
     /**
-     * @return void
+     * @inheritdoc
      */
     protected function configure(): void
     {
         $this->addOption(
             'uid',
             'u',
-            InputOption::VALUE_OPTIONAL,
+            InputOption::VALUE_REQUIRED,
             'Database UUID from the service'
+        )->addOption(
+            'db',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Temporary database name'
         );
     }
 
@@ -58,18 +64,23 @@ final class AppUpdateDatabaseCommand extends Command
      *
      * @return int
      * @throws Exception
+     * @throws InvalidArgumentException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->updateDatabase->execute($input, $output);
+            $this->databaseAnalyzer->execute(
+                $input,
+                $output
+            );
         } catch (
             ClientExceptionInterface
             | RedirectionExceptionInterface
             | ServerExceptionInterface
+            | EngineNotSupportedException
             | DecodingExceptionInterface
-            | InvalidArgumentException
-            | TransportExceptionInterface $e
+            | TransportExceptionInterface
+            | NoSuchEngineException $e
         ) {
             $this->logger->error($e->getMessage());
 

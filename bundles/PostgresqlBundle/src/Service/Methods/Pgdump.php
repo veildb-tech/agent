@@ -60,8 +60,8 @@ class Pgdump extends PgMethod
     /**
      * @inheritDoc
      */
-    public function askConfig(InputOutput $inputOutput): array
+    public function askConfig(InputOutput $inputOutput, array $config = []): array
     {
-        return $this->askDatabaseConfig($inputOutput);
+        return $this->askDatabaseConfig($inputOutput, $config);
     }
 }

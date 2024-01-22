@@ -6,7 +6,6 @@ namespace App\Service\PublicCommand\Database;
 
 use Exception;
 use Psr\Cache\InvalidArgumentException;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;

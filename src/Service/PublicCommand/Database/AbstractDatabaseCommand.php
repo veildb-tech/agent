@@ -145,8 +145,7 @@ abstract class AbstractDatabaseCommand extends AbstractCommand
                 }
                 break;
             case 'save':
-                $this->sendDatabaseToService($server);
-                $this->appConfig->saveDatabaseConfig($this->config);
+                $this->saveDBtoService($server);
                 break;
             case 'exit':
                 $inputOutput->warning(
@@ -179,15 +178,13 @@ abstract class AbstractDatabaseCommand extends AbstractCommand
      */
     protected function sendDatabaseToService(array $server): void
     {
-        if ($server['uuid']) {
+        if (isset($this->config['db_uuid'])) {
             $this->databaseApi->update(
-                $server['uuid'],
+                $this->config['db_uuid'],
                 [
                     'name' => $this->config['name'],
                     'engine' => $this->config['engine'],
-                    'platform' => $this->config['platform'],
-                    'status' => 'pending',
-                    'server' => '/api/servers/' . $server['uuid']
+                    'platform' => $this->config['platform']
                 ]
             );
         } else {
@@ -263,12 +260,12 @@ abstract class AbstractDatabaseCommand extends AbstractCommand
 
         $this->config['method'] = $this->getInputOutput()->choice(
             "Please select how to create dumps of real database?",
-            array_map(fn($method) =>  $method->getDescription(), $methods),
+            array_map(fn($method) => $method->getDescription(), $methods),
             $this->config['method'] ?? null
         );
 
-        $methodConfig = $methods[$this->config['method']]->askConfig($this->getInputOutput());
-        $this->config = array_merge($methodConfig, $this->config);
+        $methodConfig = $methods[$this->config['method']]->askConfig($this->getInputOutput(), $this->config);
+        $this->config = array_merge($this->config, $methodConfig);
     }
 
     /**

@@ -75,6 +75,8 @@ ${YELLOW}Tool:${NC}
                                       ${RED}--db[=DB]${NC} Database Name
                                       ${BLUE}--path[=PATH]${NC} Full path to backup file
                                       ${BLUE}--engine[=ENGINE]${NC} Db Engine ( mysql | postgres ). Default: mysql
+    ${GREEN}app:db:update${NC}                  - Update DB dump
+                                      ${BLUE}-u | --uid[=UID]${NC} Database Uid
     ${GREEN}app:db:backups:clear${NC}           - Start cleaning old DB backups
     ${GREEN}app:cron:install${NC}               - Generates and installs crontab for current user
 "
@@ -213,6 +215,11 @@ else
                 _checkDocker
                 . "${PROJECT_ROOT}"/bin/docker/console "app:db:add" "${@}"
                 ;;
+            app:db:update)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
+                _checkDocker
+                . "${PROJECT_ROOT}"/bin/docker/console "app:db:update" "${@}"
+                ;;
             app:db:analyze)
                 [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 _checkDocker
@@ -255,6 +262,10 @@ else
             app:db:add)
                 [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
                 php "${PROJECT_ROOT}"/bin/console "app:db:add" "${@}"
+                ;;
+            app:db:update)
+                [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))
+                php "${PROJECT_ROOT}"/bin/console "app:db:update" "${@}"
                 ;;
             app:cron:install)
                 [ "${CURRENT_SHELL}" = "" ] && shift $(( 1 > $# ? $# : 1))

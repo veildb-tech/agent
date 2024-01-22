@@ -26,9 +26,11 @@ interface MethodInterface
      * Ask for configuration via CLI
      *
      * @param InputOutput $inputOutput
+     * @param array $config
+     *
      * @return array
      */
-    public function askConfig(InputOutput $inputOutput): array;
+    public function askConfig(InputOutput $inputOutput, array $config = []): array;
 
     /**
      * Method which process backup

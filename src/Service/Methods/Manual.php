@@ -54,7 +54,7 @@ class Manual extends AbstractMethod
     /**
      * @inheritDoc
      */
-    public function askConfig(InputOutput $inputOutput): array
+    public function askConfig(InputOutput $inputOutput, array $config = []): array
     {
         if ($this->appConfig->isDockerUsed()) {
             $dumpName = $inputOutput->ask(
@@ -62,19 +62,20 @@ class Manual extends AbstractMethod
                     "Enter path to DB dump file started from %s/?",
                     rtrim($this->appConfig->getLocalBackupsDir(), '/')
                 ),
-                null,
+                    $config['dump_name'] ?? null,
                 self::validateRequired(...)
             );
 
             return [
-                'dump_name' => AppConfig::LOCAL_BACKUPS_FOLDER . ltrim($dumpName, '/')
+                'dump_name' => (isset($config['dump_name']) && $dumpName === $config['dump_name'])
+                    ? $config['dump_name'] : AppConfig::LOCAL_BACKUPS_FOLDER . ltrim($dumpName, '/')
             ];
         }
 
         return [
             'dump_name' => $inputOutput->ask(
                 'Enter full path to DB dump file?',
-                null,
+                $config['dump_name'] ?? null,
                 self::validateRequired(...)
             )
         ];

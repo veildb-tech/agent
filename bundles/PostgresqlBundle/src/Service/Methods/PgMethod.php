@@ -21,17 +21,33 @@ abstract class PgMethod extends AbstractMethod
 
     /**
      * @param InputOutput $inputOutput
+     * @param array $config
+     *
      * @return array
      */
-    protected function askDatabaseConfig(InputOutput $inputOutput): array
+    protected function askDatabaseConfig(InputOutput $inputOutput, array $config = []): array
     {
-        $config = [];
-
-        $config['db_host'] = $inputOutput->ask('Database Host', 'localhost', self::validateRequired(...));
-        $config['db_user'] = $inputOutput->ask('Database User', 'root', self::validateRequired(...));
+        $config['db_host'] = $inputOutput->ask(
+            'Database Host',
+            $config['db_host'] ?? 'localhost',
+            self::validateRequired(...)
+        );
+        $config['db_user'] = $inputOutput->ask(
+            'Database User',
+            $config['db_user'] ?? 'root',
+            self::validateRequired(...)
+        );
         $config['db_password'] = $inputOutput->askHidden('Password');
-        $config['db_name'] = $inputOutput->ask('Database Name', null, self::validateRequired(...));
-        $config['db_port'] = $inputOutput->ask('Database Port ', '5432', self::validateRequired(...));
+        $config['db_name'] = $inputOutput->ask(
+            'Database Name',
+            $config['db_name'] ?? null,
+            self::validateRequired(...)
+        );
+        $config['db_port'] = $inputOutput->ask(
+            'Database Port ',
+            $config['db_port'] ?? '5432',
+            self::validateRequired(...)
+        );
 
         return $config;
     }
