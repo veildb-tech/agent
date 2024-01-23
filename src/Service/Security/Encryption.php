@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Service\Security;
 
 use App\Exception\EncryptionException;
-use Symfony\Component\Filesystem\Filesystem;
 
 final class Encryption extends AbstractSecurity
 {
     /**
-     * @param Filesystem $filesystem
      * @param string $secretKey
      */
     public function __construct(
-        protected readonly Filesystem $filesystem,
         protected readonly string $secretKey = ''
     ) {
     }

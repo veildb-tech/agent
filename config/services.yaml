@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.app_secret: '%env(APP_SECRET))%'
     app.service_workspace: '%env(APP_SERVICE_WORKSPACE)%'
     app.service_token: '%env(APP_SERVICE_TOKEN)%'
     app.service_uuid: '%env(APP_SERVER_UUID)%'
@@ -47,6 +48,11 @@ services:
             $publicKey: '%app.secret_key_public%'
             $passphrase: ''
             $algorithm: 'RS256'
+
+    App\Service\Security\Encryptor:
+        arguments:
+            $secretKey: '%app.app_secret%'
+            $algorithm: 'AES-256-CBC'
 
     App\Service\AppConfig:
         arguments:
