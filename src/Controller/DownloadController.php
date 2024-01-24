@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Exception\AccessDenyException;
 use App\Exception\EncryptionException;
+use App\Service\Security\Encryptor;
 use App\ServiceApi\Actions\ValidateAccessToken;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,10 +24,17 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class DownloadController extends AbstractController
 {
+    /**
+     * @param ValidateAccessToken $validateAccessToken
+     * @param DumpManagement $dumpService
+     * @param Encryptor $encryptor
+     *
+     * Initializes a new instance of the class.
+     */
     public function __construct(
         private readonly ValidateAccessToken $validateAccessToken,
         private readonly DumpManagement $dumpService,
-        private readonly Encryption $encryption
+        private readonly Encryptor $encryptor
     ) {
     }
 
@@ -38,7 +46,7 @@ class DownloadController extends AbstractController
         try {
             $this->validateAccessToken->execute($token);
 
-            $decryptedData = $this->encryption->execute($encryptedData);
+            $decryptedData = $this->encryptor->decryptWithKey($encryptedData);
             $decryptedData = json_decode($decryptedData, true);
 
             $file = $this->dumpService->getDumpFileByUuid($decryptedData['dumpuuid']);

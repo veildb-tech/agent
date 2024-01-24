@@ -108,7 +108,9 @@ class Sftp extends AbstractMethod
 
             $newConfig['sftp_key_passphrase'] = $inputOutput->ask('Passphrase');
         } elseif ($newConfig['sftp_auth'] === self::AUTH_TYPE_PASS) {
-            $newConfig['sftp_password'] = $inputOutput->askHidden('SFTP Password', self::validateRequired(...));
+            $newConfig['sftp_password'] = $this->encryptor->encrypt(
+                $inputOutput->askHidden('SFTP Password', self::validateRequired(...))
+            );
         }
 
         $newConfig['sftp_filepath'] = $inputOutput->ask(
@@ -121,8 +123,10 @@ class Sftp extends AbstractMethod
 
     /**
      * @param array $config
+     *
      * @return resource
      * @throws ConnectionError
+     * @throws Exception
      */
     private function getConnection(array $config)
     {
@@ -138,7 +142,11 @@ class Sftp extends AbstractMethod
                     $config['sftp_key_passphrase'] ?? ''
                 );
             } elseif ($config['sftp_auth'] === self::AUTH_TYPE_PASS) {
-                ssh2_auth_password($connection, $config['sftp_user'], $config['sftp_password']);
+                ssh2_auth_password(
+                    $connection,
+                    $config['sftp_user'],
+                    $this->encryptor->decrypt($config['sftp_password'])
+                );
             } elseif ($config['sftp_auth'] === self::AUTH_TYPE_NONE) {
                 ssh2_auth_none($connection, $config['sftp_user']);
             } else {

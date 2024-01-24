@@ -86,7 +86,7 @@ class PgdumpOverSsh extends PgMethod
         if ($config['ssh_auth'] === self::AUTH_TYPE_PASS) {
             $sshCommand = sprintf(
                 "sshpass -p '%s' ssh -o 'StrictHostKeyChecking=no' %s@%s -p %s",
-                $config['ssh_password'],
+                $this->encryptor->decrypt($config['ssh_password']),
                 $config['ssh_user'],
                 $config['ssh_host'],
                 $config['ssh_port']
@@ -144,7 +144,9 @@ class PgdumpOverSsh extends PgMethod
                 'Key path:', $config['ssh_key_path'] ?? '~/.ssh/id_rsa', $validateRequired
             );
         } elseif ($newConfig['ssh_auth'] === self::AUTH_TYPE_PASS) {
-            $newConfig['ssh_password'] = $inputOutput->askHidden('SSH Password:', $validateRequired);
+            $newConfig['ssh_password'] = $this->encryptor->encrypt(
+                $inputOutput->askHidden('SSH Password:', $validateRequired)
+            );
         } else {
             $inputOutput->error("Something went wrong. Method is not specified");
             exit;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Methods;
 
 use App\Service\AppConfig;
+use App\Service\Security\Encryptor;
 use App\Service\ShellProcess;
 
 abstract class AbstractMethod implements MethodInterface
@@ -12,10 +13,12 @@ abstract class AbstractMethod implements MethodInterface
     /**
      * @param AppConfig $appConfig
      * @param ShellProcess $shellProcess
+     * @param Encryptor $encryptor
      */
     public function __construct(
         protected readonly AppConfig $appConfig,
         protected readonly ShellProcess $shellProcess,
+        protected readonly Encryptor $encryptor
     ) {
     }
 
