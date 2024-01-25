@@ -25,14 +25,12 @@ final class Add extends AbstractServerCommand
         $inputOutput = $this->getInputOutput();
 
         try {
-            $userEmail = $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email");
-            $password = $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password");
-            $workspace = $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code");
+            $userData = $this->getUserData($inputOutput);
 
-            $user = $this->getUserByEmail->setCredentials($userEmail, $password, $workspace)->execute($userEmail);
-            $server = $this->createServer($inputOutput, $user, $userEmail, $password, $workspace);
+            $server = $this->createServer($inputOutput, ...$userData);
 
             $this->updateEnvFile($server['uuid'], $server['secret_key']);
+
             $this->setupCronJobs();
 
             return true;
@@ -55,9 +53,9 @@ final class Add extends AbstractServerCommand
      * Create new server
      *
      * @param InputOutput $inputOutput
-     * @param array $user
-     * @param string $userEmail
+     * @param string $email
      * @param string $password
+     * @param string $workspace
      *
      * @return array
      * @throws ClientExceptionInterface
@@ -67,12 +65,16 @@ final class Add extends AbstractServerCommand
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      */
-    private function createServer(InputOutput $inputOutput, array $user, string $userEmail, string $password): array
-    {
+    private function createServer(
+        InputOutput $inputOutput,
+        string $email,
+        string $password,
+        string $workspace = ''
+    ): array {
         $serverName = $inputOutput->ask("Enter server name");
         $serverUrl  = $this->getServerUrl($inputOutput);
 
-        $server = $this->serverApi->setCredentials($userEmail, $password)->create(
+        $server = $this->serverApi->setCredentials($email, $password, $workspace)->create(
             [
                 'name'        => $serverName,
                 'url'         => $serverUrl,

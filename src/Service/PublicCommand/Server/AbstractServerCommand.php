@@ -70,16 +70,33 @@ abstract class AbstractServerCommand extends AbstractCommand
     }
 
     /**
+     * Get User Data
+     *
      * @param InputOutput $inputOutput
+     *
+     * @return array
+     */
+    protected function getUserData(InputOutput $inputOutput): array
+    {
+        return [
+            'email' => $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email"),
+            'password' => $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password"),
+            'workspace' => $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code")
+        ];
+    }
+
+    /**
+     * @param InputOutput $inputOutput
+     * @param null|string $serverUrl
      *
      * @return string
      */
-    protected function getServerUrl(InputOutput $inputOutput): string
+    protected function getServerUrl(InputOutput $inputOutput, ?string $serverUrl = null): string
     {
-        if (!$this->appConfig->isDockerUsed()) {
-            return $inputOutput->ask("Enter server public Url", '');
+        if ($this->appConfig->isDockerUsed()) {
+            $serverUrl ??= $this->appConfig->getDockerServerUrl();
         }
-        return $this->appConfig->getDockerServerUrl();
+        return $inputOutput->ask("Enter server public Url", $serverUrl);
     }
 
     /**

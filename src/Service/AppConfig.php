@@ -73,7 +73,10 @@ class AppConfig
         $url  = env('APP_DOCKER_SERVER_URL', '');
         $port = env('APP_DOCKER_HTTPS_PORT', '');
 
-        return $url . ($port !== '443') ? ':' . $port : '';
+        $port = ($port !== '443') ? ':' . $port : '';
+        $url  = str_replace(['https://', 'http://'], '', $url);
+
+        return 'https://' . rtrim($url, '/') . $port . '/';
     }
 
     /**
