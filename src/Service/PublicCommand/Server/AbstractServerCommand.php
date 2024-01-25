@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\PublicCommand\Server;
 
 use App\Service\AppConfig;
+use App\Service\InputOutput;
 use App\Service\PublicCommand\AbstractCommand;
 use App\Service\PublicCommand\Database\AddDatabase;
 use App\Service\ShellProcess;
@@ -66,6 +67,36 @@ abstract class AbstractServerCommand extends AbstractCommand
         if ($this->process() && !$input->getOption('current')) {
             $this->addDatabase->execute($input, $output);
         }
+    }
+
+    /**
+     * Get User Data
+     *
+     * @param InputOutput $inputOutput
+     *
+     * @return array
+     */
+    protected function getUserData(InputOutput $inputOutput): array
+    {
+        return [
+            'email' => $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email"),
+            'password' => $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password"),
+            'workspace' => $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code")
+        ];
+    }
+
+    /**
+     * @param InputOutput $inputOutput
+     * @param null|string $serverUrl
+     *
+     * @return string
+     */
+    protected function getServerUrl(InputOutput $inputOutput, ?string $serverUrl = null): string
+    {
+        if ($this->appConfig->isDockerUsed()) {
+            $serverUrl ??= $this->appConfig->getDockerServerUrl();
+        }
+        return $inputOutput->ask("Enter server public Url", $serverUrl);
     }
 
     /**

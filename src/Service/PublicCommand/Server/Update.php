@@ -25,13 +25,10 @@ final class Update extends AbstractServerCommand
         $inputOutput = $this->getInputOutput();
 
         try {
-            $userEmail  = $this->input->getOption('email') ?? $inputOutput->ask("Enter your Email");
-            $password   = $this->input->getOption('password') ?? $inputOutput->askHidden("Enter your Password");
-            $workspace   = $this->input->getOption('workspace') ?? $inputOutput->ask("Enter your Workspace code");
+            $userData = $this->getUserData($inputOutput);
 
-            $user       = $this->getUserByEmail->setCredentials($userEmail, $password, $workspace)->execute($userEmail);
+            $server = $this->updateServer($inputOutput, ...$userData);
 
-            $server     = $this->updateServer($inputOutput, $user, $userEmail, $password, $workspace);
             $this->updateEnvFile($server['uuid'], $server['secret_key']);
 
             return true;
@@ -54,9 +51,9 @@ final class Update extends AbstractServerCommand
      * Update / activate existed server
      *
      * @param InputOutput $inputOutput
-     * @param array $user
-     * @param string $userEmail
+     * @param string $email
      * @param string $password
+     * @param string $workspace
      *
      * @return array
      * @throws ClientExceptionInterface
@@ -65,30 +62,22 @@ final class Update extends AbstractServerCommand
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws Exception
      */
     private function updateServer(
         InputOutput $inputOutput,
-        array $user,
-        string $userEmail,
+        string $email,
         string $password,
         string $workspace = ''
     ): array {
-        if ($this->input->getOption('current')) {
-            $uuid = $this->appConfig->getServerUuid();
-        } else {
-            $uuid = $inputOutput->ask("Enter server UUID");
-        }
-        $server = $this->serverApi->setCredentials($userEmail, $password)->get(htmlspecialchars($uuid));
+        $uuid = $this->getUuid($inputOutput);
+        $server = $this->serverApi->setCredentials($email, $password)->get($uuid);
 
-        if (!$server['url']) {
-            $serverUrl = $inputOutput->ask("Enter server public Url", '');
-        }
+        $serverUrl = $this->getServerUrl($inputOutput, $server['url']);
 
-        $server = $this->serverApi->setCredentials($userEmail, $password, $workspace)->update(
+        $server = $this->serverApi->setCredentials($email, $password, $workspace)->update(
             $uuid,
             [
-                'url'         => $serverUrl ?? $server['url'],
+                'url'         => $serverUrl,
                 'status'      => ServerStatusEnum::ENABLED->value,
                 'ipAddress'   => $this->getIpAddress()
             ]
@@ -96,5 +85,32 @@ final class Update extends AbstractServerCommand
 
         $inputOutput->success("Server successfully updated");
         return $server;
+    }
+
+    /**
+     * Returns the UUID for the server. If the 'current' option is set, it returns the server UUID from the app configuration.
+     * Otherwise, it prompts the user to enter the server UUID.
+     *
+     * @param InputOutput $inputOutput The input/output object.
+     *
+     * @return string The UUID for the server.
+     * @throws \RuntimeException If the entered value is empty.
+     *
+     * @example
+     * // Example usage:
+     * $inputOutput = new InputOutput();
+     * $uuid = $this->getUuid($inputOutput);
+     */
+    private function getUuid(InputOutput $inputOutput): string
+    {
+        if ($this->input->getOption('current')) {
+            return $this->appConfig->getServerUuid();
+        }
+        return $inputOutput->ask("Enter server UUID", '', function ($value) {
+            if (empty($value)) {
+                throw new \RuntimeException('Value is required.');
+            }
+            return htmlspecialchars($value);
+        });
     }
 }

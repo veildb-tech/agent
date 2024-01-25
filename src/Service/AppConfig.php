@@ -70,7 +70,13 @@ class AppConfig
      */
     public function getDockerServerUrl(): string
     {
-        return env('APP_DOCKER_SERVER_URL', '');
+        $url  = env('APP_DOCKER_SERVER_URL', '');
+        $port = env('APP_DOCKER_HTTPS_PORT', '');
+
+        $port = ($port !== '443') ? ':' . $port : '';
+        $url  = str_replace(['https://', 'http://'], '', $url);
+
+        return 'https://' . rtrim($url, '/') . $port . '/';
     }
 
     /**
