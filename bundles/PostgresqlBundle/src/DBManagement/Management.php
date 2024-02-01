@@ -52,7 +52,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
         }
 
         return sprintf(
-            "psql postgresql://%s:%s@%s:%s/%s",
+            "psql postgresql://%s:%s@%s:%s/%s < %s",
             ...[
                 ...$credentials,
                 escapeshellarg($inputPath)
