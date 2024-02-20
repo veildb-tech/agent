@@ -1,0 +1,4 @@
+#!/bin/bash
+shift 1
+echo "$@";
+echo "${@:2}"

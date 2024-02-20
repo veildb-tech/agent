@@ -2,6 +2,11 @@
 
 [ -z "$1" ] && echo "Please specify a Console command (ex. list)" && exit
 
+## Workaround to fix issue with duplication of arguments
+if [ ${1} = ${2} ]; then
+    shift 1;
+fi
+
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
