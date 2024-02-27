@@ -60,11 +60,17 @@ ${YELLOW}Tool:${NC}
     ${GREEN}app:server:add${NC}                 - Start adding the server to service
                                       ${BLUE}--email[=EMAIL]${NC} Email to authorize
                                       ${BLUE}--password[=PASSWORD]${NC} Password to authorize
-                                      ${BLUE}--current${NC} If this option set it command only updates server credentials
+                                      ${BLUE}--current${NC} If this option set it command only updates server credentials"
+if [ "${APP_SERVER_UUID}" != '' ] && [ "${APP_SERVER_SECRET_KEY}" != '' ]; then
+    # shellcheck disable=SC2059
+    printf "
     ${GREEN}app:server:update${NC}              - Update the server data
                                       ${BLUE}--email[=EMAIL]${NC} Email to authorize
                                       ${BLUE}--password[=PASSWORD]${NC} Password to authorize
-                                      ${BLUE}--current${NC} If this option set it command only updates server credentials
+                                      ${BLUE}--current${NC} If this option set it command only updates server credentials"
+fi
+# shellcheck disable=SC2059
+printf "
     ${GREEN}app:server:generate-keypair${NC}    - Generate public/private keys for use in your application.
                                       ${BLUE}--identifier[=EMAIL]${NC} User identifier!
     ${GREEN}app:db:process${NC}                 - Start processing scheduled database

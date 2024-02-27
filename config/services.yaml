@@ -85,6 +85,10 @@ services:
         tags:
         - { name: 'app.backup_method' }
 
+    App\EventListener\CommandAccessListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
 #    App\Service\Methods\MethodProcessor:
 #        arguments:
 #            $methods:
