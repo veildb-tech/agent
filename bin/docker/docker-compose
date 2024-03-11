@@ -1,5 +1,9 @@
 #!/bin/sh
 
+command_exists() {
+    command -v "$@" > /dev/null 2>&1
+}
+
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath $0)")/../.."
 fi
@@ -28,10 +32,12 @@ else
   export DOCKER_GID=$(id -g)
 fi
 
-if docker compose version > /dev/null 2>&1; then
-  DOCKER_COMPOSE="docker compose"
+if command_exists "docker compose" ; then
+    DOCKER_COMPOSE="docker compose"
+elif command_exists "docker-compose"; then
+    DOCKER_COMPOSE="docker-compose"
 else
-  DOCKER_COMPOSE="docker-compose"
+    echo "The commands: docker-compose or docker compose not found in system. Please, install before continue." && exit
 fi
 
 COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml

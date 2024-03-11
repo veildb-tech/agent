@@ -69,6 +69,16 @@ _installDocker() {
         fi
     fi
 
+    if ! command_exists "docker compose" || ! command_exists "docker-compose" ; then
+        read -r -p "Did Docker Compose get installed! Do you want to proceed? (Y/n) " yn </dev/tty
+        if [ $(expr match "${yn}" '[Nn]') != 0 ]; then
+            echo "Installation process stopped...";
+            exit
+        else
+            "${PROJECT_ROOT}"bin/docker/install_docker.sh
+        fi
+    fi
+
     if [ ! -f /.dockerenv  ]; then
         if [ "${USER}" != 'root' ] && [ -e "/var/run/docker.sock" ]; then
             $sh_c "usermod -aG docker ${USER}"
@@ -111,6 +121,13 @@ _checkDockerRequiredLibs() {
         _output "  [*] Curl is installed" "success"
     else
         _output "  [ ] ERROR: Curl is required for installation" "error"
+        exit 1
+    fi
+
+    if command -v zip >/dev/null 2>&1; then
+        _output "  [*] Zip is installed" "success"
+    else
+        _output "  [ ] ERROR: Zip is required for installation" "error"
         exit 1
     fi
 }
