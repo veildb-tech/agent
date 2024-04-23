@@ -94,20 +94,20 @@ _info() {
     # shellcheck disable=SC2059
     printf "${YELLOW}Tool Configurations:${NC}
     Tool is installed in dir:   ${GREEN}${PROJECT_ROOT}${NC}
-    Main config file is:        ${GREEN}${PROJECT_ROOT}/.env${NC}
+    Main config file is:        ${GREEN}${PROJECT_ROOT}.env${NC}
 "
 
     if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
         # shellcheck disable=SC2059
         printf "
-    MySQL config file is:       ${GREEN}${PROJECT_ROOT}/.env.mysql${NC}
+    MySQL config file is:       ${GREEN}${PROJECT_ROOT}.env.mysql${NC}
 "
     fi
 
     if [ -f "${PROJECT_ROOT}/.env.postgress" ]; then
         # shellcheck disable=SC2059
         printf "
-    Postgress config file is:   ${GREEN}${PROJECT_ROOT}/.env.postgress${NC}
+    Postgress config file is:   ${GREEN}${PROJECT_ROOT}.env.postgress${NC}
 "
     fi
 

@@ -418,77 +418,92 @@ done </dev/tty
 
 # Select DB Version
 if [ -f ${PROJECT_ROOT}.env.mysql ]; then
-    PS3='Choose MySQL DB version: '
-    options=("10.4" "10.5" "10.6" "10.11" "11.0" "11.1" "11.3" "11.4")
-    select version in "${options[@]}";
-    do
-        case $version in
-            "10.4")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
+    while true; do
+        echo "1. 10.4"
+        echo "2. 10.5"
+        echo "3. 10.6"
+        echo "4. 10.11"
+        echo "5. 11.0"
+        echo "6. 11.1"
+        echo "7. 11.3"
+        echo "8. 11.4"
+
+        read -p "Choose MySQL DB version: " choice
+        case $choice in
+            1)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "10.5")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
+            2)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.5" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "10.6")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=10.6" ${PROJECT_ROOT}.env.mysql
+            3)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.6" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "10.11")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=10.11" ${PROJECT_ROOT}.env.mysql
+            4)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.11" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "11.0")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=11.0" ${PROJECT_ROOT}.env.mysql
+            5)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.0" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "11.1")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=11.1" ${PROJECT_ROOT}.env.mysql
+            6)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.1" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "11.3")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=11.3" ${PROJECT_ROOT}.env.mysql
+            7)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.3" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            "11.4")
-                _replace_pattern "MARIA_DB_VERSION=*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mysql
+            8)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            *) echo "invalid option $REPLY";;
-      esac
-    done
+            *)
+                echo "Invalid option. Try again."
+                ;;
+        esac
+    done </dev/tty
 fi
 
 if [ -f ${PROJECT_ROOT}.env.pgsql ]; then
-    PS3='Choose Postgres DB version: '
-    options=("12" "13" "14" "15" "16")
-    select version in "${options[@]}";
-    do
-        case $version in
-            "12")
-                _replace_pattern "POSTGRES_DB_VERSION=*" "POSTGRES_DB_VERSION=12" ${PROJECT_ROOT}.env.pgsql
+    while true; do
+        echo "1. 12"
+        echo "2. 13"
+        echo "3. 14"
+        echo "4. 15"
+        echo "5. 16"
+
+        read -p "Choose Postgres DB version: " choice
+        case $choice in
+            1)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=12" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            "13")
-                _replace_pattern "POSTGRES_DB_VERSION=*" "POSTGRES_DB_VERSION=13" ${PROJECT_ROOT}.env.pgsql
+            2)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=13" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            "14")
-                _replace_pattern "POSTGRES_DB_VERSION=*" "POSTGRES_DB_VERSION=14" ${PROJECT_ROOT}.env.pgsql
+            3)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=14" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            "15")
-                _replace_pattern "POSTGRES_DB_VERSION=*" "POSTGRES_DB_VERSION=15" ${PROJECT_ROOT}.env.pgsql
+            4)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=15" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            "16")
-                _replace_pattern "POSTGRES_DB_VERSION=*" "POSTGRES_DB_VERSION=16" ${PROJECT_ROOT}.env.pgsql
+            5)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=16" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            *) echo "invalid option $REPLY";;
-      esac
-    done
+            *)
+                echo "Invalid option. Try again."
+                ;;
+        esac
+    done </dev/tty
 fi
 
 # Get project configurations
