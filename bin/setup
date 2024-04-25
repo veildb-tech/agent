@@ -444,6 +444,96 @@ while true; do
     esac
 done </dev/tty
 
+# Select DB Version
+if [ -f ${PROJECT_ROOT}.env.mysql ]; then
+    while true; do
+        echo "1. 10.4"
+        echo "2. 10.5"
+        echo "3. 10.6"
+        echo "4. 10.11"
+        echo "5. 11.0"
+        echo "6. 11.1"
+        echo "7. 11.3"
+        echo "8. 11.4"
+
+        read -p "Choose MySQL DB version: " choice
+        case $choice in
+            1)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            2)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.5" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            3)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.6" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            4)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.11" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            5)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.0" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            6)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.1" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            7)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.3" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            8)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            *)
+                echo "Invalid option. Try again."
+                ;;
+        esac
+    done </dev/tty
+fi
+
+if [ -f ${PROJECT_ROOT}.env.pgsql ]; then
+    while true; do
+        echo "1. 12"
+        echo "2. 13"
+        echo "3. 14"
+        echo "4. 15"
+        echo "5. 16"
+
+        read -p "Choose Postgres DB version: " choice
+        case $choice in
+            1)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=12" ${PROJECT_ROOT}.env.pgsql
+                break
+                ;;
+            2)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=13" ${PROJECT_ROOT}.env.pgsql
+                break
+                ;;
+            3)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=14" ${PROJECT_ROOT}.env.pgsql
+                break
+                ;;
+            4)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=15" ${PROJECT_ROOT}.env.pgsql
+                break
+                ;;
+            5)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=16" ${PROJECT_ROOT}.env.pgsql
+                break
+                ;;
+            *)
+                echo "Invalid option. Try again."
+                ;;
+        esac
+    done </dev/tty
+fi
+
 # Get project configurations
 export $(cat "${PROJECT_ROOT}.env" | grep -v ^# | grep -v ^alias | xargs)
 

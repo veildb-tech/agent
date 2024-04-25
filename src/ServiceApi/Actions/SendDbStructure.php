@@ -15,7 +15,10 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 final class SendDbStructure extends AppService
 {
-    protected string $action = 'databases';
+    /**
+     * Api URL
+     */
+    public const ACTION_URL = 'databases';
 
     /**
      * Set DB structure
@@ -33,7 +36,7 @@ final class SendDbStructure extends AppService
      */
     public function execute(string $dbUid, array $data): void
     {
-        $this->action .= '/' . $dbUid;
+        $this->action = self::ACTION_URL . '/' . $dbUid;
 
         $this->sendData(
             JSON::encode($data['db_schema']),
