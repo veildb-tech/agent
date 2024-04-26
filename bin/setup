@@ -427,8 +427,9 @@ if [ -f ${PROJECT_ROOT}.env.mysql ]; then
         echo "6. 11.1"
         echo "7. 11.3"
         echo "8. 11.4"
+        echo "9. latest"
 
-        read -p "Choose MySQL DB version: " choice
+        read -p "Choose MySQL DB version ( default is latest ): " choice
         case $choice in
             1)
                 _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
@@ -462,8 +463,9 @@ if [ -f ${PROJECT_ROOT}.env.mysql ]; then
                 _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
-            *)
-                echo "Invalid option. Try again."
+            ''|9)
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=latest" ${PROJECT_ROOT}.env.mysql
+                break
                 ;;
         esac
     done </dev/tty
@@ -476,8 +478,9 @@ if [ -f ${PROJECT_ROOT}.env.pgsql ]; then
         echo "3. 14"
         echo "4. 15"
         echo "5. 16"
+        echo "6. latest"
 
-        read -p "Choose Postgres DB version: " choice
+        read -p "Choose Postgres DB version ( default is latest ): " choice
         case $choice in
             1)
                 _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=12" ${PROJECT_ROOT}.env.pgsql
@@ -499,8 +502,9 @@ if [ -f ${PROJECT_ROOT}.env.pgsql ]; then
                 _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=16" ${PROJECT_ROOT}.env.pgsql
                 break
                 ;;
-            *)
-                echo "Invalid option. Try again."
+            ''|6)
+                _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=latest" ${PROJECT_ROOT}.env.pgsql
+                break
                 ;;
         esac
     done </dev/tty
