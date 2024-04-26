@@ -11,12 +11,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Dump Processor Factory
  */
-final class DBManagementFactory
+final readonly class DBManagementFactory
 {
     /**
      * @param ContainerInterface $container
      */
-    public function __construct(private readonly ContainerInterface $container)
+    public function __construct(private ContainerInterface $container)
     {
     }
 

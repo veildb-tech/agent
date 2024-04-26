@@ -4,8 +4,8 @@ services:
   # -------------- #
   # -- Database -- #
   # -------------- #
-  dbvisor-mysql:
-    image: mysql:${MYSQL_DB_VERSION:-latest}
+  dbvisor-mariadb:
+    image: mariadb:${MARIA_DB_VERSION:-latest}
     container_name: ${IMAGES_PREFIX:-}dbvisor-mysql
     command: --max_allowed_packet=64M
     environment:

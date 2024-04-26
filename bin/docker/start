@@ -18,6 +18,10 @@ if [ -f "${PROJECT_ROOT}/.env.mysql" ]; then
     "${PROJECT_ROOT}"/bin/docker/start-db --mysql
 fi
 
+if [ -f "${PROJECT_ROOT}/.env.mariadb" ]; then
+    "${PROJECT_ROOT}"/bin/docker/start-db --mariadb
+fi
+
 if [ -f "${PROJECT_ROOT}/.env.pgsql" ]; then
     "${PROJECT_ROOT}"/bin/docker/start-db --postgres
 fi

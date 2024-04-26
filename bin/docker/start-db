@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ -z "$1" ] && echo "Please specify a Db engine (ex. --mysql|--postgres)" && exit
+[ -z "$1" ] && echo "Please specify a Db engine (ex. --mysql|--mariadb|--postgres)" && exit
 
 if [ -z "${PROJECT_ROOT}" ]; then
     export PROJECT_ROOT="$(dirname "$(realpath "${0}")")/../.."
@@ -27,17 +27,21 @@ _startContainer() {
 # Get the options
 while [ "$1" != "" ]; do
     case $1 in
-        -m | --mysql )
+        --mysql )
             _startContainer "${PROJECT_ROOT}/docker/dbs/mysql.yml" "${PROJECT_ROOT}/.env.mysql"
             ;;
-        -p | --postgres )
+        --mariadb )
+            _startContainer "${PROJECT_ROOT}/docker/dbs/mariadb.yml" "${PROJECT_ROOT}/.env.mariadb"
+            ;;
+        --postgres )
             _startContainer "${PROJECT_ROOT}/docker/dbs/postgres.yml" "${PROJECT_ROOT}/.env.pgsql"
             ;;
         * )
             echo "Invalid option: $1"
-            echo "Usage: stop-db [-m] [-p]"
-            echo "     -m | --mysql start mysql db"
-            echo "     -p | --postgres start postgres db"
+            echo "Usage: start-db"
+            echo "     --mysql start mysql db"
+            echo "     --mariadb start mariadb db"
+            echo "     --postgres start postgres db"
             echo "     the command requires an argument"
             exit
             ;;

@@ -54,7 +54,6 @@ final class ProcessCommand extends Command
             | RedirectionExceptionInterface
             | ServerExceptionInterface
             | DecodingExceptionInterface
-            | NoSuchMethodException
             | TransportExceptionInterface $e
         ) {
             $this->logger->error($e->getMessage());

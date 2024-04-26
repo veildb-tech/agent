@@ -1,0 +1,15 @@
+{
+    "name": "db-manager/mariadb-bundle",
+    "description": "MariaDB engine bundle",
+    "type": "symfony-bundle",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "DbManager\\MariaDbBundle\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+    ]
+}

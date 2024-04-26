@@ -8,6 +8,9 @@
     "db-manager/magento-bundle": {
         "version": "dev-main"
     },
+    "db-manager/mariadb-bundle": {
+        "version": "dev-main"
+    },
     "db-manager/mysql-bundle": {
         "version": "dev-main"
     },

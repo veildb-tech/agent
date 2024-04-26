@@ -243,8 +243,6 @@ _initAlias() {
             echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
 
             source ${HOME}/.zshrc
-
-            exec zsh --login
         fi
     fi
 
@@ -358,7 +356,7 @@ fi
 
 # Get path to dumps folder
 NEW_APP_DUMP_PATH=""
-while [ "${NEW_APP_DUMP_PATH}" = "" ] || [ $(expr match "${NEW_APP_DUMP_PATH}" '~') != 0 ]; do
+while [ "${NEW_APP_DUMP_PATH}" = "" ] || [ "$(expr match "${NEW_APP_DUMP_PATH}" '~')" != "0" ]; do
     read -rp " Enter the full path to folder where processed dumps will be placed (default: ${DEFAULT_APP_DUMP_PATH} ): " NEW_APP_DUMP_PATH </dev/tty
     NEW_APP_DUMP_PATH=${NEW_APP_DUMP_PATH:="${DEFAULT_APP_DUMP_PATH}"}
     NEW_APP_DUMP_PATH=$(_fixDirectory "${NEW_APP_DUMP_PATH}")
@@ -379,11 +377,11 @@ if [ ${USE_DOCKER} = "1" ]; then
     fi
 
     read -r -p " Do you have locally placed backups, or do you plan to use manual backups in future? (Y/n) " yn </dev/tty
-    if [ $(expr match "${yn}" '[Nn]') != 0 ]; then
+    if [ "$(expr match "${yn}" '[Nn]')" != "0" ]; then
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${DEFAULT_APP_DUMP_PATH}
     else
         NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=""
-        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" = "" ] || [ $(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~') != 0 ]; do
+        while [ "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" = "" ] || [ "$(expr match "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}" '~')" != "0" ]; do
             read -rp " Enter the full path to folder with your local dumps (default: ${DEFAULT_APP_DUMP_PATH} ): " NEW_APP_DOCKER_LOCAL_BACKUPS_PATH </dev/tty
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH:="${DEFAULT_APP_DUMP_PATH}"}
             NEW_APP_DOCKER_LOCAL_BACKUPS_PATH=$(_fixDirectory "${NEW_APP_DOCKER_LOCAL_BACKUPS_PATH}")
@@ -418,8 +416,9 @@ _output " Initializing supported DB engines " "heading"
 
 while true; do
     echo "1. MySQL"
-    echo "2. Postgres"
-    echo "3. Continue"
+    echo "2. MariaDB"
+    echo "3. Postgres"
+    echo "4. Continue"
 
     read -p "Choose DB engines which will be used: " choice
     case $choice in
@@ -430,12 +429,18 @@ while true; do
             echo "MySQL Selected."
             ;;
         2)
+            if [ ! -f {PROJECT_ROOT}.env.mariadb ]; then
+                cp ${PROJECT_ROOT}env.mariadb-sample ${PROJECT_ROOT}.env.mariadb
+            fi
+            echo "MariaDB Selected."
+            ;;
+        3)
             if [ ! -f {PROJECT_ROOT}.env.pgsql ]; then
                 cp ${PROJECT_ROOT}env.pgsql-sample ${PROJECT_ROOT}.env.pgsql
             fi
             echo "Postgres Selected."
             ;;
-        3)
+        4)
             break
             ;;
         *)
@@ -445,7 +450,7 @@ while true; do
 done </dev/tty
 
 # Select DB Version
-if [ -f ${PROJECT_ROOT}.env.mysql ]; then
+if [ -f ${PROJECT_ROOT}.env.mariadb ]; then
     while true; do
         echo "1. 10.4"
         echo "2. 10.5"
@@ -457,42 +462,91 @@ if [ -f ${PROJECT_ROOT}.env.mysql ]; then
         echo "8. 11.4"
         echo "9. latest"
 
-        read -p "Choose MySQL DB version ( default is latest ): " choice
+        read -p "Choose MariaDB version ( default is latest ): " choice
         case $choice in
             1)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.4" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             2)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.5" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.5" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             3)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.6" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.6" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             4)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.11" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=10.11" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             5)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.0" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.0" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             6)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.1" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.1" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             7)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.3" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.3" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             8)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=11.4" ${PROJECT_ROOT}.env.mariadb
                 break
                 ;;
             ''|9)
-                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=latest" ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "MARIA_DB_VERSION=[a-z0-9.]*" "MARIA_DB_VERSION=latest" ${PROJECT_ROOT}.env.mariadb
+                break
+                ;;
+        esac
+    done </dev/tty
+fi
+
+if [ -f ${PROJECT_ROOT}.env.mysql ]; then
+    while true; do
+        echo "1. 5.5"
+        echo "2. 5.6"
+        echo "3. 5.7"
+        echo "4. 8.0"
+        echo "5. 8.1"
+        echo "6. 8.2"
+        echo "7. 8.3"
+        echo "8. latest"
+
+        read -p "Choose MySQL DB version ( default is latest ): " choice
+        case $choice in
+            1)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=5.5" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            2)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=5.6" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            3)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=5.7" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            4)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=8.0" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            5)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=8.1" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            6)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=8.2" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            7)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=8.3" ${PROJECT_ROOT}.env.mysql
+                break
+                ;;
+            ''|8)
+                _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=latest" ${PROJECT_ROOT}.env.mysql
                 break
                 ;;
         esac

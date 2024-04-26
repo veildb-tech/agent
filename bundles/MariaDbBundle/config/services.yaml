@@ -1,0 +1,27 @@
+services:
+  db_manager_core.engines.mariadb:
+    autowire: true
+    public: true
+    class: DbManager\MariaDbBundle\Processor
+    arguments: []
+
+  db_manager_core.management.engines.mariadb:
+    autowire: true
+    public: true
+    class: DbManager\MariaDbBundle\DBManagement\Management
+    arguments: []
+
+  DbManager\MariaDbBundle\Service\Methods\Mysqldump:
+    autowire: true
+    tags:
+      - { name: 'app.backup_method' }
+
+  DbManager\MariaDbBundle\Service\Methods\MysqldumpOverSsh:
+    autowire: true
+    tags:
+      - { name: 'app.backup_method' }
+
+  DbManager\MariaDbBundle\Service\Engine\MariaDb:
+    autowire: true
+    tags:
+      - { name: 'app.engine' }
