@@ -136,7 +136,7 @@ class AppConfig
             }
 
             $this->dbEngineConfig[$engine] = array_change_key_case(
-                $this->getConfigFile($this->getProjectDir(), '.env.' . $engine)
+                $this->getConfigFile($this->getProjectDir(), '/.env.' . $engine)
             );
         }
 
@@ -305,7 +305,7 @@ class AppConfig
      */
     private function getConfigFile(string $directory, string $file = 'config'): array
     {
-        $dotenv = Dotenv::createImmutable($directory, $file);
+        $dotenv = Dotenv::createMutable($directory, $file);
 
         return $dotenv->safeLoad();
     }
