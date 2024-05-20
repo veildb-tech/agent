@@ -15,8 +15,9 @@ if [ ! -f "/etc/apache2/certs/ssl.crt" ] || [ ! -f "/etc/apache2/certs/ssl.key" 
                       -addext "certificatePolicies = 1.2.3.4"
 fi
 
-HTTPDUSER=$(ps axo user,comm | grep -E '[a]pache|[h]ttpd|[_]www|[w]ww-data|[n]ginx' | grep -v root | head -1 | cut -d\  -f1)
+#HTTPDUSER=$(ps axo user,comm | grep -E '[a]pache|[h]ttpd|[_]www|[w]ww-data|[n]ginx' | grep -v root | head -1 | cut -d\  -f1)
 
+HTTPDUSER=www-data
 setfacl -dR -m u:"$HTTPDUSER":rwX -m u:$(whoami):rwX /app/var
 setfacl -R -m u:"$HTTPDUSER":rwX -m u:$(whoami):rwX /app/var
 
