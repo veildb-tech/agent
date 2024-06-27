@@ -236,13 +236,17 @@ abstract class AbstractDatabaseCommand extends AbstractCommand
      */
     protected function getPlatforms(): void
     {
-        $platforms = $this->platformProcessor->getPlatforms();
+        $platforms = $this->platformProcessor->getPlatforms($this->config['engine']);
 
-        $this->config['platform'] = $this->getInputOutput()->choice(
-            "Select platform",
-            array_map(fn($platform) => $platform->getName(), $platforms),
-            $this->config['platform'] ?? Custom::CODE
-        );
+        if (count($platforms) > 1) {
+            $this->config['platform'] = $this->getInputOutput()->choice(
+                "Select platform",
+                array_map(fn($platform) => $platform->getName(), $platforms),
+                $this->config['platform'] ?? Custom::CODE
+            );
+        } else {
+            $this->config['platform'] = array_shift($platforms);
+        }
     }
 
     /**

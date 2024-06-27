@@ -41,7 +41,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
         $credentials = $this->getCredentials($dbName);
         if (str_contains($inputPath, '.gz')) {
             $string = "zcat < %s | grep -v '50013 DEFINER' | grep -v '^CREATE DATABASE' | grep -v '^USE' "
-                . " | mysql -u%s -p%s -h%s -P%s %s";
+                . " | mysql --force -u%s -p%s -h%s -P%s %s";
 
             return sprintf(
                 $string,
@@ -50,7 +50,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
             );
         } else {
             return sprintf(
-                "mysql -u%s -p%s -h%s -P%s %s < %s",
+                "mysql --force -u%s -p%s -h%s -P%s %s < %s",
                 ...[
                     ...$credentials,
                     escapeshellarg($inputPath)

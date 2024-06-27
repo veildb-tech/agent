@@ -17,14 +17,17 @@ readonly class PlatformProcessor
     }
 
     /**
+     * @param string $engine
      * @return array
      */
-    public function getPlatforms(): array
+    public function getPlatforms(string $engine): array
     {
         $platforms = [];
         /** @var PlatformInterface $platform */
         foreach ($this->platforms as $platform) {
-            $platforms[$platform->getCode()] = $platform;
+            if ($platform->supports($engine)) {
+                $platforms[$platform->getCode()] = $platform;
+            }
         }
         return $platforms;
     }

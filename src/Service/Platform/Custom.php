@@ -17,4 +17,13 @@ class Custom extends AbstractPlatform
     {
         return 'Custom';
     }
+
+    /**
+     * @param string $engine
+     * @return bool
+     */
+    public function supports(string $engine): bool
+    {
+        return true;
+    }
 }

@@ -8,4 +8,5 @@ interface PlatformInterface
 {
     public function getCode(): string;
     public function getName(): string;
+    public function supports(string $engine): bool;
 }
