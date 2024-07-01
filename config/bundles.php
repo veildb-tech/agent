@@ -17,10 +17,12 @@ foreach ([
     }
 }
 
+var_dump($engines);
+
 return [
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Symfony\Bundle\MakerBundle\MakerBundle::class => ['dev' => true],
-    DbManager\MysqlBundle\DbManagerMysqlBundle::class => ['all' => in_array(MariaDb::ENGINE_CODE, $engines)],
+    DbManager\MysqlBundle\DbManagerMysqlBundle::class => ['all' => in_array(Mysql::ENGINE_CODE, $engines)],
     DbManager\MariaDbBundle\DbManagerMariaDbBundle::class => ['all' => in_array(MariaDb::ENGINE_CODE, $engines)],
     DbManager\CoreBundle\DbManagerCoreBundle::class => ['all' => true],
     DbManager\TestBundle\DbManagerTestBundle::class => ['dev' => true, 'test' => true],
