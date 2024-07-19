@@ -60,7 +60,8 @@ final class DatabaseDump extends AppService
         $result = $this->sendRequest(
             [
                 'query' => [
-                    'status' => 'scheduled'
+                    'status' => 'scheduled',
+                    'db.server' => '/api/servers/' . $this->appConfig->getServerUuid(),
                 ]
             ],
             'GET'

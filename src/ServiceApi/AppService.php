@@ -51,7 +51,7 @@ class AppService
      * @param CacheInterface $cacheAdapter
      */
     public function __construct(
-        private readonly AppConfig $appConfig,
+        protected readonly AppConfig $appConfig,
         private readonly AppServiceClient $client,
         private readonly CacheInterface $cacheAdapter
     ) {
