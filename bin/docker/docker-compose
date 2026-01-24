@@ -41,7 +41,7 @@ if command_exists "docker compose" ; then
 elif command_exists "docker-compose"; then
     DOCKER_COMPOSE="docker-compose"
 else
-    echo "The commands: docker-compose or docker compose not found in system. Please, install before continue." && exit
+    echo "The commands: docker-compose or docker compose not found in system. Please install before continuing." && exit
 fi
 
 COMPOSE_FILE=${PROJECT_ROOT}/docker/docker-compose.yml

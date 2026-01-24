@@ -8,7 +8,7 @@ fi
 
 _stopContainer() {
     if [ ! -f ${2} ]; then
-        echo "For working DB engine the file ${2} is required!";
+        echo "To use the DB engine, the file ${2} is required!";
         exit;
     fi
 

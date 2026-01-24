@@ -287,10 +287,10 @@ _fixDirectory() {
     echo "${DIRECTORY}"
 }
 
-_output " Started Project setting " "heading"
+_output " Starting Project setup " "heading"
 
 # Validate environment.
-read -r -p " Do you want to use a docker? (Y/n) " yn </dev/tty
+read -r -p " Do you want to use Docker? (Y/n) " yn </dev/tty
 if [ $(expr match "${yn}" '[Nn]') != 0 ]; then
     USE_DOCKER=0
     _checkRequiredLibs
@@ -303,7 +303,7 @@ else
 fi
 
 # Init configurations:
- _output " Initializing Base configurations " "heading"
+ _output " Initializing base configurations " "heading"
 
 if [ ! -f "${PROJECT_ROOT}.env" ]; then
     cp "${PROJECT_ROOT}env-sample" "${PROJECT_ROOT}.env"
@@ -420,7 +420,7 @@ while true; do
     echo "3. PostgreSQL"
     echo "4. Continue"
 
-    read -p "Choose DB engines which will be used: " choice
+    read -p "Choose which DB engines will be used: " choice
     case $choice in
         1)
             if [ ! -f ${PROJECT_ROOT}.env.mysql ]; then
@@ -515,7 +515,7 @@ if [ -f ${PROJECT_ROOT}.env.mysql ]; then
         echo "7. 8.3"
         echo "8. latest"
 
-        read -p "Choose MySQL DB version ( default is latest ): " choice
+        read -p "Choose MySQL version ( default is latest ): " choice
         case $choice in
             1)
                 _replace_pattern "MYSQL_DB_VERSION=[a-z0-9.]*" "MYSQL_DB_VERSION=5.5" ${PROJECT_ROOT}.env.mysql
@@ -562,7 +562,7 @@ if [ -f ${PROJECT_ROOT}.env.pgsql ]; then
         echo "5. 16"
         echo "6. latest"
 
-        read -p "Choose Postgres DB version ( default is latest ): " choice
+        read -p "Choose PostgreSQL version ( default is latest ): " choice
         case $choice in
             1)
                 _replace_pattern "POSTGRES_DB_VERSION=[a-z0-9.]*" "POSTGRES_DB_VERSION=12" ${PROJECT_ROOT}.env.pgsql
@@ -632,7 +632,7 @@ _initAlias
 # Generate Server key pair
 ( sleep 5; "${PROJECT_ROOT}"dbvisor-agent app:server:generate-keypair --identifier='server' --key-only > /dev/null 2>&1 )
 
-_output " The dbvisor agent had been installed successfully. " "info"
+_output " The dbvisor agent has been installed successfully. " "info"
 "${PROJECT_ROOT}"dbvisor-agent info
 if [ -z "${APP_SERVER_UUID}" ]; then
     _output " To continue please execute the command: ${MANAGER_CLI} app:server:add " "warning"
