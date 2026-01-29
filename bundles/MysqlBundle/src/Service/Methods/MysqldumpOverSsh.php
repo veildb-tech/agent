@@ -28,7 +28,7 @@ class MysqldumpOverSsh extends \App\Service\Methods\AbstractMethod
         $destFile = $this->getDestinationFile($dbUuid, $filename);
         $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p\"%s\"', $dbConfig['db_password']) : '';
         $mysqlCommand = sprintf(
-            "mysqldump -u %s %s -h%s -P%s %s",
+            "mysqldump -u %s %s -h%s -P%s %s --skip-ssl",
             $dbConfig['db_user'],
             $dbPassword,
             $dbConfig['db_host'],
@@ -67,7 +67,7 @@ class MysqldumpOverSsh extends \App\Service\Methods\AbstractMethod
     {
         $dbPassword = !empty($config['db_password']) ? sprintf('-p\"%s\"', $config['db_password']) : '';
         $mysqlCommand = sprintf(
-            "mysql -u%s -h%s %s %s -e 'SELECT 1'",
+            "mysql -u%s -h%s %s %s --skip-ssl -e 'SELECT 1'",
             $config['db_user'],
             $config['db_host'],
             $dbPassword,

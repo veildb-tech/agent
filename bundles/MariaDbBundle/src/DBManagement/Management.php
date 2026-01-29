@@ -22,7 +22,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
     {
         $credentials = $this->getCredentials($dbName);
         return sprintf(
-            "mysql -u%s -p%s -h%s -P%s -e 'DROP DATABASE %s'",
+            "mysql -u%s -p%s -h%s -P%s --skip-ssl -e 'DROP DATABASE %s'",
             ...$credentials
         );
     }
@@ -31,7 +31,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
     {
         $credentials = $this->getCredentials($dbName);
         return sprintf(
-            "mysql -u%s -p%s -h%s -P%s -e 'CREATE DATABASE %s'",
+            "mysql -u%s -p%s -h%s -P%s --skip-ssl -e 'CREATE DATABASE %s'",
             ...$credentials
         );
     }
@@ -41,7 +41,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
         $credentials = $this->getCredentials($dbName);
         if (str_contains($inputPath, '.gz')) {
             $string = "zcat < %s | grep -v '50013 DEFINER' | grep -v '^CREATE DATABASE' | grep -v '^USE' "
-                . " | mysql --force -u%s -p%s -h%s -P%s %s";
+                . " | mysql --force -u%s -p%s -h%s -P%s %s --skip-ssl";
 
             return sprintf(
                 $string,
@@ -50,7 +50,7 @@ final class Management extends AbstractDBManagement implements DBManagementInter
             );
         } else {
             return sprintf(
-                "mysql --force -u%s -p%s -h%s -P%s %s < %s",
+                "mysql --force -u%s -p%s -h%s -P%s %s --skip-ssl < %s",
                 ...[
                     ...$credentials,
                     escapeshellarg($inputPath)
@@ -63,8 +63,8 @@ final class Management extends AbstractDBManagement implements DBManagementInter
     {
         $credentials = $this->getCredentials($dbName);
         $dumpString = $this->appConfig->isGzipEnabled()
-            ? 'mysqldump -u%s -p%s -h%s -P%s %s | gzip > %s'
-            : 'mysqldump -u%s -p%s -h%s -P%s %s > %s';
+            ? 'mysqldump -u%s -p%s -h%s -P%s %s --skip-ssl | gzip > %s'
+            : 'mysqldump -u%s -p%s -h%s -P%s %s --skip-ssl > %s';
         return sprintf(
             $dumpString,
             ...[

@@ -24,7 +24,7 @@ class Mysqldump extends AbstractMethod
         $destFile = $this->getDestinationFile($dbUuid, $filename);
         $dbPassword = !empty($dbConfig['db_password']) ? sprintf('-p"%s"', $dbConfig['db_password']) : '';
         $this->shellProcess->run(sprintf(
-            "mysqldump -u %s %s -h%s -P%s %s > %s",
+            "mysqldump -u %s %s -h%s -P%s %s --skip-ssl > %s",
             $dbConfig['db_user'],
             $dbPassword,
             $this->getConnectionHost($dbConfig),
@@ -43,7 +43,7 @@ class Mysqldump extends AbstractMethod
     {
         $dbPassword = !empty($config['db_password']) ? sprintf('-p"%s"', $config['db_password']) : '';
         $process = $this->shellProcess->run(sprintf(
-            "mysql -u %s %s -h%s -P%s %s -e 'SELECT 1'",
+            "mysql -u %s %s -h%s -P%s %s --skip-ssl -e 'SELECT 1'",
             $config['db_user'],
             $dbPassword,
             $this->getConnectionHost($config),
