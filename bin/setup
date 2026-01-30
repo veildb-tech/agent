@@ -226,48 +226,48 @@ _generateJwtKey() {
 _initAlias() {
     NAME="dbvisor-agent"
     DEFINITION="${MANAGER_CLI}"
+    ALIAS_ADDED=0
 
-    if [ -f ${HOME}/.bash_aliases ] && [ $(which bash) != "" ]; then
-        if [ "$(cat < "${HOME}/.bash_aliases" | grep -c "${NAME}")" = "0" ] ; then
-            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bash_aliases
-
-            . ${HOME}/.bash_aliases
-            . ${HOME}/.bashrc
-
-            exec bash --login
+    # Add alias to bash_aliases if it exists
+    if [ -f "${HOME}/.bash_aliases" ] && command -v bash >/dev/null 2>&1; then
+        if ! grep -q "${NAME}" "${HOME}/.bash_aliases" 2>/dev/null; then
+            echo "alias $NAME='$DEFINITION'" >> "${HOME}/.bash_aliases"
+            ALIAS_ADDED=1
         fi
     fi
 
-    if [ -f ${HOME}/.zshrc ] && [ $(which zsh) != "" ]; then
-        if [ "$(cat < "${HOME}/.zshrc" | grep -c "${NAME}")" = "0" ] ; then
-            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.zshrc
-
-            . ${HOME}/.zshrc
+    # Add alias to zshrc if zsh is available
+    if [ -f "${HOME}/.zshrc" ] && command -v zsh >/dev/null 2>&1; then
+        if ! grep -q "${NAME}" "${HOME}/.zshrc" 2>/dev/null; then
+            echo "alias $NAME='$DEFINITION'" >> "${HOME}/.zshrc"
+            ALIAS_ADDED=1
         fi
     fi
 
-    if [ -f ${HOME}/.bashrc ] && [ $(which bash) != "" ]; then
-        if [ "$(cat < "${HOME}/.bashrc" | grep -c "${NAME}")" = "0" ] ; then
-            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.bashrc
-
-            . ${HOME}/.bashrc
-
-            exec bash --login
+    # Add alias to bashrc if it exists and bash_aliases wasn't used
+    if [ -f "${HOME}/.bashrc" ] && command -v bash >/dev/null 2>&1; then
+        if ! grep -q "${NAME}" "${HOME}/.bashrc" 2>/dev/null; then
+            # Only add if not already in bash_aliases (which bashrc typically sources)
+            if [ ! -f "${HOME}/.bash_aliases" ] || ! grep -q "${NAME}" "${HOME}/.bash_aliases" 2>/dev/null; then
+                echo "alias $NAME='$DEFINITION'" >> "${HOME}/.bashrc"
+                ALIAS_ADDED=1
+            fi
         fi
     fi
 
-    if [ $(which sh) != "" ]; then
-        if [ ! -f ${HOME}/.profile ]; then
-            touch ${HOME}/.profile
+    # Add alias to profile as fallback
+    if [ -f "${HOME}/.profile" ] || [ "${ALIAS_ADDED}" = "0" ]; then
+        if [ ! -f "${HOME}/.profile" ]; then
+            touch "${HOME}/.profile"
         fi
-
-        if [ "$(cat < "${HOME}/.profile" | grep -c "${NAME}")" = "0" ] ; then
-            echo "alias $NAME='$DEFINITION'" >> ${HOME}/.profile
-
-            . ${HOME}/.profile
-
-            exec sh --login
+        if ! grep -q "${NAME}" "${HOME}/.profile" 2>/dev/null; then
+            echo "alias $NAME='$DEFINITION'" >> "${HOME}/.profile"
+            ALIAS_ADDED=1
         fi
+    fi
+
+    if [ "${ALIAS_ADDED}" = "1" ]; then
+        _output " Alias '${NAME}' added. Please open a new terminal or run: source ~/.bashrc (or ~/.zshrc)" "info"
     fi
 }
 
