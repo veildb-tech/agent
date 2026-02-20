@@ -23,7 +23,7 @@ else
 
     "${PROJECT_ROOT}"/bin/docker/stop
 
-    if [ "$(docker network ls | grep dbvisor-network)" ]; then
-        docker network rm dbvisor-network
+    if [ "$(docker network ls | grep veildb-network)" ]; then
+        docker network rm veildb-network
     fi
 fi

@@ -4,9 +4,9 @@ services:
   # -------------- #
   # -- Database -- #
   # -------------- #
-  dbvisor-postgres:
+  veildb-postgres:
     image: postgres:${POSTGRES_DB_VERSION:-latest}
-    container_name: ${IMAGES_PREFIX:-}dbvisor-postgres
+    container_name: ${IMAGES_PREFIX:-}veildb-postgres
     environment:
       POSTGRES_USER: ${DATABASE_USER:-root}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-root}
@@ -17,9 +17,9 @@ services:
       - ${DATABASE_PORT:-5432}
     init: true
     networks:
-      - dbvisor-network
+      - veildb-network
 
 networks:
-  dbvisor-network:
+  veildb-network:
     external: true
-    name: dbvisor-network
+    name: veildb-network

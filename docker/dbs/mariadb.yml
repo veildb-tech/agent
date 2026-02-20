@@ -4,9 +4,9 @@ services:
   # -------------- #
   # -- Database -- #
   # -------------- #
-  dbvisor-mariadb:
+  veildb-mariadb:
     image: mariadb:${MARIA_DB_VERSION:-latest}
-    container_name: ${IMAGES_PREFIX:-}dbvisor-mariadb
+    container_name: ${IMAGES_PREFIX:-}veildb-mariadb
     command: --max_allowed_packet=64M
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD:-root}
@@ -17,9 +17,9 @@ services:
       - ${DATABASE_PORT:-3306}
     init: true
     networks:
-      - dbvisor-network
+      - veildb-network
 
 networks:
-  dbvisor-network:
+  veildb-network:
     external: true
-    name: dbvisor-network
+    name: veildb-network

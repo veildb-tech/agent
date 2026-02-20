@@ -1,8 +1,8 @@
 APP_ENV=prod
-APP_NAME='dbvisor-agent'
+APP_NAME='veildb-agent'
 APP_SECRET=
 
-APP_SERVICE_URL=app.dbvisor.pro
+APP_SERVICE_URL=app.veildb.com
 APP_SERVICE_WORKSPACE=
 APP_SERVICE_TOKEN=
 APP_SERVICE_SECURE=1

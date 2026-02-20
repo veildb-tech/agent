@@ -3,7 +3,7 @@
 export PROJECT_ROOT
 PROJECT_ROOT="$(dirname "$(realpath $0)")/"
 USE_DOCKER=0
-MANAGER_CLI="${PROJECT_ROOT}dbvisor-agent"
+MANAGER_CLI="${PROJECT_ROOT}veildb-agent"
 
 command_exists() {
     if [ "$@" = "docker compose" ] ; then
@@ -222,11 +222,30 @@ _generateJwtKey() {
     echo "$jwt_secret"
 }
 
-# Print instructions for running dbvisor-agent
+# Add alias to shell config files
 _initAlias() {
-    _output " To run the dbvisor-agent from anywhere, add this line to your shell config (~/.bashrc, ~/.zshrc, or ~/.profile):" "info"
-    _output "   alias dbvisor-agent='${MANAGER_CLI}'" "comment"
-    _output " Then open a new terminal or run: . ~/.bashrc (or . ~/.zshrc)" "info"
+    ALIAS_LINE="alias veildb-agent='${MANAGER_CLI}'"
+    ALIAS_ADDED=0
+
+    for RC_FILE in "${HOME}/.bashrc" "${HOME}/.zshrc" "${HOME}/.profile"; do
+        if [ -f "${RC_FILE}" ]; then
+            if ! grep -qF "${ALIAS_LINE}" "${RC_FILE}"; then
+                printf "\n# VeilDB Agent\n%s\n" "${ALIAS_LINE}" >> "${RC_FILE}"
+                _output "  [*] Alias added to ${RC_FILE}" "success"
+                ALIAS_ADDED=1
+            else
+                _output "  [*] Alias already present in ${RC_FILE}" "info"
+                ALIAS_ADDED=1
+            fi
+        fi
+    done
+
+    if [ "${ALIAS_ADDED}" = "0" ]; then
+        printf "\n# VeilDB Agent\n%s\n" "${ALIAS_LINE}" >> "${HOME}/.profile"
+        _output "  [*] Alias added to ${HOME}/.profile" "success"
+    fi
+
+    _output " Open a new terminal or run: . ~/.bashrc (or . ~/.zshrc) to apply the alias." "info"
 }
 
 # Fix possible issues with directory
@@ -275,11 +294,13 @@ if [ "${APP_DOCKER_USE}" != "${USE_DOCKER}" ]; then
 fi
 
 # Get Service URL
-DEFAULT_APP_SERVICE_URL="${APP_SERVICE_URL:-app.dbvisor.pro}"
-read -rp " Enter the service URL ( default: ${DEFAULT_APP_SERVICE_URL} ): " NEW_APP_SERVICE_URL </dev/tty
-if [ -z "${NEW_APP_SERVICE_URL}" ]; then
-    NEW_APP_SERVICE_URL="${DEFAULT_APP_SERVICE_URL}"
-fi
+NEW_APP_SERVICE_URL=""
+while [ -z "${NEW_APP_SERVICE_URL}" ]; do
+    read -rp " Enter the service URL: " NEW_APP_SERVICE_URL </dev/tty
+    if [ -z "${NEW_APP_SERVICE_URL}" ]; then
+        _output " Service URL is required." "error"
+    fi
+done
 if [ "${NEW_APP_SERVICE_URL}" != "${APP_SERVICE_URL}" ]; then
     if [ -z "${APP_SERVICE_URL}" ]; then
         _replace_pattern "APP_SERVICE_URL=" "APP_SERVICE_URL=${NEW_APP_SERVICE_URL}" ${PROJECT_ROOT}/.env
@@ -602,10 +623,10 @@ fi
 _initAlias
 
 # Generate Server key pair
-( sleep 5; "${PROJECT_ROOT}"dbvisor-agent app:server:generate-keypair --identifier='server' --key-only > /dev/null 2>&1 )
+( sleep 5; "${PROJECT_ROOT}"veildb-agent app:server:generate-keypair --identifier='server' --key-only > /dev/null 2>&1 )
 
-_output " The dbvisor agent has been installed successfully. " "info"
-"${PROJECT_ROOT}"dbvisor-agent info
+_output " The VeilDB agent has been installed successfully. " "info"
+"${PROJECT_ROOT}"veildb-agent info
 if [ -z "${APP_SERVER_UUID}" ]; then
     _output " To continue please execute the command: ${MANAGER_CLI} app:server:add " "warning"
 fi

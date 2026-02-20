@@ -26,20 +26,20 @@ The tool could be installed by two ways:
 
 ### To setup the tool manually need to do:
 1. download source code to needed folder
-2. execute `./dbvisor-agent setup`
+2. execute `./veildb-agent setup`
 3. Follow the further instructions
 
 ### Steps after setup
-1. execute: `dbvisor-agent app:server:add` - command will authorize the server in service.
-2. execute: `dbvisor-agent app:cron:install` - command will install all required cron jobs.
+1. execute: `veildb-agent app:server:add` - command will authorize the server in service.
+2. execute: `veildb-agent app:cron:install` - command will install all required cron jobs.
 
 ## Usage:
 
 ### Available commands:
-1. `dbvisor-agent app:db:process --uid=<Database UID> --db=<Database Name>` - start db backup processing
-2. `dbvisor-agent app:db:analyze --uid=<Database UID> --db=<Database Name>` - analyze db structure and send to service
-3. `dbvisor-agent app:db:getScheduled` - get scheduled backups
-4. `dbvisor-agent app:db:log --uuid=<Backup UUID> --status=<Process Status>` --message=<Message> - send log information to service
+1. `veildb-agent app:db:process --uid=<Database UID> --db=<Database Name>` - start db backup processing
+2. `veildb-agent app:db:analyze --uid=<Database UID> --db=<Database Name>` - analyze db structure and send to service
+3. `veildb-agent app:db:getScheduled` - get scheduled backups
+4. `veildb-agent app:db:log --uuid=<Backup UUID> --status=<Process Status>` --message=<Message> - send log information to service
 
 ## Additional Configurations:
 
@@ -55,7 +55,7 @@ In case you use Docker need to:
 
 ## Setup connecting to local DB
 By default, the tool uses the network with the next Subnet: 172.27.0.0/16.
-It can be changed by using the variable: DBVISOR_SUBNET
+It can be changed by using the variable: VEILDB_SUBNET
 
 ### MySQL
 1. open the file: /etc/mysql/mysql.conf.d/mysqld.cnf

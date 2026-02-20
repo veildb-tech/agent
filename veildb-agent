@@ -21,7 +21,7 @@ _help() {
         # shellcheck disable=SC2059
         printf "
 ${YELLOW}Usage:${NC}
-    ${GREEN}dbvisor-agent [command]${NC}
+    ${GREEN}veildb-agent [command]${NC}
 
 ${YELLOW}Options:${NC}
     ${GREEN}-l | --list${NC}  - list of available commands
@@ -33,7 +33,7 @@ ${YELLOW}Available Commands:${NC}
         # shellcheck disable=SC2059
         printf "
 ${YELLOW}Usage:${NC}
-    ${GREEN}dbvisor-agent [command]${NC}
+    ${GREEN}veildb-agent [command]${NC}
 
 ${YELLOW}Options:${NC}
     ${GREEN}-l | --list${NC}  - list of available commands
@@ -150,7 +150,7 @@ export $(cat "${PROJECT_ROOT}/.env" | grep -v ^# | grep -v ^alias | xargs)
 
 # Check is docker been started
 _checkDocker() {
-    if [ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}dbvisor-server") ]; then
+    if [ -z $(docker container ls -q --filter "name=${IMAGES_PREFIX:-}veildb-server") ]; then
         echo "You must start docker instance before continue."
 
         exit 1

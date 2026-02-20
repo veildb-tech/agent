@@ -1,11 +1,11 @@
 version: "3.7"
 
 services:
-  dbvisor-adminer:
+  veildb-adminer:
     image: adminer
-    container_name: ${IMAGES_PREFIX:-}dbvisor-adminer
+    container_name: ${IMAGES_PREFIX:-}veildb-adminer
     ports:
       - target: 8080
         published: ${APP_DOCKER_ADMINER_PORT:-8098}
     networks:
-      - dbvisor-network
+      - veildb-network
