@@ -31,7 +31,7 @@ jobs:
           set -euo pipefail
           APP_NAME="${GITHUB_REPOSITORY##*/}"
           VERSION="${GITHUB_SHA::7}"
-          ARCHIVE="db-manager-server-symfony-latest.zip"
+          ARCHIVE="veildb-agent-latest.zip"
 
           # create zip excluding git + common junk
           sudo apt-get update
