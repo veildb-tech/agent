@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Psr\Log\LogLevel;
+use Psr\Log\LoggerInterface;
 use App\Exception\AccessDenyException;
 use App\Exception\EncryptionException;
 use App\Service\Security\Encryptor;
@@ -34,7 +36,8 @@ class DownloadController extends AbstractController
     public function __construct(
         private readonly ValidateAccessToken $validateAccessToken,
         private readonly DumpManagement $dumpService,
-        private readonly Encryptor $encryptor
+        private readonly Encryptor $encryptor,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -42,12 +45,15 @@ class DownloadController extends AbstractController
     public function downloadAction(string $token, Request $request): JsonResponse | BinaryFileResponse
     {
         $encryptedData = $request->getContent();
-
         try {
             $this->validateAccessToken->execute($token);
 
             $decryptedData = $this->encryptor->decryptWithKey($encryptedData);
             $decryptedData = json_decode($decryptedData, true);
+
+            if ($decryptedData === null) {
+                return $this->json(['message' => 'Invalid data'], 400);
+            }
 
             $file = $this->dumpService->getDumpFileByUuid($decryptedData['dumpuuid']);
             if ($file === null) {
@@ -67,6 +73,7 @@ class DownloadController extends AbstractController
             | ServerExceptionInterface
             | \Exception $exception
         ) {
+            $this->logger->error($exception->getMessage());
             return $this->json([
                 'message' => 'Error happened'
             ], 404);

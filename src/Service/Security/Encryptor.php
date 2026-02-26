@@ -125,6 +125,7 @@ final class Encryptor extends AbstractSecurity
                 $encryptedData,
                 $decryptedData,
                 $this->formKey($key, 'ENCRYPTED PRIVATE KEY'))
+                && json_decode($decryptedData) !== null
             ) {
                 return $decryptedData;
             }
