@@ -89,12 +89,36 @@ abstract class AbstractEngineProcessor implements EngineInterface
 
         $tables = $schemaBuilder->getTables();
         foreach ($tables as $table) {
+            $fkByColumn = [];
+            foreach ($schemaBuilder->getForeignKeys($table['name']) as $fk) {
+                foreach ($fk['columns'] as $i => $col) {
+                    $fkByColumn[$col] = [
+                        'foreign_table'  => $fk['foreign_table'],
+                        'foreign_column' => $fk['foreign_columns'][$i] ?? $fk['foreign_columns'][0],
+                    ];
+                }
+            }
+
+            $primaryColumns = [];
+            foreach ($schemaBuilder->getIndexes($table['name']) as $index) {
+                if ($index['primary']) {
+                    $primaryColumns = array_flip($index['columns']);
+                    break;
+                }
+            }
+
             $columns = $schemaBuilder->getColumns($table['name']);
             foreach ($columns as $column) {
                 $columnData = [
                     'type' => $column['type_name'],
                     'name' => $column['name']
                 ];
+                if (isset($primaryColumns[$column['name']])) {
+                    $columnData['primary_key'] = true;
+                }
+                if (isset($fkByColumn[$column['name']])) {
+                    $columnData['foreign_key'] = $fkByColumn[$column['name']];
+                }
                 $dbSchema[$table['name']][$column['name']] = $columnData;
             }
         }
