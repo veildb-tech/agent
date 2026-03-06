@@ -28,6 +28,11 @@ abstract class AbstractEngineProcessor implements EngineInterface
     protected array $generated = [];
 
     /**
+     * @var string
+     */
+    protected string $currentTable = '';
+
+    /**
      * @var Connection
      */
     protected Connection $connection;
@@ -167,6 +172,7 @@ abstract class AbstractEngineProcessor implements EngineInterface
      */
     protected function processMethod(string $table, array $rule, string $column = null): void
     {
+        $this->currentTable = $table;
         try {
             $this->validateRule($rule, $column);
 
@@ -236,6 +242,32 @@ abstract class AbstractEngineProcessor implements EngineInterface
     protected function isUniqueMethod(string $fakeMethod): bool
     {
         return in_array($fakeMethod, ['email', 'safeEmail']);
+    }
+
+    /**
+     * Replace {faker.method} and {faker.method(arg1,arg2)} placeholders in a value string.
+     *
+     * @param string      $value
+     * @param string|null $columnType  Used to format date-returning fakers correctly.
+     * @return string
+     */
+    protected function interpolateValue(string $value, ?string $columnType = null): string
+    {
+        if (!str_contains($value, '{faker.')) {
+            return $value;
+        }
+
+        return preg_replace_callback(
+            '/\{faker\.(\w+)(?:\(([^)]*)\))?\}/',
+            function (array $matches) use ($columnType): string {
+                $method  = $matches[1];
+                $argsStr = $matches[2] ?? '';
+                $args    = $argsStr !== '' ? explode(',', $argsStr) : [];
+                $result  = $this->faker->generateFake($method, $args, null, $columnType);
+                return str_replace(["\r\n", "\r", "\n"], ' ', $result);
+            },
+            $value
+        );
     }
 
     /**
