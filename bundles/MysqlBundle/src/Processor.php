@@ -94,7 +94,36 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
      */
     protected function update(array $rule, string $column): void
     {
-        $this->dataProcessor->update($column, $rule['value'], $rule['where'] ?? null);
+        $value = $rule['value'];
+
+        if (!str_contains($value, '{faker.')) {
+            $this->dataProcessor->update($column, $value, $rule['where'] ?? null);
+            return;
+        }
+
+        $columnType = $this->getColumnType($this->currentTable, $column);
+        $primaryKey = $this->getPrimaryKey($this->currentTable);
+
+        if ($primaryKey === null) {
+            $this->addError(sprintf("Can't allocate primary key for table \"%s\". Skipping this table", $this->currentTable));
+            return;
+        }
+
+        if (!empty($rule['where'])) {
+            $rows = $this->connection->select(
+                sprintf('SELECT %s FROM `%s` WHERE %s', $primaryKey, $this->currentTable, $rule['where'])
+            );
+        } else {
+            $rows = $this->connection->select(sprintf('SELECT %s FROM `%s`', $primaryKey, $this->currentTable));
+        }
+
+        foreach ($rows as $row) {
+            $this->dataProcessor->update(
+                $column,
+                $this->interpolateValue($value, $columnType),
+                sprintf("`%s` = '%s'", $primaryKey, $row->{$primaryKey})
+            );
+        }
     }
 
     /**
@@ -111,6 +140,7 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
             $this->addError(sprintf("Can't allocate primary key for table \"%s\". Skipping this table", $table));
         } else {
             $columnMaxLength = $this->getColumnMaxLength($table, $column);
+            $columnType      = $this->getColumnType($table, $column);
             if (!empty($rule['where'])) {
                 $rows = $this->connection->select(
                     sprintf('SELECT %s, %s FROM `%s` WHERE %s', $primaryKey, $column, $table, $rule['where'])
@@ -126,7 +156,8 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
                 $this->getRuleOptions($rule),
                 count($rows),
                 $this->isUniqueMethod($method),
-                $columnMaxLength
+                $columnMaxLength,
+                $columnType
             );
 
             foreach ($rows as $row) {
@@ -196,5 +227,21 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
         $key = $this->connection->selectOne(sprintf($sql, $column, $table));
 
         return $key?->character_maximum_length;
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @return string|null
+     */
+    protected function getColumnType(string $table, string $column): ?string
+    {
+        $sql = "SELECT DATA_TYPE as data_type
+                FROM information_schema.COLUMNS
+                WHERE COLUMN_NAME='%s' AND TABLE_NAME='%s';";
+
+        $key = $this->connection->selectOne(sprintf($sql, $column, $table));
+
+        return $key?->data_type;
     }
 }

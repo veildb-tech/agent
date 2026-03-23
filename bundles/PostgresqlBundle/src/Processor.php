@@ -90,7 +90,36 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
      */
     protected function update(array $rule, string $column): void
     {
-        $this->dataProcessor->update($column, $rule['value'], $rule['where'] ?? null);
+        $value = $rule['value'];
+
+        if (!str_contains($value, '{faker.')) {
+            $this->dataProcessor->update($column, $value, $rule['where'] ?? null);
+            return;
+        }
+
+        $columnType = $this->getColumnType($this->currentTable, $column);
+        $primaryKey = $this->getPrimaryKey($this->currentTable);
+
+        if ($primaryKey === null) {
+            $this->addError(sprintf("Can't allocate primary key for table \"%s\". Skipping this table", $this->currentTable));
+            return;
+        }
+
+        if (!empty($rule['where'])) {
+            $rows = $this->connection->select(
+                sprintf('SELECT %s FROM %s WHERE %s', $primaryKey, $this->currentTable, $rule['where'])
+            );
+        } else {
+            $rows = $this->connection->select(sprintf('SELECT %s FROM %s', $primaryKey, $this->currentTable));
+        }
+
+        foreach ($rows as $row) {
+            $this->dataProcessor->update(
+                $column,
+                $this->interpolateValue($value, $columnType),
+                sprintf("%s = %s", $primaryKey, $row->{$primaryKey})
+            );
+        }
     }
 
     /**
@@ -104,48 +133,61 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
         if ($primaryKey === null) {
             // TODO: Improve updating without primary key
             $this->addError(sprintf("Can't allocate primary key for table \"%s\". Skipping this table", $table));
-        } else {
-            $columnMaxLength = $this->getColumnMaxLength($table, $column);
-            if (!empty($rule['where'])) {
-                $rows = $this->connection->select(
-                    sprintf('SELECT %s, %s FROM %s WHERE %s', $primaryKey, $column, $table, $rule['where'])
-                );
-            } else {
-                $rows = $this->connection->select(sprintf('SELECT %s, %s FROM %s', $primaryKey, $column, $table));
-            }
+            $this->logDebug("Finish processing fake: {$table}::{$column}");
+            return;
+        }
 
-            $processedData = [];
-            $method = $rule['value'] ?? $column;
-            $fakeCollection = $this->faker->generateFakeCollection(
-                $method,
-                $this->getRuleOptions($rule),
-                count($rows),
-                $this->isUniqueMethod($method),
-                $columnMaxLength
+        $columnType = $this->getColumnType($table, $column);
+
+        if (!empty($rule['where'])) {
+            $rows = $this->connection->select(
+                sprintf('SELECT %s, %s FROM %s WHERE %s', $primaryKey, $column, $table, $rule['where'])
             );
+        } else {
+            $rows = $this->connection->select(sprintf('SELECT %s, %s FROM %s', $primaryKey, $column, $table));
+        }
 
+        $method  = $rule['value'] ?? $column;
+        $options = $this->getRuleOptions($rule);
+
+        if ($this->isArrayType((string)$columnType)) {
+            $elementType = substr((string)$columnType, 1); // strip leading '_'
+            $isNumeric   = in_array($elementType, ['int2', 'int4', 'int8', 'float4', 'float8', 'numeric']);
+            $processedData = [];
             foreach ($rows as $row) {
-                $fakeValue = array_shift($fakeCollection);
+                $elements    = $this->parsePostgresArray((string)$row->{$column});
+                $newElements = array_map(
+                    fn($element) => $this->faker->generateFake($method, $options, null, $elementType),
+                    $elements
+                );
                 $processedData[] = [
                     $primaryKey => $row->{$primaryKey},
-                    $column => $fakeValue
+                    $column     => $this->serializePostgresArray($newElements, $isNumeric),
                 ];
             }
+        } else {
+            $columnMaxLength = $this->getColumnMaxLength($table, $column);
+            $fakeCollection  = $this->faker->generateFakeCollection(
+                $method,
+                $options,
+                count($rows),
+                $this->isUniqueMethod($method),
+                $columnMaxLength,
+                $columnType
+            );
+            $processedData = [];
+            foreach ($rows as $row) {
+                $processedData[] = [
+                    $primaryKey => $row->{$primaryKey},
+                    $column     => array_shift($fakeCollection),
+                ];
+            }
+        }
 
-            if (count($processedData) > 1000) {
-                $this->connection->beginTransaction();
-                foreach (array_chunk($processedData, 1000) as $chunk) {
-                    foreach ($chunk as $row) {
-                        $this->dataProcessor->update(
-                            $column,
-                            sprintf("%s", $row[$column]),
-                            sprintf("%s = %s", $primaryKey, $row[$primaryKey])
-                        );
-                    }
-                }
-                $this->connection->commit();
-            } else {
-                foreach ($processedData as $row) {
+        if (count($processedData) > 1000) {
+            $this->connection->beginTransaction();
+            foreach (array_chunk($processedData, 1000) as $chunk) {
+                foreach ($chunk as $row) {
                     $this->dataProcessor->update(
                         $column,
                         sprintf("%s", $row[$column]),
@@ -153,7 +195,17 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
                     );
                 }
             }
+            $this->connection->commit();
+        } else {
+            foreach ($processedData as $row) {
+                $this->dataProcessor->update(
+                    $column,
+                    sprintf("%s", $row[$column]),
+                    sprintf("%s = %s", $primaryKey, $row[$primaryKey])
+                );
+            }
         }
+
         $this->logDebug("Finish processing fake: {$table}::{$column}");
     }
 
@@ -189,5 +241,68 @@ class Processor extends AbstractEngineProcessor implements EngineInterface
         $key = $this->connection->selectOne(sprintf($sql, $column, $table));
 
         return $key?->character_maximum_length;
+    }
+
+    /**
+     * Returns the PostgreSQL internal type name (udt_name), e.g. "text", "_text", "int4", "timestamp".
+     *
+     * @param string $table
+     * @param string $column
+     * @return string|null
+     */
+    protected function getColumnType(string $table, string $column): ?string
+    {
+        $sql = "SELECT udt_name
+                FROM information_schema.columns
+                WHERE column_name = '%s' AND table_name = '%s';";
+
+        $key = $this->connection->selectOne(sprintf($sql, $column, $table));
+
+        return $key?->udt_name;
+    }
+
+    /**
+     * Returns true for PostgreSQL array types (udt_name starts with '_').
+     */
+    private function isArrayType(string $columnType): bool
+    {
+        return str_starts_with($columnType, '_');
+    }
+
+    /**
+     * Parses a PostgreSQL array literal (e.g. {"foo","bar"} or {1,2,3}) into a PHP array.
+     *
+     * @return string[]
+     */
+    private function parsePostgresArray(string $value): array
+    {
+        $inner = substr($value, 1, -1); // strip outer { }
+        if ($inner === '') {
+            return [];
+        }
+        return str_getcsv($inner, ',', '"');
+    }
+
+    /**
+     * Serialises a PHP array back to a PostgreSQL array literal.
+     * String values are quoted; numeric values are left unquoted.
+     *
+     * @param string[] $values
+     * @param bool     $numeric
+     * @return string
+     */
+    private function serializePostgresArray(array $values, bool $numeric = false): string
+    {
+        $parts = array_map(static function ($v) use ($numeric): string {
+            if ($v === null) {
+                return 'NULL';
+            }
+            if ($numeric) {
+                return (string)$v;
+            }
+            return '"' . str_replace('"', '\\"', (string)$v) . '"';
+        }, $values);
+
+        return '{' . implode(',', $parts) . '}';
     }
 }
