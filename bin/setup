@@ -418,18 +418,21 @@ while true; do
         1)
             if [ ! -f ${PROJECT_ROOT}.env.mysql ]; then
                 cp ${PROJECT_ROOT}env.mysql-sample ${PROJECT_ROOT}.env.mysql
+                _replace_pattern "DATABASE_PASSWORD=" "DATABASE_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)" ${PROJECT_ROOT}.env.mysql
             fi
             echo "MySQL Selected."
             ;;
         2)
-            if [ ! -f {PROJECT_ROOT}.env.mariadb ]; then
+            if [ ! -f ${PROJECT_ROOT}.env.mariadb ]; then
                 cp ${PROJECT_ROOT}env.mariadb-sample ${PROJECT_ROOT}.env.mariadb
+                _replace_pattern "DATABASE_PASSWORD=" "DATABASE_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)" ${PROJECT_ROOT}.env.mariadb
             fi
             echo "MariaDB Selected."
             ;;
         3)
-            if [ ! -f {PROJECT_ROOT}.env.pgsql ]; then
+            if [ ! -f ${PROJECT_ROOT}.env.pgsql ]; then
                 cp ${PROJECT_ROOT}env.pgsql-sample ${PROJECT_ROOT}.env.pgsql
+                _replace_pattern "DATABASE_PASSWORD=" "DATABASE_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)" ${PROJECT_ROOT}.env.pgsql
             fi
             echo "PostgreSQL Selected."
             ;;
